@@ -1,0 +1,1228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wushu Registration Admin Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+        .event-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            margin: 2px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            background: #fbbf24;
+            color: #78350f;
+        }
+        .schedule-item {
+            display: inline-block;
+            padding: 2px 6px;
+            margin: 1px;
+            border-radius: 8px;
+            font-size: 10px;
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        .status-student { background: #e0e7ff; color: #3730a3; }
+        .status-state { background: #fef3c7; color: #92400e; }
+        .status-backup { background: #dbeafe; color: #1e40af; }
+        
+        #pdf-preview-template {
+            width: 794px;
+            padding: 40px;
+            background: #ffffff;
+            position: fixed;
+            top: -10000px;
+            left: -10000px;
+            visibility: hidden;
+            pointer-events: none;
+            color: #111827;
+            font-family: 'Noto Sans SC', sans-serif;
+        }
+        .pdf-header-img { width: 100%; margin-bottom: 12px; }
+        .pdf-title-main { text-align:center; font-size:24px; font-weight:800; margin-top:6px; }
+        .pdf-sub { text-align:center; font-size:13px; color:#6b7280; margin-bottom:24px; }
+        .pdf-section { margin-bottom:22px; }
+        .pdf-sec-title {
+            background:#e5e7eb;
+            padding:7px 12px;
+            font-weight:700;
+            font-size:13px;
+            text-transform:uppercase;
+        }
+        .pdf-sec-body {
+            border:1px solid #e5e7eb;
+            border-top:none;
+            padding:10px 12px;
+            font-size:13px;
+            line-height:1.5;
+        }
+        .pdf-row { margin-bottom:5px; }
+        .pdf-label { font-weight:600; color:#6b7280; display:inline-block; width:140px; }
+        .pdf-val { font-weight:500; color:#111827; }
+        /* Mobile Card Layout */
+@media (max-width: 768px) {
+    #registrations-table {
+        display: none;
+    }
+    
+    #mobile-cards {
+        display: block;
+    }
+}
+
+@media (min-width: 769px) {
+    #mobile-cards {
+        display: none;
+    }
+}
+
+.mobile-card {
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border-left: 4px solid #7c3aed;
+}
+
+.mobile-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #f1f5f9;
+}
+
+.mobile-card-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.mobile-card-number {
+    background: #7c3aed;
+    color: white;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.mobile-card-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.mobile-card-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    flex-shrink: 0;
+    width: 90px;
+}
+
+.mobile-card-value {
+    font-size: 13px;
+    color: #334155;
+    text-align: right;
+    flex: 1;
+    word-break: break-word;
+}
+
+.mobile-card-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 2px solid #f1f5f9;
+}
+
+.mobile-card-actions button {
+    flex: 1;
+}
+/* Login Overlay */
+#login-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+}
+
+.login-box {
+    background: white;
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    width: 90%;
+    max-width: 400px;
+    animation: slideUp 0.5s ease;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.login-box h2 {
+    font-size: 28px;
+    font-weight: 800;
+    color: #1e293b;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.login-box p {
+    color: #64748b;
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 14px;
+}
+
+.login-input {
+    width: 100%;
+    padding: 14px 18px;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 16px;
+    outline: none;
+    transition: all 0.3s;
+    margin-bottom: 20px;
+}
+
+.login-input:focus {
+    border-color: #7c3aed;
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+}
+
+.login-btn {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.login-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(124, 58, 237, 0.3);
+}
+
+.login-btn:active {
+    transform: translateY(0);
+}
+
+.login-error {
+    background: #fee2e2;
+    color: #991b1b;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 600;
+    display: none;
+}
+
+#main-content {
+    display: none;
+}
+
+.logout-btn {
+    background: #ef4444;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.logout-btn:hover {
+    background: #dc2626;
+}
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <!-- Login Overlay -->
+<div id="login-overlay">
+    <div class="login-box">
+        <h2>🔐 Admin Access</h2>
+        <p>Enter password to access the admin panel</p>
+        
+        <div id="login-error" class="login-error">
+            Incorrect password. Please try again.
+        </div>
+        
+        <form id="login-form" onsubmit="return handleLogin(event)">
+            <input 
+                type="password" 
+                id="password-input" 
+                class="login-input" 
+                placeholder="Enter admin password"
+                required
+                autocomplete="off"
+            >
+            <button type="submit" class="login-btn">
+                <i class="fas fa-unlock-alt"></i> Access Admin Panel
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Main Content (Hidden until authenticated) -->
+<div id="main-content">
+
+
+<div class="max-w-7xl mx-auto">
+    <!-- Header -->
+<div class="glass-card p-6 mb-6">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+            <h1 class="text-3xl font-bold text-slate-800 flex items-center gap-3">
+                <i class="fas fa-users-cog text-purple-600"></i>
+                Wushu Registration Admin
+            </h1>
+            <p class="text-slate-500 text-sm mt-1">Manage student registrations for 2026</p>
+        </div>
+        <div class="flex gap-3 flex-wrap">
+            <button onclick="exportToExcel()" class="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-lg font-semibold shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-file-excel"></i>
+                Export to Excel
+            </button>
+            <button onclick="loadRegistrations()" class="bg-purple-600 hover:bg-purple-700 text-white px-5 py-2.5 rounded-lg font-semibold shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-sync-alt"></i>
+                Refresh
+            </button>
+            <button onclick="handleLogout()" class="logout-btn flex items-center gap-2">
+                <i class="fas fa-sign-out-alt"></i>
+                Logout
+            </button>
+        </div>
+    </div>
+</div>
+
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div class="glass-card p-5">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-slate-500 text-sm font-semibold">Total Students</p>
+                    <p class="text-3xl font-bold text-slate-800" id="total-count">0</p>
+                </div>
+                <div class="bg-blue-100 p-3 rounded-full">
+                    <i class="fas fa-users text-blue-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+        <div class="glass-card p-5">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-slate-500 text-sm font-semibold">State Team</p>
+                    <p class="text-3xl font-bold text-amber-600" id="state-count">0</p>
+                </div>
+                <div class="bg-amber-100 p-3 rounded-full">
+                    <i class="fas fa-trophy text-amber-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+        <div class="glass-card p-5">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-slate-500 text-sm font-semibold">Backup Team</p>
+                    <p class="text-3xl font-bold text-blue-600" id="backup-count">0</p>
+                </div>
+                <div class="bg-blue-100 p-3 rounded-full">
+                    <i class="fas fa-shield-alt text-blue-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+        <div class="glass-card p-5">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-slate-500 text-sm font-semibold">Regular Students</p>
+                    <p class="text-3xl font-bold text-purple-600" id="student-count">0</p>
+                </div>
+                <div class="bg-purple-100 p-3 rounded-full">
+                    <i class="fas fa-user-graduate text-purple-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search & Filter -->
+    <div class="glass-card p-5 mb-6">
+        <div class="flex flex-col md:flex-row gap-4">
+            <div class="flex-1">
+                <div class="relative">
+                    <i class="fas fa-search absolute left-4 top-3.5 text-slate-400"></i>
+                    <input type="text" id="search-input" placeholder="Search by name, IC, school, or event..." 
+                           class="w-full pl-11 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+                           onkeyup="filterTable()">
+                </div>
+            </div>
+            <select id="status-filter" onchange="filterTable()" class="px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none bg-white">
+                <option value="">All Status</option>
+                <option value="Student">Student</option>
+                <option value="State Team">State Team</option>
+                <option value="Backup Team">Backup Team</option>
+            </select>
+            <select id="level-filter" onchange="filterTable()" class="px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none bg-white">
+                <option value="">All Levels</option>
+                <option value="Basic">Basic</option>
+                <option value="Junior">Junior</option>
+                <option value="Group B">Group B</option>
+                <option value="Group A">Group A</option>
+                <option value="Optional">Optional</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Table -->
+<div class="glass-card overflow-hidden">
+    <!-- Desktop Table View -->
+    <div class="overflow-x-auto">
+        <table class="w-full" id="registrations-table">
+            <thead class="bg-gradient-to-r from-purple-600 to-purple-700 text-white">
+                <tr>
+                    <th class="px-4 py-4 text-left text-sm font-bold">#</th>
+                    <th class="px-4 py-4 text-left text-sm font-bold">Name</th>
+                    <th class="px-4 py-4 text-left text-sm font-bold">IC</th>
+                    <th class="px-4 py-4 text-left text-sm font-bold">Age</th>
+                    <th class="px-4 py-4 text-left text-sm font-bold">School</th>
+                    <th class="px-4 py-4 text-left text-sm font-bold">Status</th>
+                    <th class="px-4 py-4 text-left text-sm font-bold">Level</th>
+                    <th class="px-4 py-4 text-left text-sm font-bold">Events</th>
+                    <th class="px-4 py-4 text-left text-sm font-bold">Contact</th>
+                    <th class="px-4 py-4 text-left text-sm font-bold">Schedule</th>
+                    <th class="px-4 py-4 text-left text-sm font-bold">Registered</th>
+                    <th class="px-4 py-4 text-center text-sm font-bold">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="table-body" class="divide-y divide-slate-200">
+                <!-- Data will be loaded here -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Mobile Card View -->
+    <div id="mobile-cards" class="p-3">
+        <!-- Cards will be loaded here -->
+    </div>
+</div>
+
+<div id="no-data" class="text-center py-12 hidden">
+    <i class="fas fa-inbox text-slate-300 text-6xl mb-4"></i>
+    <p class="text-slate-500 text-lg font-semibold">No registrations found</p>
+    <p class="text-slate-400 text-sm">Registrations will appear here once students submit the form</p>
+</div>
+
+</div>
+
+<!-- HIDDEN PDF TEMPLATE - PAGE 1 -->
+<div id="pdf-preview-template-page1" style="width: 794px; padding: 40px; background: #ffffff; position: fixed; top: -10000px; left: -10000px; visibility: hidden; pointer-events: none; color: #111827; font-family: 'Noto Sans SC', sans-serif;">
+    <img src="/assets/WSP Letter.png" style="width: 100%; margin-bottom: 12px;" alt="Letterhead">
+    <h1 style="text-align:center; font-size:24px; font-weight:800; margin-top:6px;">OFFICIAL WUSHU REGISTRATION 2026</h1>
+    <p style="text-align:center; font-size:13px; color:#6b7280; margin-bottom:24px;">Legal Binding Document · This form confirms participation in Wushu Sports Academy programmes.</p>
+
+    <div style="margin-bottom:22px;">
+        <div style="background:#e5e7eb; padding:7px 12px; font-weight:700; font-size:13px; text-transform:uppercase;">STUDENT DETAILS / 学员资料</div>
+        <div style="border:1px solid #e5e7eb; border-top:none; padding:10px 12px; font-size:13px; line-height:1.5;">
+            <div style="margin-bottom:5px;"><span style="font-weight:600; color:#6b7280; display:inline-block; width:140px;">Name 姓名:</span> <span style="font-weight:500; color:#111827;" id="preview-pdf-name"></span></div>
+            <div style="margin-bottom:5px;"><span style="font-weight:600; color:#6b7280; display:inline-block; width:140px;">IC No 身份证:</span> <span style="font-weight:500; color:#111827;" id="preview-pdf-ic"></span></div>
+            <div style="margin-bottom:5px;"><span style="font-weight:600; color:#6b7280; display:inline-block; width:140px;">Age 年龄:</span> <span style="font-weight:500; color:#111827;" id="preview-pdf-age"></span></div>
+            <div style="margin-bottom:5px;"><span style="font-weight:600; color:#6b7280; display:inline-block; width:140px;">School 学校:</span> <span style="font-weight:500; color:#111827;" id="preview-pdf-school"></span></div>
+            <div style="margin-bottom:5px;"><span style="font-weight:600; color:#6b7280; display:inline-block; width:140px;">Status 身份:</span> <span style="font-weight:500; color:#111827;" id="preview-pdf-status"></span></div>
+        </div>
+    </div>
+
+    <div style="margin-bottom:22px;">
+        <div style="background:#e5e7eb; padding:7px 12px; font-weight:700; font-size:13px; text-transform:uppercase;">CONTACT & EVENTS / 联系与项目</div>
+        <div style="border:1px solid #e5e7eb; border-top:none; padding:10px 12px; font-size:13px; line-height:1.5;">
+            <div style="margin-bottom:5px;"><span style="font-weight:600; color:#6b7280; display:inline-block; width:140px;">Phone 电话:</span> <span style="font-weight:500; color:#111827;" id="preview-pdf-phone"></span></div>
+            <div style="margin-bottom:5px;"><span style="font-weight:600; color:#6b7280; display:inline-block; width:140px;">Email 邮箱:</span> <span style="font-weight:500; color:#111827;" id="preview-pdf-email"></span></div>
+            <div style="margin-bottom:5px;"><span style="font-weight:600; color:#6b7280; display:inline-block; width:140px;">Level 等级:</span> <span style="font-weight:500; color:#111827;" id="preview-pdf-level"></span></div>
+            <div style="margin-bottom:5px;"><span style="font-weight:600; color:#6b7280; display:inline-block; width:140px;">Events 项目:</span> <span style="font-weight:500; color:#111827;" id="preview-pdf-events"></span></div>
+            <div style="margin-bottom:5px;"><span style="font-weight:600; color:#6b7280; display:inline-block; width:140px;">Schedule 时间:</span> <span style="font-weight:500; color:#111827;" id="preview-pdf-schedule"></span></div>
+        </div>
+    </div>
+
+    <div style="margin-bottom:22px;">
+        <div style="background:#e5e7eb; padding:7px 12px; font-weight:700; font-size:13px; text-transform:uppercase;">DECLARATION & SIGNATURE / 声明与签名</div>
+        <div style="border:1px solid #e5e7eb; border-top:none; padding:10px 12px; font-size:13px; line-height:1.5;">
+            <p style="font-size:13px; margin-bottom:12px;">
+                I hereby confirm that all information provided is accurate. I have read and agreed to the
+                Terms & Conditions, Fee Policy, and Athlete Code of Conduct. I understand that Wushu is a
+                high-intensity sport and agree to bear the risks involved.
+            </p>
+            <div style="border:1px solid #d1d5db; padding:8px; width:340px; height:130px; position:relative; margin-bottom:10px;">
+                <img id="preview-pdf-sig-img" style="max-width:100%; max-height:100%; object-fit:contain;">
+            </div>
+            <p style="font-size:13px; font-weight:600; margin-bottom:4px;">
+                Parent / Guardian Name: <span id="preview-pdf-parent-name"></span>
+            </p>
+            <p style="font-size:13px; font-weight:600; margin-bottom:4px;">
+                Parent / Guardian IC No.: <span id="preview-pdf-parent-ic"></span>
+            </p>
+            <p style="font-size:12px; margin-top:2px;">
+                Date: <span id="preview-pdf-date"></span>
+            </p>
+        </div>
+    </div>
+
+    <p style="font-size:12px; color:#4b5563; margin-top:14px; text-align:justify; line-height:1.6;">
+        <strong>NOTES / 备注：</strong>
+        Fees are non-refundable and must be paid by the 10th of every month. Strict discipline and punctuality
+        are required at all times. The Academy reserves the right to adjust training schedules and venues when
+        necessary. 学费概不退还，并须在每月10号前缴清。学员必须严守纪律与守时；学院保留在有需要时调整训练时间及地点的权利。
+    </p>
+</div>
+
+<!-- HIDDEN PDF TEMPLATE - PAGE 2 (TERMS & CONDITIONS) -->
+<div id="pdf-preview-template-page2" style="width: 794px; padding: 40px; background: #ffffff; position: fixed; top: -10000px; left: -10000px; visibility: hidden; pointer-events: none; color: #111827; font-family: Arial, sans-serif;">
+    <img src="/assets/WSP Letter.png" style="width: 100%; margin-bottom: 12px;" alt="Letterhead">
+    <h1 style="text-align:center; font-size:24px; font-weight:800; margin-top:6px; font-family: 'Noto Sans SC', sans-serif;">TERMS & CONDITIONS</h1>
+    <p style="text-align:center; font-size:13px; color:#6b7280; margin-bottom:16px; font-family: 'Noto Sans SC', sans-serif;">条款与条件 · Agreed and Signed by Parent/Guardian</p>
+
+    <div style="font-size: 11px; line-height: 1.5; color: #111827; font-family: 'Noto Sans SC', sans-serif;">
+        <p style="margin-bottom: 10px; font-weight: 600; color: #1e293b; font-size: 12px;">The parent/guardian has read, understood, and agreed to the following terms:</p>
+
+        <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+                <td style="width: 30px; padding: 0 8px 8px 0;">
+                    <div style="width: 24px; height: 24px; background: #1e293b; border-radius: 50%; color: white; font-weight: 700; font-size: 12px; text-align: center; font-family: Arial, sans-serif; box-sizing: border-box; line-height: 10px;">1</div>
+                </td>
+                <td style="padding: 0 0 8px 0;">
+                    <p style="margin: 0 0 2px 0; font-weight: 600; font-size: 11px; line-height: 1.4;">本人（学员/家长/监护人）确认上述资料属实。</p>
+                    <p style="margin: 0; color: #4b5563; font-size: 10px; line-height: 1.4;">I, the student/parent/guardian, confirm that all information provided above is true and correct.</p>
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 30px; padding: 0 8px 8px 0;">
+                    <div style="width: 24px; height: 24px; background: #1e293b; border-radius: 50%; color: white; font-weight: 700; font-size: 12px; text-align: center; font-family: Arial, sans-serif; box-sizing: border-box; line-height: 10px;">2</div>
+                </td>
+                <td style="padding: 0 0 8px 0;">
+                    <p style="margin: 0 0 2px 0; font-weight: 600; font-size: 11px; line-height: 1.4;">本人明白武术是一项剧烈运动，并愿意自行承担训练期间可能发生的意外风险。</p>
+                    <p style="margin: 0; color: #4b5563; font-size: 10px; line-height: 1.4;">I understand that Wushu is a high‑intensity sport and agree to bear any risk of injury during training.</p>
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 30px; padding: 0 8px 8px 0;">
+                    <div style="width: 24px; height: 24px; background: #1e293b; border-radius: 50%; color: white; font-weight: 700; font-size: 12px; text-align: center; font-family: Arial, sans-serif; box-sizing: border-box; line-height: 10px;">3</div>
+                </td>
+                <td style="padding: 0 0 8px 0;">
+                    <p style="margin: 0 0 2px 0; font-weight: 600; font-size: 11px; line-height: 1.4;">学院有权在必要时调整训练时间或地点，并将提前通知。</p>
+                    <p style="margin: 0; color: #4b5563; font-size: 10px; line-height: 1.4;">The Academy reserves the right to adjust training times or venues when necessary and will notify in advance.</p>
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 30px; padding: 0 8px 8px 0;">
+                    <div style="width: 24px; height: 24px; background: #1e293b; border-radius: 50%; color: white; font-weight: 700; font-size: 12px; text-align: center; font-family: Arial, sans-serif; box-sizing: border-box; line-height: 10px;">4</div>
+                </td>
+                <td style="padding: 0 0 8px 0;">
+                    <p style="margin: 0 0 2px 0; font-weight: 600; font-size: 11px; line-height: 1.4;">学费一经缴付，概不退还（Non‑refundable）。</p>
+                    <p style="margin: 0; color: #4b5563; font-size: 10px; line-height: 1.4;">Fees paid are strictly non‑refundable under all circumstances.</p>
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 30px; padding: 0 8px 8px 0;">
+                    <div style="width: 24px; height: 24px; background: #1e293b; border-radius: 50%; color: white; font-weight: 700; font-size: 12px; text-align: center; font-family: Arial, sans-serif; box-sizing: border-box; line-height: 10px;">5</div>
+                </td>
+                <td style="padding: 0 0 8px 0;">
+                    <p style="margin: 0 0 2px 0; font-weight: 600; font-size: 11px; line-height: 1.4;">本人同意遵守学院及教练设定的所有指示、规则和安排。</p>
+                    <p style="margin: 0; color: #4b5563; font-size: 10px; line-height: 1.4;">I agree to follow all instructions, rules, and arrangements set by the Academy and coaches.</p>
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 30px; padding: 0 8px 8px 0;">
+                    <div style="width: 24px; height: 24px; background: #1e293b; border-radius: 50%; color: white; font-weight: 700; font-size: 12px; text-align: center; font-family: Arial, sans-serif; box-sizing: border-box; line-height: 10px;">6</div>
+                </td>
+                <td style="padding: 0 0 8px 0;">
+                    <p style="margin: 0 0 2px 0; font-weight: 600; font-size: 11px; line-height: 1.4;">仅在学院取消课程时提供补课，家长不得自行取消课程。</p>
+                    <p style="margin: 0; color: #4b5563; font-size: 10px; line-height: 1.4;">Replacement classes are only provided when the Academy cancels a session; parents may not cancel classes on their own.</p>
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 30px; padding: 0 8px 8px 0;">
+                    <div style="width: 24px; height: 24px; background: #1e293b; border-radius: 50%; color: white; font-weight: 700; font-size: 12px; text-align: center; font-family: Arial, sans-serif; box-sizing: border-box; line-height: 10px;">7</div>
+                </td>
+                <td style="padding: 0 0 8px 0;">
+                    <p style="margin: 0 0 2px 0; font-weight: 600; font-size: 11px; line-height: 1.4;">若学员因病或其他原因无法出席，须向管理员和教练申请请假，未经批准的缺席将被记录。</p>
+                    <p style="margin: 0; color: #4b5563; font-size: 10px; line-height: 1.4;">If the student cannot attend due to sickness or other reasons, leave must be applied for with admin and coach; unapproved absences will be recorded.</p>
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 30px; padding: 0 8px 8px 0;">
+                    <div style="width: 24px; height: 24px; background: #1e293b; border-radius: 50%; color: white; font-weight: 700; font-size: 12px; text-align: center; font-family: Arial, sans-serif; box-sizing: border-box; line-height: 10px;">8</div>
+                </td>
+                <td style="padding: 0 0 8px 0;">
+                    <p style="margin: 0 0 2px 0; font-weight: 600; font-size: 11px; line-height: 1.4;">州队及后备队运动员必须出席所有训练，保持良好态度，并接受严格的训练及纪律。</p>
+                    <p style="margin: 0; color: #4b5563; font-size: 10px; line-height: 1.4;">State-team and backup athletes must attend all training, maintain good attitude, and accept strict training and discipline.</p>
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 30px; padding: 0 8px 8px 0;">
+                    <div style="width: 24px; height: 24px; background: #1e293b; border-radius: 50%; color: white; font-weight: 700; font-size: 12px; text-align: center; font-family: Arial, sans-serif; box-sizing: border-box; line-height: 10px;">9</div>
+                </td>
+                <td style="padding: 0 0 8px 0;">
+                    <p style="margin: 0 0 2px 0; font-weight: 600; font-size: 11px; line-height: 1.4;">有伤病的学员不宜参加训练，任何后果自负。</p>
+                    <p style="margin: 0; color: #4b5563; font-size: 10px; line-height: 1.4;">Students with injuries or illness should not attend training; any consequences are at their own risk.</p>
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 30px; padding: 0 8px 8px 0;">
+                    <div style="width: 24px; height: 24px; background: #1e293b; border-radius: 50%; color: white; font-weight: 700; font-size: 12px; text-align: center; font-family: Arial, sans-serif; box-sizing: border-box; line-height: 10px;">10</div>
+                </td>
+                <td style="padding: 0 0 8px 0;">
+                    <p style="margin: 0 0 2px 0; font-weight: 600; font-size: 11px; line-height: 1.4;">学院不负责任何属于学员或家长的贵重物品。</p>
+                    <p style="margin: 0; color: #4b5563; font-size: 10px; line-height: 1.4;">The Academy is not responsible for any valuables belonging to students or parents.</p>
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 30px; padding: 0 8px 8px 0;">
+                    <div style="width: 24px; height: 24px; background: #1e293b; border-radius: 50%; color: white; font-weight: 700; font-size: 12px; text-align: center; font-family: Arial, sans-serif; box-sizing: border-box; line-height: 10px;">11</div>
+                </td>
+                <td style="padding: 0 0 8px 0;">
+                    <p style="margin: 0 0 2px 0; font-weight: 600; font-size: 11px; line-height: 1.4;">打架、吵架、态度不佳或拒绝配合训练可能导致被开除州队及学院。</p>
+                    <p style="margin: 0; color: #4b5563; font-size: 10px; line-height: 1.4;">Fighting, quarrelling, poor attitude, or refusing to cooperate with training may result in removal from the state team and the Academy.</p>
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 30px; padding: 0 8px 8px 0;">
+                    <div style="width: 24px; height: 24px; background: #1e293b; border-radius: 50%; color: white; font-weight: 700; font-size: 12px; text-align: center; font-family: Arial, sans-serif; box-sizing: border-box; line-height: 10px;">12</div>
+                </td>
+                <td style="padding: 0 0 8px 0;">
+                    <p style="margin: 0 0 2px 0; font-weight: 600; font-size: 11px; line-height: 1.4;">训练期间不得进食，只允许在休息时间喝水。</p>
+                    <p style="margin: 0; color: #4b5563; font-size: 10px; line-height: 1.4;">Eating is not allowed during training; only drinking water during breaks is permitted.</p>
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 30px; padding: 0 8px 8px 0;">
+                    <div style="width: 24px; height: 24px; background: #1e293b; border-radius: 50%; color: white; font-weight: 700; font-size: 12px; text-align: center; font-family: Arial, sans-serif; box-sizing: border-box; line-height: 10px;">13</div>
+                </td>
+                <td style="padding: 0 0 8px 0;">
+                    <p style="margin: 0 0 2px 0; font-weight: 600; font-size: 11px; line-height: 1.4;">家长不得干涉教练设定的专业训练计划或纪律。</p>
+                    <p style="margin: 0; color: #4b5563; font-size: 10px; line-height: 1.4;">Parents are not allowed to interfere with professional training plans or discipline set by the coaches.</p>
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 30px; padding: 0 8px 8px 0;">
+                    <div style="width: 24px; height: 24px; background: #1e293b; border-radius: 50%; color: white; font-weight: 700; font-size: 12px; text-align: center; font-family: Arial, sans-serif; box-sizing: border-box; line-height: 10px;">14</div>
+                </td>
+                <td style="padding: 0 0 8px 0;">
+                    <p style="margin: 0 0 2px 0; font-weight: 600; font-size: 11px; line-height: 1.4;">家长必须准时接送孩子，并对交通安全负全责。</p>
+                    <p style="margin: 0; color: #4b5563; font-size: 10px; line-height: 1.4;">Parents must send and pick up their children on time and are fully responsible for transport safety.</p>
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 30px; padding: 0 8px 8px 0;">
+                    <div style="width: 24px; height: 24px; background: #1e293b; border-radius: 50%; color: white; font-weight: 700; font-size: 12px; text-align: center; font-family: Arial, sans-serif; box-sizing: border-box; line-height: 10px;">15</div>
+                </td>
+                <td style="padding: 0 0 8px 0;">
+                    <p style="margin: 0 0 2px 0; font-weight: 600; font-size: 11px; line-height: 1.4;">训练过程可能被录像或拍照用于宣传，不同意的家长须书面通知学院。</p>
+                    <p style="margin: 0; color: #4b5563; font-size: 10px; line-height: 1.4;">Training sessions may be recorded or photographed for publicity; parents who do not consent must inform the Academy in writing.</p>
+                </td>
+            </tr>
+        </table>
+
+        <div style="margin-top: 18px; padding: 14px 16px; background: #f8fafc; border: 2px solid #1e293b; border-radius: 6px;">
+            <p style="font-weight: 700; margin: 0 0 8px 0; color: #1e293b; font-size: 12px;">LEGAL ACKNOWLEDGEMENT 法律声明</p>
+            <p style="margin: 0 0 6px 0; font-size: 10.5px; line-height: 1.5;">
+                By signing this document, the parent/guardian acknowledges that they have read, understood, and agreed to all 15 terms and conditions listed above.
+            </p>
+            <p style="color: #4b5563; font-size: 10px; margin: 0 0 10px 0; line-height: 1.5;">
+                签署本文件即表示家长/监护人已阅读、理解并同意以上所有15项条款与条件。
+            </p>
+            <p style="margin: 0; font-weight: 600; font-size: 11px; line-height: 1.6;">
+                Signed by: <span id="preview-pdf-parent-name-2" style="font-weight: 500;"></span> (<span id="preview-pdf-parent-ic-2" style="font-weight: 500;"></span>)<br>
+                Date: <span id="preview-pdf-date-2" style="font-weight: 500;"></span>
+            </p>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+<script>
+// ============================================
+// PASSWORD AUTHENTICATION
+// ============================================
+const ADMIN_PASSWORD = "RandyloveFanny";
+
+// Check if user is already authenticated
+function checkAuth() {
+    const isAuthenticated = sessionStorage.getItem('adminAuth');
+    if (isAuthenticated === 'true') {
+        document.getElementById('login-overlay').style.display = 'none';
+        document.getElementById('main-content').style.display = 'block';
+        loadRegistrations(); // Load data after login
+    }
+}
+
+// Handle login
+function handleLogin(event) {
+    event.preventDefault();
+    const passwordInput = document.getElementById('password-input');
+    const loginError = document.getElementById('login-error');
+    
+    if (passwordInput.value === ADMIN_PASSWORD) {
+        // Successful login
+        sessionStorage.setItem('adminAuth', 'true');
+        loginError.style.display = 'none';
+        document.getElementById('login-overlay').style.display = 'none';
+        document.getElementById('main-content').style.display = 'block';
+        loadRegistrations(); // Load registrations after successful login
+        
+        // Success notification
+        Swal.fire({
+            icon: 'success',
+            title: 'Welcome!',
+            text: 'Login successful',
+            timer: 1500,
+            showConfirmButton: false
+        });
+    } else {
+        // Failed login
+        loginError.style.display = 'block';
+        passwordInput.value = '';
+        passwordInput.focus();
+        
+        // Shake animation
+        const loginBox = document.querySelector('.login-box');
+        loginBox.style.animation = 'shake 0.5s';
+        setTimeout(() => {
+            loginBox.style.animation = '';
+        }, 500);
+    }
+    
+    return false;
+}
+
+// Handle logout
+function handleLogout() {
+    Swal.fire({
+        title: 'Logout?',
+        text: 'Are you sure you want to logout?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'Yes, logout'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            sessionStorage.removeItem('adminAuth');
+            window.location.reload();
+        }
+    });
+}
+
+// Add shake animation for login errors
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); }
+        20%, 40%, 60%, 80% { transform: translateX(10px); }
+    }
+`;
+document.head.appendChild(style);
+
+// Check authentication on page load
+document.addEventListener('DOMContentLoaded', function() {
+    checkAuth();
+});
+
+    let allRegistrations = [];
+
+    async function loadRegistrations() {
+        try {
+            const response = await fetch('list_registrations.php');
+            const data = await response.json();
+            
+            if (data.success) {
+                allRegistrations = data.registrations;
+                updateStats(allRegistrations);
+                renderTable(allRegistrations);
+            } else {
+                Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to load registrations' });
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            Swal.fire({ icon: 'error', title: 'Error', text: 'Could not connect to server' });
+        }
+    }
+
+    function updateStats(registrations) {
+        document.getElementById('total-count').textContent = registrations.length;
+        document.getElementById('state-count').textContent = registrations.filter(r => r.status.includes('State Team')).length;
+        document.getElementById('backup-count').textContent = registrations.filter(r => r.status.includes('Backup Team')).length;
+        document.getElementById('student-count').textContent = registrations.filter(r => r.status.includes('Student') && !r.status.includes('State') && !r.status.includes('Backup')).length;
+    }
+
+    function renderTable(registrations) {
+    const tbody = document.getElementById('table-body');
+    const mobileCards = document.getElementById('mobile-cards');
+    const noData = document.getElementById('no-data');
+    
+    if (registrations.length === 0) {
+        tbody.innerHTML = '';
+        mobileCards.innerHTML = '';
+        noData.classList.remove('hidden');
+        return;
+    }
+    
+    noData.classList.add('hidden');
+    
+    // Desktop Table Rendering
+    tbody.innerHTML = registrations.map((reg, index) => {
+        const statusClass = reg.status.includes('State Team') ? 'status-state' : 
+                          reg.status.includes('Backup Team') ? 'status-backup' : 'status-student';
+        
+        const eventsArray = reg.events.split(',').map(e => e.trim()).filter(e => e);
+        const eventsHTML = eventsArray.map(evt => `<span class="event-badge">${evt}</span>`).join('');
+        
+        const scheduleArray = reg.schedule.split(',').map(s => s.trim()).filter(s => s);
+        const scheduleHTML = scheduleArray.map(sch => `<span class="schedule-item">${sch}</span>`).join('');
+        
+        const displayName = reg.name_cn ? `${reg.name_en} (${reg.name_cn})` : reg.name_en;
+        
+        return `
+            <tr class="hover:bg-slate-50 transition">
+                <td class="px-4 py-3 text-sm font-semibold text-slate-600">${index + 1}</td>
+                <td class="px-4 py-3">
+                    <div class="font-semibold text-slate-800">${displayName}</div>
+                </td>
+                <td class="px-4 py-3 text-sm text-slate-600">${reg.ic}</td>
+                <td class="px-4 py-3 text-sm text-slate-600">${reg.age}</td>
+                <td class="px-4 py-3 text-sm text-slate-600">${reg.school}</td>
+                <td class="px-4 py-3">
+                    <span class="px-2 py-1 rounded-full text-xs font-bold ${statusClass}">
+                        ${reg.status}
+                    </span>
+                </td>
+                <td class="px-4 py-3 text-sm text-slate-600">${reg.level}</td>
+                <td class="px-4 py-3 text-sm">
+                    <div class="flex flex-wrap gap-1 max-w-xs">
+                        ${eventsHTML || '<span class="text-slate-400">None</span>'}
+                    </div>
+                </td>
+                <td class="px-4 py-3 text-xs">
+                    <div class="text-slate-700">${reg.phone}</div>
+                    <div class="text-slate-500">${reg.email}</div>
+                </td>
+                <td class="px-4 py-3 text-xs">
+                    <div class="flex flex-wrap gap-1 max-w-xs">
+                        ${scheduleHTML || '<span class="text-slate-400">None</span>'}
+                    </div>
+                </td>
+                <td class="px-4 py-3 text-xs text-slate-500">
+                    ${new Date(reg.created_at).toLocaleDateString('en-GB')}
+                </td>
+                <td class="px-4 py-3">
+                    <div class="flex gap-2 justify-center">
+                        <button onclick="viewPDF(${reg.id})" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded text-xs font-semibold transition flex items-center gap-1">
+                            <i class="fas fa-file-pdf"></i> View
+                        </button>
+                        <button onclick="deleteRegistration(${reg.id})" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded text-xs font-semibold transition flex items-center gap-1">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }).join('');
+    
+    // Mobile Card Rendering
+    mobileCards.innerHTML = registrations.map((reg, index) => {
+        const statusClass = reg.status.includes('State Team') ? 'status-state' : 
+                          reg.status.includes('Backup Team') ? 'status-backup' : 'status-student';
+        
+        const eventsArray = reg.events.split(',').map(e => e.trim()).filter(e => e);
+        const eventsHTML = eventsArray.map(evt => `<span class="event-badge">${evt}</span>`).join('') || '<span class="text-slate-400">None</span>';
+        
+        const scheduleArray = reg.schedule.split(',').map(s => s.trim()).filter(s => s);
+        const scheduleHTML = scheduleArray.map(sch => `<span class="schedule-item">${sch}</span>`).join('') || '<span class="text-slate-400">None</span>';
+        
+        const displayName = reg.name_cn ? `${reg.name_en} (${reg.name_cn})` : reg.name_en;
+        
+        return `
+            <div class="mobile-card">
+                <div class="mobile-card-header">
+                    <div class="mobile-card-title">${displayName}</div>
+                    <div class="mobile-card-number">#${index + 1}</div>
+                </div>
+                
+                <div class="mobile-card-row">
+                    <div class="mobile-card-label">IC</div>
+                    <div class="mobile-card-value">${reg.ic}</div>
+                </div>
+                
+                <div class="mobile-card-row">
+                    <div class="mobile-card-label">Age</div>
+                    <div class="mobile-card-value">${reg.age}</div>
+                </div>
+                
+                <div class="mobile-card-row">
+                    <div class="mobile-card-label">School</div>
+                    <div class="mobile-card-value">${reg.school}</div>
+                </div>
+                
+                <div class="mobile-card-row">
+                    <div class="mobile-card-label">Status</div>
+                    <div class="mobile-card-value">
+                        <span class="px-2 py-1 rounded-full text-xs font-bold ${statusClass}">
+                            ${reg.status}
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="mobile-card-row">
+                    <div class="mobile-card-label">Level</div>
+                    <div class="mobile-card-value">${reg.level}</div>
+                </div>
+                
+                <div class="mobile-card-row">
+                    <div class="mobile-card-label">Events</div>
+                    <div class="mobile-card-value">
+                        <div class="flex flex-wrap gap-1 justify-end">${eventsHTML}</div>
+                    </div>
+                </div>
+                
+                <div class="mobile-card-row">
+                    <div class="mobile-card-label">Phone</div>
+                    <div class="mobile-card-value">${reg.phone}</div>
+                </div>
+                
+                <div class="mobile-card-row">
+                    <div class="mobile-card-label">Email</div>
+                    <div class="mobile-card-value" style="font-size: 11px;">${reg.email}</div>
+                </div>
+                
+                <div class="mobile-card-row">
+                    <div class="mobile-card-label">Schedule</div>
+                    <div class="mobile-card-value">
+                        <div class="flex flex-wrap gap-1 justify-end">${scheduleHTML}</div>
+                    </div>
+                </div>
+                
+                <div class="mobile-card-row" style="border-bottom: none;">
+                    <div class="mobile-card-label">Registered</div>
+                    <div class="mobile-card-value">${new Date(reg.created_at).toLocaleDateString('en-GB')}</div>
+                </div>
+                
+                <div class="mobile-card-actions">
+                    <button onclick="viewPDF(${reg.id})" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2.5 rounded-lg text-sm font-semibold transition flex items-center justify-center gap-2">
+                        <i class="fas fa-file-pdf"></i> View PDF
+                    </button>
+                    <button onclick="deleteRegistration(${reg.id})" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2.5 rounded-lg text-sm font-semibold transition flex items-center justify-center gap-2">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+
+    function filterTable() {
+        const searchTerm = document.getElementById('search-input').value.toLowerCase();
+        const statusFilter = document.getElementById('status-filter').value;
+        const levelFilter = document.getElementById('level-filter').value;
+        
+        const filtered = allRegistrations.filter(reg => {
+            const matchesSearch = 
+                reg.name_en.toLowerCase().includes(searchTerm) ||
+                (reg.name_cn && reg.name_cn.toLowerCase().includes(searchTerm)) ||
+                reg.ic.toLowerCase().includes(searchTerm) ||
+                reg.school.toLowerCase().includes(searchTerm) ||
+                reg.events.toLowerCase().includes(searchTerm);
+            
+            const matchesStatus = !statusFilter || reg.status.includes(statusFilter);
+            const matchesLevel = !levelFilter || reg.level.includes(levelFilter);
+            
+            return matchesSearch && matchesStatus && matchesLevel;
+        });
+        
+        renderTable(filtered);
+    }
+
+    async function viewPDF(id) {
+    Swal.fire({ title: 'Loading PDF...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+    
+    try {
+        const response = await fetch(`get_registration.php?id=${id}`);
+        const data = await response.json();
+        
+        if (!data.success) {
+            Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to load registration data' });
+            return;
+        }
+        
+        const reg = data.registration;
+        const displayName = reg.name_cn ? `${reg.name_en} (${reg.name_cn})` : reg.name_en;
+        
+        // Fill Page 1 data
+        document.getElementById('preview-pdf-name').textContent = displayName;
+        document.getElementById('preview-pdf-ic').textContent = reg.ic;
+        document.getElementById('preview-pdf-age').textContent = reg.age;
+        document.getElementById('preview-pdf-school').textContent = reg.school;
+        document.getElementById('preview-pdf-status').textContent = reg.status;
+        document.getElementById('preview-pdf-phone').textContent = reg.phone;
+        document.getElementById('preview-pdf-email').textContent = reg.email;
+        document.getElementById('preview-pdf-level').textContent = reg.level;
+        document.getElementById('preview-pdf-events').textContent = reg.events;
+        document.getElementById('preview-pdf-schedule').textContent = reg.schedule;
+        document.getElementById('preview-pdf-parent-name').textContent = reg.parent_name;
+        document.getElementById('preview-pdf-parent-ic').textContent = reg.parent_ic;
+        document.getElementById('preview-pdf-date').textContent = reg.form_date;
+        document.getElementById('preview-pdf-sig-img').src = reg.signature_base64 || '';
+        
+        // Fill Page 2 data
+        document.getElementById('preview-pdf-parent-name-2').textContent = reg.parent_name;
+        document.getElementById('preview-pdf-parent-ic-2').textContent = reg.parent_ic;
+        document.getElementById('preview-pdf-date-2').textContent = reg.form_date;
+        
+        const { jsPDF } = window.jspdf;
+const pdf = new jsPDF('p', 'mm', 'a4');
+const pdfWidth = 210;
+
+// Capture Page 1
+const page1 = document.getElementById('pdf-preview-template-page1');
+page1.style.visibility = 'visible';
+
+const canvas1 = await html2canvas(page1, {
+    scale: 2,
+    useCORS: true,
+    width: 794,
+    height: 1123,
+    logging: false
+});
+
+const imgData1 = canvas1.toDataURL('image/jpeg', 0.95);
+const pdfHeight1 = (canvas1.height * pdfWidth) / canvas1.width;
+pdf.addImage(imgData1, 'JPEG', 0, 0, pdfWidth, pdfHeight1);
+
+page1.style.visibility = 'hidden';
+
+// Capture Page 2
+const page2 = document.getElementById('pdf-preview-template-page2');
+page2.style.visibility = 'visible';
+
+const canvas2 = await html2canvas(page2, {
+    scale: 2,
+    useCORS: true,
+    width: 794,
+    height: 1123,
+    logging: false
+});
+
+const imgData2 = canvas2.toDataURL('image/jpeg', 0.95);
+const pdfHeight2 = (canvas2.height * pdfWidth) / canvas2.width;
+pdf.addPage();
+pdf.addImage(imgData2, 'JPEG', 0, 0, pdfWidth, pdfHeight2);
+
+page2.style.visibility = 'hidden';
+
+pdf.save(`${reg.name_en}_Signed_Agreement.pdf`);
+
+        
+        Swal.fire({ icon: 'success', title: 'Success!', text: 'PDF downloaded', timer: 1500, showConfirmButton: false });
+        
+    } catch (error) {
+        console.error('Error:', error);
+        Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to generate PDF' });
+    }
+}
+
+
+    async function deleteRegistration(id) {
+        const result = await Swal.fire({
+            title: 'Are you sure?',
+            text: "This action cannot be undone!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Yes, delete it!'
+        });
+        
+        if (!result.isConfirmed) return;
+        
+        try {
+            console.log('Deleting ID:', id);
+            
+            const response = await fetch('delete_registration.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: parseInt(id) })
+            });
+            
+            console.log('Status:', response.status);
+            
+            const text = await response.text();
+            console.log('Response:', text);
+            
+            if (!text) {
+                throw new Error('Empty response from server. Check if delete_registration.php exists and PHP is enabled.');
+            }
+            
+            const data = JSON.parse(text);
+            
+            if (data.success) {
+                await Swal.fire({ 
+                    icon: 'success', 
+                    title: 'Deleted!', 
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+                loadRegistrations();
+            } else {
+                Swal.fire({ 
+                    icon: 'error', 
+                    title: 'Error', 
+                    text: data.error 
+                });
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            Swal.fire({ 
+                icon: 'error', 
+                title: 'Error', 
+                text: error.message
+            });
+        }
+    }
+
+    function exportToExcel() {
+        if (allRegistrations.length === 0) {
+            Swal.fire({ icon: 'warning', title: 'No Data', text: 'There are no registrations to export.' });
+            return;
+        }
+        
+        // Prepare data for Excel
+        const excelData = allRegistrations.map((reg, index) => {
+            const displayName = reg.name_cn ? `${reg.name_en} (${reg.name_cn})` : reg.name_en;
+            const eventsArray = reg.events.split(',').map(e => e.trim()).filter(e => e);
+            const scheduleArray = reg.schedule.split(',').map(s => s.trim()).filter(s => s);
+            
+            return {
+                'No': index + 1,
+                'Name': displayName,
+                'English Name': reg.name_en,
+                'Chinese Name': reg.name_cn || '',
+                'IC Number': reg.ic,
+                'Age': reg.age,
+                'School': reg.school,
+                'Status': reg.status,
+                'Level': reg.level,
+                'Events': eventsArray.join(', '),
+                'Event 1': eventsArray[0] || '',
+                'Event 2': eventsArray[1] || '',
+                'Event 3': eventsArray[2] || '',
+                'Event 4': eventsArray[3] || '',
+                'Event 5': eventsArray[4] || '',
+                'Schedule': scheduleArray.join(', '),
+                'Phone': reg.phone,
+                'Email': reg.email,
+                'Parent Name': reg.parent_name,
+                'Parent IC': reg.parent_ic,
+                'Form Date': reg.form_date,
+                'Registered Date': new Date(reg.created_at).toLocaleDateString('en-GB')
+            };
+        });
+        
+        // Create workbook and worksheet
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.json_to_sheet(excelData);
+        
+        // Set column widths
+        const colWidths = [
+            { wch: 5 },  // No
+            { wch: 25 }, // Name
+            { wch: 20 }, // English Name
+            { wch: 15 }, // Chinese Name
+            { wch: 15 }, // IC
+            { wch: 5 },  // Age
+            { wch: 25 }, // School
+            { wch: 15 }, // Status
+            { wch: 15 }, // Level
+            { wch: 40 }, // Events (all)
+            { wch: 15 }, // Event 1
+            { wch: 15 }, // Event 2
+            { wch: 15 }, // Event 3
+            { wch: 15 }, // Event 4
+            { wch: 15 }, // Event 5
+            { wch: 40 }, // Schedule
+            { wch: 15 }, // Phone
+            { wch: 25 }, // Email
+            { wch: 20 }, // Parent Name
+            { wch: 15 }, // Parent IC
+            { wch: 12 }, // Form Date
+            { wch: 12 }  // Registered Date
+        ];
+        ws['!cols'] = colWidths;
+        
+        XLSX.utils.book_append_sheet(wb, ws, 'Registrations');
+        
+        // Generate filename with current date
+        const today = new Date().toISOString().split('T')[0];
+        const filename = `Wushu_Registrations_2026_${today}.xlsx`;
+        
+        XLSX.writeFile(wb, filename);
+        
+        Swal.fire({
+            icon: 'success',
+            title: 'Exported!',
+            text: `Excel file "${filename}" has been downloaded.`,
+            timer: 2000,
+            showConfirmButton: false
+        });
+    }
+</script>
+</div> <!-- End of main-content -->
+</body>
+</html>

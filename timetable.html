@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026年武术训练安排总表</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Trebuchet MS', 'Microsoft YaHei', 'SimHei', 'PingFang SC', 'Heiti SC', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            padding: 40px 20px;
+            line-height: 1.6;
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;900&display=swap');
+
+        .document {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #2d3561 50%, #1a1a2e 100%);
+            padding: 50px 30px;
+            text-align: center;
+            border-bottom: 6px solid #d4af37;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(212, 175, 55, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(212, 175, 55, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .main-title {
+            font-size: 56px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #d4af37 0%, #f5d547 50%, #d4af37 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 15px;
+            text-shadow: 0px 4px 15px rgba(212, 175, 55, 0.3);
+            filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.5));
+            font-family: 'Noto Serif SC', 'Noto Serif', 'SimSun', serif;
+            letter-spacing: 2px;
+            position: relative;
+            z-index: 1;
+            white-space: nowrap;
+        }
+
+        .subtitle {
+            font-size: 18px;
+            color: #d4af37;
+            opacity: 1;
+            font-weight: 600;
+            letter-spacing: 1px;
+            position: relative;
+            z-index: 1;
+            font-family: 'Poppins', 'Segoe UI', sans-serif;
+            white-space: nowrap;
+        }
+
+        .content {
+            padding: 40px 30px;
+        }
+
+        .training-section {
+            margin-bottom: 40px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 30px;
+            border-left: 5px solid #d4af37;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .section-logo {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            object-fit: contain;
+            background: white;
+            padding: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-title {
+            flex: 1;
+        }
+
+        .section-name {
+            font-size: 28px;
+            font-weight: bold;
+            color: #1a1a2e;
+            margin-bottom: 8px;
+            white-space: nowrap;
+        }
+
+        .academy-address {
+            font-size: 18px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 5px;
+        }
+
+        .waze-icon {
+            width: 24px;
+            height: 24px;
+            flex-shrink: 0;
+        }
+
+        .address-text {
+            font-weight: 500;
+            line-height: 1.4;
+        }
+
+        .address-link {
+            color: #d4af37;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+            cursor: pointer;
+        }
+
+        .address-link:hover {
+            color: #c9a227;
+            text-decoration: underline;
+        }
+
+        .section-name.tai-chi {
+            color: #d4af37;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .info-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 3px solid #d4af37;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .info-label {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 5px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .info-value {
+            font-size: 22px;
+            font-weight: bold;
+            color: #1a1a2e;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .icon {
+            font-size: 16px;
+            margin-right: 8px;
+        }
+
+        .content-list {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+
+        .content-list h4 {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .content-list ol, .content-list ul {
+            margin-left: 20px;
+            color: #333;
+        }
+
+        .content-list li {
+            margin-bottom: 10px;
+            line-height: 1.8;
+            font-size: 17px;
+            word-break: break-word;
+            hyphens: auto;
+        }
+
+        .highlight {
+            background: #fff3cd;
+            padding: 18px;
+            border-radius: 8px;
+            border-left: 4px solid #ffc107;
+            margin-bottom: 15px;
+            color: #333;
+            font-size: 16px;
+            line-height: 1.8;
+        }
+
+        .remark-section {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffe5a1 100%);
+            padding: 25px;
+            border-radius: 10px;
+            margin-top: 30px;
+            border-left: 5px solid #d4af37;
+        }
+
+        .remark-section h3 {
+            font-size: 16px;
+            color: #1a1a2e;
+            margin-bottom: 12px;
+            font-weight: bold;
+        }
+
+        .remark-section ul {
+            margin-left: 20px;
+            color: #333;
+        }
+
+        .remark-section li {
+            margin-bottom: 12px;
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        .footer {
+            background: #1a1a2e;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            font-size: 12px;
+            border-top: 4px solid #d4af37;
+        }
+
+        /* Print Styles */
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                color-adjust: exact !important;
+                orphans: 3;
+                widows: 3;
+            }
+
+            .document {
+                box-shadow: none;
+                border-radius: 0;
+            }
+
+            .header {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .main-title {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .training-section {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .info-item {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .remark-section {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+        }
+
+        /* PDF Download Button */
+        .button-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .btn-pdf {
+            background: #d4af37;
+            color: #1a1a2e;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .btn-pdf:hover {
+            background: #c9a227;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4);
+        }
+
+        .btn-pdf:active {
+            transform: translateY(0);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .content {
+                padding: 20px;
+            }
+
+            .training-section {
+                padding: 20px;
+            }        .main-title {
+            font-size: 40px;
+        }
+
+            .section-name {
+                font-size: 20px;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .button-container {
+                position: static;
+                margin-bottom: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="button-container">
+        <button class="btn-pdf" onclick="window.print()">📥 下载PDF</button>
+    </div>
+
+    <div class="document">
+        <div class="header">
+            <h1 class="main-title">2026 年武术训练安排总表</h1>
+            <p class="subtitle">Wushu Training Schedule 2026</p>
+        </div>
+
+        <div class="content">
+            <div class="highlight">
+                    <strong>注明 (Remark)：</strong> 州队运动员需至少选择 两堂课。<br>
+	•	若只选择 一堂课：收费 RM120<br>
+	•	选择 第二堂课：总收费 RM220<br>
+	•	选择 第三堂课：总收费 RM300<br>
+	State team athletes must choose at least two classes.<br>
+	•	If only one class is chosen: RM120<br>
+	•	If a second class is chosen: total RM220<br>
+	•	If a third class is chosen: total RM300
+                </div>
+
+                <div class="highlight">
+                    <strong>注意 (Note)：</strong> 学费需在每月10号之前缴付。<br> Please pay every month fees before every month's 10th.
+                </div>
+            <!-- Puay Chai 2 - Tuesday -->
+            <div class="training-section">
+                <div class="section-header">
+                    <img src="https://wushu-assets.s3.ap-southeast-1.amazonaws.com/PC2+Logo.png" alt="Puay Chai 2 Logo" class="section-logo">
+                    <div class="section-title">
+                        <div class="section-name">培才二校</div>
+                        <div class="academy-address">
+                            <img src="https://cdn-icons-png.flaticon.com/512/732/732257.png" alt="Waze" class="waze-icon">
+                            <a href="https://waze.com/ul/hw283bhzhf" target="_blank" class="address-link">Jln BU 3/1, Bandar Utama, 47800 Petaling Jaya, Selangor</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label"><span class="icon">📅</span> 日期 (Date)</div>
+                        <div class="info-value">星期二 Tuesday</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label"><span class="icon">🕐</span> 时间 (Time)</div>
+                        <div class="info-value">8pm - 10pm</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label"><span class="icon">💵</span> 学费 (Fees)</div>
+                        <div class="info-value">RM 120</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label"><span class="icon">👤</span> 教练 (Coach)</div>
+                        <div class="info-value">4 位</div>
+                    </div>
+                </div>
+
+                <div class="content-list">
+                    <h4>训练内容 Training Content</h4>
+                    <ol>
+                        <li><strong>10岁以下 (Under 10 years)</strong> - D组套路晋级去C组套路。准备明年7月州赛选kpm</li>
+                        <li><strong>10岁以下 (Under 10 years)</strong> - C组套路。准备明年7月kpm。11岁-13岁 B组套路准备明年7月州赛</li>
+                        <li><strong>14岁以上 (14 years and above)</strong> - 自选和A组套路。准备5月全国赛和7月州赛</li>
+                        <li><strong>后备队 (Reserve Team)</strong> - 学员一起学传统套路。准备明年7月州赛和全国传统武术锦标赛</li>
+                    </ol>
+                </div>
+            </div>
+
+            <!-- Wushu Sport Academy - Sunday & Wednesday (Main) -->
+            <div class="training-section">
+                <div class="section-header">
+                    <img src="https://wushu-assets.s3.ap-southeast-1.amazonaws.com/Wushu+Sport+Academy+Circle+Yellow.png" alt="Wushu Sport Academy Logo" class="section-logo">
+                    <div class="section-title">
+                        <div class="section-name">武术体育学院训练中心</div>
+                        <div class="academy-address">
+                            <img src="https://cdn-icons-png.flaticon.com/512/732/732257.png" alt="Waze" class="waze-icon">
+                            <a href="https://waze.com/ul/hw282brw12" target="_blank" class="address-link">Dewan Badminton MBA, Multi Storey Car Park, Level RF, Jalan BP 7/11, Bandar Bukit Puchong, 47120 Puchong, Selangor</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label"><span class="icon">📅</span> 日期 (Date)</div>
+                        <div class="info-value">星期日 Sunday</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label"><span class="icon">🕐</span> 时间 (Time)</div>
+                        <div class="info-value">10am - 12pm<br> 12pm - 2pm</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label"><span class="icon">💵</span> 学费 (Fees)</div>
+                        <div class="info-value">RM 120</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label"><span class="icon">👤</span> 教练 (Coach)</div>
+                        <div class="info-value">5 位教练</div>
+                    </div>
+                </div>
+
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label"><span class="icon">📅</span> 日期 (Date)</div>
+                        <div class="info-value">星期三 Wednesday</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label"><span class="icon">🕐</span> 时间 (Time)</div>
+                        <div class="info-value">8pm - 10pm</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label"><span class="icon">💵</span> 学费 (Fees)</div>
+                        <div class="info-value">RM 120</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label"><span class="icon">👤</span> 教练 (Coach)</div>
+                        <div class="info-value">4 位教练</div>
+                    </div>
+                </div>
+
+                <div class="content-list">
+                    <h4>训练内容 Training Content</h4>
+                    <ol>
+                        <li>A组套路，自选套路</li>
+                        <li>B组套路</li>
+                        <li>C组套路</li>
+                        <li>D组套路</li>
+                        <li>太极套路</li>
+                        <li>传统套路</li>
+                    </ol>
+                </div>
+            </div>
+
+            <!-- Xuelon Jingwu Sports Hall -->
+            <div class="training-section">
+                <div class="section-header">
+                    <div class="section-title">
+                        <div class="section-name">雪隆精武体育馆</div>
+                        <div class="academy-address">
+                            <img src="https://cdn-icons-png.flaticon.com/512/732/732257.png" alt="Waze" class="waze-icon">
+                            <a href="https://waze.com/ul/hw283f5zjm" target="_blank" class="address-link">Stadium Chinwoo, Jalan Hang Jebat, City Centre, 50150 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label"><span class="icon">📅</span> 日期 (Date)</div>
+                        <div class="info-value">星期日 Sunday</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label"><span class="icon">🕐</span> 时间 (Time)</div>
+                        <div class="info-value">2pm - 4pm</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label"><span class="icon">💵</span> 学费 (Fees)</div>
+                        <div class="info-value">RM 120</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label"><span class="icon">👤</span> 教练 (Coach)</div>
+                        <div class="info-value">2 位教练</div>
+                    </div>
+                </div>
+
+                <div class="content-list">
+                    <h4>训练内容 Training Content</h4>
+                    <ol>
+                        <li>州队 A、B、C</li>
+                    </ol>
+                </div>
+
+                <div class="highlight">
+                    <strong>注明 (Remark)：</strong> 学生勿必参加<br>需报名，学费交给雪隆精武处理。
+                </div>
+            </div>
+
+            <!-- TAI CHI GROUP -->
+            <div style="margin-top: 50px; border-top: 3px dashed #d4af37; padding-top: 30px;">
+                <h2 style="font-size: 28px; color: #d4af37; text-align: center; margin-bottom: 30px; white-space: nowrap; font-family: 'Noto Serif SC', 'Poppins', sans-serif;">太极组 TAI CHI GROUP</h2>
+
+                <!-- Puay Chai 2 - Friday -->
+                <div class="training-section">
+                    <div class="section-header">
+                        <img src="https://wushu-assets.s3.ap-southeast-1.amazonaws.com/PC2+Logo.png" alt="Puay Chai 2 Logo" class="section-logo">
+                        <div class="section-title">
+                            <div class="section-name">培才二校</div>
+                            <div class="academy-address">
+                                <img src="https://cdn-icons-png.flaticon.com/512/732/732257.png" alt="Waze" class="waze-icon">
+                                <a href="https://waze.com/ul/hw283bhzhf" target="_blank" class="address-link">Jln BU 3/1, Bandar Utama, 47800 Petaling Jaya, Selangor</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label"><span class="icon">📅</span> 日期 (Date)</div>
+                            <div class="info-value">星期五 Friday</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label"><span class="icon">🕐</span> 时间 (Time)</div>
+                            <div class="info-value">8pm - 10pm</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label"><span class="icon">💵</span> 学费 (Fees)</div>
+                            <div class="info-value">RM 120</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Wushu Sport Academy - Sunday (Tai Chi) -->
+                <div class="training-section">
+                    <div class="section-header">
+                        <img src="https://wushu-assets.s3.ap-southeast-1.amazonaws.com/Wushu+Sport+Academy+Circle+Yellow.png" alt="Wushu Sport Academy Logo" class="section-logo">
+                        <div class="section-title">
+                            <div class="section-name">武术体育学院训练中心</div>
+                            <div class="academy-address">
+                                <img src="https://cdn-icons-png.flaticon.com/512/732/732257.png" alt="Waze" class="waze-icon">
+                                <a href="https://waze.com/ul/hw282brw12" target="_blank" class="address-link">Dewan Badminton MBA, Multi Storey Car Park, Level RF, Jalan BP 7/11, Bandar Bukit Puchong, 47120 Puchong, Selangor</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label"><span class="icon">📅</span> 日期 (Date)</div>
+                            <div class="info-value">星期日 Sunday</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label"><span class="icon">🕐</span> 时间 (Time)</div>
+                            <div class="info-value">10am - 12pm</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label"><span class="icon">💵</span> 学费 (Fees)</div>
+                            <div class="info-value">RM 120</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- REMARKS SECTION -->
+            <div class="remark-section">
+                <h3>备注 REMARKS</h3>
+                <ul>
+                    <li><strong>学费缴付 Fee Payment：</strong> 学费需在每月10号之前缴付，并且把Receipt Update给教练以及Admin。</li>
+                    <li><strong>着装要求 Dress Code：</strong> 训练一定要穿武馆衣服 和 鞋子，具备 衣服裤子鞋子</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>2026年武术训练安排总表 | Wushu Training Schedule 2026</p>
+            <p style="margin-top: 10px; font-size: 11px; opacity: 0.8;">Generated for Official Distribution</p>
+        </div>
+    </div>
+
+    <script>
+        // Print optimization
+        window.addEventListener('beforeprint', function() {
+            const btn = document.querySelector('.button-container');
+            if (btn) btn.style.display = 'none';
+        });
+
+        window.addEventListener('afterprint', function() {
+            const btn = document.querySelector('.button-container');
+            if (btn) btn.style.display = 'block';
+        });
+    </script>
+</body>
+</html>
