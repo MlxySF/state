@@ -564,156 +564,117 @@
             </div>
 
             <!-- STEP 4: Schedule -->
+            <!-- STEP 4: Schedule (Simplified & Validated) -->
 <div id="step-4" class="step-content">
     <h2 class="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
         <i class="fa-regular fa-calendar-check text-amber-500"></i> 训练时间 Training Schedule
     </h2>
 
-    <!-- Pricing Info -->
-    <div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-lg mb-6">
-        <h4 class="font-bold text-amber-800 text-sm mb-2 flex items-center gap-2">
-            <i class="fas fa-money-bill-wave"></i> 学费说明 Fee Structure
-        </h4>
-        <div class="text-xs text-amber-900 space-y-1">
-            <p>• 每堂课 Each class: <strong>RM 120/month</strong></p>
-            <p>• 州队运动员需至少选择两堂课 State team must choose at least 2 classes:</p>
-            <p class="ml-4">- 1堂课 1 class: <strong>RM 120</strong></p>
-            <p class="ml-4">- 2堂课 2 classes: <strong>RM 220 total</strong></p>
-            <p class="ml-4">- 3堂课 3 classes: <strong>RM 300 total</strong></p>
-        </div>
+    <!-- Fee Info -->
+    <div class="bg-amber-50 text-amber-900 p-4 rounded-xl text-xs mb-8 border border-amber-100">
+        <p class="font-bold mb-1"><i class="fas fa-info-circle"></i>凡选择项目，日期 📅 与锻炼地点 📍 可自选<br>Choose your program, date 📅, and training location 📍 freely</p>
+        <p>学费如下 Fees:</p>
+        <p>• 每月（每周一堂课）Monthly (1 class per week)<strong> RM 120</strong></p>
+        <p>• 每月（每周两堂课）Monthly (2 class per week)<strong> RM 220</strong></p>
+        <p>• 每月（每周三堂课）Monthly (3 class per week)<strong> RM 280</strong></p>
     </div>
 
-    <!-- SJK(C) Puay Chai 2 - Tuesday -->
-    <div class="mb-4">
-        <div class="bg-blue-50 rounded-t-xl px-4 py-2 border-b-2 border-blue-200">
-            <h4 class="font-bold text-blue-800 text-sm">📍 培才二校 SJK(C) Puay Chai 2</h4>
-            <p class="text-xs text-blue-700">Jln BU 3/1, Bandar Utama, 47800 Petaling Jaya, Selangor</p>
+    <div class="space-y-8">
+        <!-- LOCATION: SJKC -->
+        <div>
+            <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider border-b border-slate-200 pb-2 mb-3">
+                📍 SJK(C) Puay Chai 2 <span class="text-slate-400 font-normal text-xs ml-2">Bandar Utama</span>
+            </h3>
+            <label class="flex items-start p-3 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors group">
+    <input type="checkbox" name="sch" value="SJK(C) Puay Chai 2: Tue 8pm-10pm" class="mt-1 w-4 h-4 text-amber-500 rounded border-slate-300 focus:ring-amber-500">
+    <div class="ml-3">
+        <div class="text-sm font-bold text-slate-700 group-hover:text-amber-600 transition-colors">Tuesday 星期二 · 8:00 PM - 10:00 PM</div>
+        <div class="text-xs text-slate-500 mt-0.5">
+            <span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-md font-semibold">只限于州队/后备队 Only for State/Backup Team</span>
+            <span class="text-slate-400 ml-1">(D/C/B/A 套路 Routine)</span>
         </div>
-        <label class="flex items-start p-4 bg-white rounded-b-xl border border-blue-100 hover:border-blue-400 cursor-pointer shadow-sm transition-all">
-            <input type="checkbox" name="sch" value="SJK(C) Puay Chai 2: Tue 8pm-10pm" class="w-5 h-5 text-amber-500 rounded mt-1">
-            <div class="ml-4 flex-1">
-                <div class="flex items-center gap-2 mb-1">
-                    <span class="font-bold text-slate-800">星期二 Tuesday</span>
-                    <span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs font-semibold">8:00 PM - 10:00 PM</span>
-                </div>
-                <p class="text-xs text-slate-600 leading-relaxed">
-                    👥 4位教练 | Training: D组/C组/B组套路, A组/自选套路, 后备队传统套路
-                </p>
-            </div>
-        </label>
+        <div class="text-[10px] text-red-500 font-bold hidden disabled-msg">🚫 Not available for Normal Students 普通学生不允许参加</div>
     </div>
-
-    <!-- Wushu Sport Academy -->
-    <div class="mb-4">
-        <div class="bg-purple-50 rounded-t-xl px-4 py-2 border-b-2 border-purple-200">
-            <h4 class="font-bold text-purple-800 text-sm">📍 武术体育学院训练中心 Wushu Sport Academy Training Center</h4>
-            <p class="text-xs text-purple-700">Dewan Badminton MBA, Level RF, Jalan BP 7/11, Bandar Bukit Puchong, 47120</p>
+</label>
         </div>
-        <div class="bg-white rounded-b-xl border border-purple-100 p-4 space-y-3">
-            <label class="flex items-start p-3 bg-purple-50 rounded-xl border border-purple-200 hover:border-purple-400 cursor-pointer transition-all">
-                <input type="checkbox" name="sch" value="Wushu Sport Academy: Sun 10am-12pm" class="w-5 h-5 text-amber-500 rounded mt-1">
-                <div class="ml-4 flex-1">
-                    <div class="flex items-center gap-2 mb-1">
-                        <span class="font-bold text-slate-800">星期日 Sunday</span>
-                        <span class="bg-purple-100 text-purple-700 px-2 py-0.5 rounded text-xs font-semibold">10:00 AM - 12:00 PM</span>
-                    </div>
-                    <p class="text-xs text-slate-600">👥 5位教练</p>
-                </div>
-            </label>
 
-            <label class="flex items-start p-3 bg-purple-50 rounded-xl border border-purple-200 hover:border-purple-400 cursor-pointer transition-all">
-                <input type="checkbox" name="sch" value="Wushu Sport Academy: Sun 12pm-2pm" class="w-5 h-5 text-amber-500 rounded mt-1">
-                <div class="ml-4 flex-1">
-                    <div class="flex items-center gap-2 mb-1">
-                        <span class="font-bold text-slate-800">星期日 Sunday</span>
-                        <span class="bg-purple-100 text-purple-700 px-2 py-0.5 rounded text-xs font-semibold">12:00 PM - 2:00 PM</span>
+        <!-- LOCATION: WSA -->
+        <div>
+            <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider border-b border-slate-200 pb-2 mb-3">
+                📍 Wushu Sport Academy <span class="text-slate-400 font-normal text-xs ml-2">Bukit Puchong</span>
+            </h3>
+            
+            <div class="space-y-1">
+                <label class="flex items-start p-3 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors group">
+                    <input type="checkbox" name="sch" value="Wushu Sport Academy: Sun 10am-12pm" class="mt-1 w-4 h-4 text-amber-500 rounded border-slate-300 focus:ring-amber-500">
+                    <div class="ml-3">
+                        <div class="text-sm font-bold text-slate-700 group-hover:text-amber-600 transition-colors">Sunday 星期日 · 10:00 AM - 12:00 PM</div>
+                        <div class="text-xs text-slate-500 mt-0.5">
+                            <span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-md font-semibold">只限于州队/后备队 Only for State/Backup Team</span>
+                            </div>
+                        <div class="text-[10px] text-red-500 font-bold hidden disabled-msg">🚫 Not available for Normal Students 普通学生不允许参加</div>
                     </div>
-                    <p class="text-xs text-slate-600">👥 5位教练</p>
-                </div>
-            </label>
+                </label>
 
-            <label class="flex items-start p-3 bg-purple-50 rounded-xl border border-purple-200 hover:border-purple-400 cursor-pointer transition-all">
-                <input type="checkbox" name="sch" value="Wushu Sport Academy: Wed 8pm-10pm" class="w-5 h-5 text-amber-500 rounded mt-1">
-                <div class="ml-4 flex-1">
-                    <div class="flex items-center gap-2 mb-1">
-                        <span class="font-bold text-slate-800">星期三 Wednesday</span>
-                        <span class="bg-purple-100 text-purple-700 px-2 py-0.5 rounded text-xs font-semibold">8:00 PM - 10:00 PM</span>
+                <label class="flex items-start p-3 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors group">
+                    <input type="checkbox" name="sch" value="Wushu Sport Academy: Sun 12pm-2pm" class="mt-1 w-4 h-4 text-amber-500 rounded border-slate-300 focus:ring-amber-500">
+                    <div class="ml-3">
+                        <div class="text-sm font-bold text-slate-700 group-hover:text-amber-600 transition-colors">Sunday 星期日 · 12:00 PM - 2:00 PM</div>
                     </div>
-                    <p class="text-xs text-slate-600">
-                        👥 4位教练 | Training: A组/自选, B组, C组, D组, 太极, 传统套路
-                    </p>
-                </div>
-            </label>
-        </div>
-    </div>
+                </label>
 
-    <!-- Chinwoo Stadium -->
-    <div class="mb-4">
-        <div class="bg-red-50 rounded-t-xl px-4 py-2 border-b-2 border-red-200">
-            <h4 class="font-bold text-red-800 text-sm">📍 雪隆精武体育馆 Stadium Chinwoo</h4>
-            <p class="text-xs text-red-700">Jalan Hang Jebat, City Centre, 50150 Kuala Lumpur</p>
-        </div>
-        <label class="flex items-start p-4 bg-white rounded-b-xl border border-red-100 hover:border-red-400 cursor-pointer shadow-sm transition-all">
-            <input type="checkbox" name="sch" value="Stadium Chinwoo: Sun 2pm-4pm" class="w-5 h-5 text-amber-500 rounded mt-1">
-            <div class="ml-4 flex-1">
-                <div class="flex items-center gap-2 mb-1">
-                    <span class="font-bold text-slate-800">星期日 Sunday</span>
-                    <span class="bg-red-100 text-red-700 px-2 py-0.5 rounded text-xs font-semibold">2:00 PM - 4:00 PM</span>
-                    <span class="bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded text-xs font-semibold">州队 State Team Only</span>
-                </div>
-                <p class="text-xs text-slate-600">
-                    👥 2位教练 | Training: 州队 A、B、C组
-                </p>
-                <p class="text-xs text-red-600 mt-1">
-                    ⚠️ 需另外报名，学费交给雪隆精武处理 Separate registration required
-                </p>
+                <label class="flex items-start p-3 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors group">
+                    <input type="checkbox" name="sch" value="Wushu Sport Academy: Wed 8pm-10pm" class="mt-1 w-4 h-4 text-amber-500 rounded border-slate-300 focus:ring-amber-500">
+                    <div class="ml-3">
+                        <div class="text-sm font-bold text-slate-700 group-hover:text-amber-600 transition-colors">Wednesday 星期三 · 8:00 PM - 10:00 PM</div>
+                        <div class="text-xs text-slate-500 mt-0.5">全部组别 All Groups (A/B/C/D, 太极 Tai Chi, 传统 Traditional)</div>
+                    </div>
+                </label>
             </div>
-        </label>
-    </div>
+        </div>
 
-    <!-- Tai Chi Group -->
-    <div class="mb-6">
-        <h3 class="text-sm font-bold text-slate-700 uppercase mb-3 pl-1 border-l-4 border-emerald-500 flex items-center gap-2">
-            <i class="fas fa-yin-yang"></i> 太极组 Tai Chi Group
-        </h3>
-
-        <!-- SJK(C) Puay Chai 2 - Friday -->
-        <div class="mb-4">
-            <div class="bg-emerald-50 rounded-t-xl px-4 py-2 border-b-2 border-emerald-200">
-                <h4 class="font-bold text-emerald-800 text-sm">📍 培才二校 SJK(C) Puay Chai 2</h4>
-                <p class="text-xs text-emerald-700">Jln BU 3/1, Bandar Utama, 47800 Petaling Jaya</p>
-            </div>
-            <label class="flex items-start p-4 bg-white rounded-b-xl border border-emerald-100 hover:border-emerald-400 cursor-pointer shadow-sm transition-all">
-                <input type="checkbox" name="sch" value="Tai Chi: SJK(C) Puay Chai 2 Fri 8pm-10pm" class="w-5 h-5 text-amber-500 rounded mt-1">
-                <div class="ml-4 flex-1">
-                    <div class="flex items-center gap-2 mb-1">
-                        <span class="font-bold text-slate-800">星期五 Friday</span>
-                        <span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded text-xs font-semibold">8:00 PM - 10:00 PM</span>
-                    </div>
-                    <p class="text-xs text-slate-600">太极套路训练 Tai Chi Training</p>
+        <!-- LOCATION: CHINWOO -->
+        <div>
+            <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider border-b border-slate-200 pb-2 mb-3">
+                📍 Stadium Chinwoo <span class="text-slate-400 font-normal text-xs ml-2">Kuala Lumpur</span>
+            </h3>
+            <label class="flex items-start p-3 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors group">
+                <input type="checkbox" name="sch" value="Stadium Chinwoo: Sun 2pm-4pm" class="mt-1 w-4 h-4 text-amber-500 rounded border-slate-300 focus:ring-amber-500">
+                <div class="ml-3">
+                    <div class="text-sm font-bold text-slate-700 group-hover:text-amber-600 transition-colors">Sunday 星期日 · 2:00 PM - 4:00 PM</div>
+                    <div class="text-xs text-slate-500 mt-0.5">
+            <span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-md font-semibold">只限于州队/后备队 Only for State/Backup Team<br></span>
+            <span class="bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-md font-semibold">学费交给精武 Fees paid to Chinwoo</span>
+            <span class="text-slate-400 ml-1">(C/B/A 套路 Routine)</span>
+        </div>
+        <div class="text-[10px] text-red-500 font-bold hidden disabled-msg">🚫 Not available for Normal Students 普通学生不允许参加</div>
                 </div>
             </label>
         </div>
 
-        <!-- Wushu Sport Academy - Sunday -->
-        <div class="mb-4">
-            <div class="bg-emerald-50 rounded-t-xl px-4 py-2 border-b-2 border-emerald-200">
-                <h4 class="font-bold text-emerald-800 text-sm">📍 武术体育学院训练中心 Wushu Sport Academy</h4>
-                <p class="text-xs text-emerald-700">Dewan Badminton MBA, Level RF, Jalan BP 7/11, Bandar Bukit Puchong</p>
-            </div>
-            <label class="flex items-start p-4 bg-white rounded-b-xl border border-emerald-100 hover:border-emerald-400 cursor-pointer shadow-sm transition-all">
-                <input type="checkbox" name="sch" value="Tai Chi: Wushu Sport Academy Sun 10am-12pm" class="w-5 h-5 text-amber-500 rounded mt-1">
-                <div class="ml-4 flex-1">
-                    <div class="flex items-center gap-2 mb-1">
-                        <span class="font-bold text-slate-800">星期日 Sunday</span>
-                        <span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded text-xs font-semibold">10:00 AM - 12:00 PM</span>
+        <!-- TAI CHI -->
+        <div>
+            <h3 class="text-sm font-bold text-emerald-700 uppercase tracking-wider border-b border-emerald-100 pb-2 mb-3">
+                📍 Tai Chi Classes 太极班
+            </h3>
+            <div class="space-y-1">
+                <label class="flex items-start p-3 rounded-lg hover:bg-emerald-50 cursor-pointer transition-colors group">
+                    <input type="checkbox" name="sch" value="Tai Chi: SJK(C) Puay Chai 2 Fri 8pm-10pm" class="mt-1 w-4 h-4 text-emerald-500 rounded border-slate-300 focus:ring-emerald-500">
+                    <div class="ml-3">
+                        <div class="text-sm font-bold text-slate-700 group-hover:text-emerald-700 transition-colors">Friday 星期五 · 8:00 PM (SJKC Puay Chai 2)</div>
                     </div>
-                    <p class="text-xs text-slate-600">太极套路训练 Tai Chi Training</p>
-                </div>
-            </label>
+                </label>
+                <label class="flex items-start p-3 rounded-lg hover:bg-emerald-50 cursor-pointer transition-colors group">
+                    <input type="checkbox" name="sch" value="Tai Chi: Wushu Sport Academy Sun 10am-12pm" class="mt-1 w-4 h-4 text-emerald-500 rounded border-slate-300 focus:ring-emerald-500">
+                    <div class="ml-3">
+                        <div class="text-sm font-bold text-slate-700 group-hover:text-emerald-700 transition-colors">Sunday 星期日 · 10:00 AM (Wushu Sport Academy)</div>
+                    </div>
+                </label>
+            </div>
         </div>
     </div>
 </div>
+
 
 
             <!-- STEP 5: Terms & Signature -->
@@ -1282,9 +1243,77 @@
     document.getElementById('ic').addEventListener('input', calculateAge);  // ADD THIS LINE
     document.getElementById('parent-ic').addEventListener('input', formatIC);
     document.getElementById('phone').addEventListener('input', formatPhone);
+    document.getElementById('today-date').value = new Date().toLocaleDateString('en-GB');
+    document.getElementById('ic').addEventListener('input', formatIC);
+    document.getElementById('ic').addEventListener('input', calculateAge);
+    document.getElementById('phone').addEventListener('input', formatPhone);
     initSignaturePad();
     window.addEventListener('resize', resizeCanvas);
+
+    // --- NEW: Add Listeners for Status Change ---
+    const statusRadios = document.getElementsByName('status');
+    statusRadios.forEach(radio => {
+        radio.addEventListener('change', updateScheduleAvailability);
+    });
+
+    // Run once on load to set initial state
+    updateScheduleAvailability();
+    window.addEventListener('resize', resizeCanvas);
 });
+
+    // Function to handle class restrictions based on Student Status
+function updateScheduleAvailability() {
+    // 1. Get current status
+    const statusRadios = document.getElementsByName('status');
+    let selectedStatus = 'Student 学生'; // Default
+    for (const radio of statusRadios) {
+        if (radio.checked) {
+            selectedStatus = radio.value;
+            break;
+        }
+    }
+
+    // Check if user is JUST a "Student" (not State or Backup)
+    const isRegularStudent = selectedStatus === 'Student 学生';
+
+    // 2. Define the restricted values
+    const restrictedClasses = [
+        "SJK(C) Puay Chai 2: Tue 8pm-10pm",     // Tuesday Class
+        "Wushu Sport Academy: Sun 10am-12pm",   // Sunday 10am Class
+        "Stadium Chinwoo: Sun 2pm-4pm"          // Chinwoo Class
+    ];
+
+    // 3. Loop through restricted classes and disable/enable them
+    restrictedClasses.forEach(val => {
+        // Find the checkbox by value
+        const checkbox = document.querySelector(`input[name="sch"][value="${val}"]`);
+        
+        if (checkbox) {
+            const container = checkbox.closest('label');
+            const errorMsg = container.querySelector('.disabled-msg');
+
+            if (isRegularStudent) {
+                // DISABLE logic
+                checkbox.checked = false; // Uncheck if previously selected
+                checkbox.disabled = true;
+                
+                // Visual updates
+                container.classList.add('opacity-50', 'cursor-not-allowed', 'bg-slate-100');
+                container.classList.remove('hover:bg-slate-50', 'cursor-pointer');
+                if(errorMsg) errorMsg.classList.remove('hidden');
+            } else {
+                // ENABLE logic
+                checkbox.disabled = false;
+                
+                // Visual updates
+                container.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-slate-100');
+                container.classList.add('hover:bg-slate-50', 'cursor-pointer');
+                if(errorMsg) errorMsg.classList.add('hidden');
+            }
+        }
+    });
+}
+
 
 
     function formatIC(e) {
