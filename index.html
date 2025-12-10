@@ -168,6 +168,107 @@
     line-height: 1.5;
 }
 
+/* Dropdown/Collapsible School Box Styles */
+.school-box {
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    background: white;
+}
+
+.school-box:hover {
+    border-color: #fbbf24;
+    box-shadow: 0 4px 12px rgba(251, 191, 36, 0.15);
+}
+
+.school-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    cursor: pointer;
+    background: #f8fafc;
+    transition: background 0.2s;
+}
+
+.school-header:hover {
+    background: #f1f5f9;
+}
+
+.school-info {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex: 1;
+}
+
+.school-logo {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #e2e8f0;
+    flex-shrink: 0;
+}
+
+.school-text h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0 0 4px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.school-text p {
+    font-size: 13px;
+    color: #64748b;
+    margin: 0;
+}
+
+.school-toggle {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+    flex-shrink: 0;
+}
+
+.school-toggle i {
+    transition: transform 0.3s;
+    color: #475569;
+}
+
+.school-box.active .school-toggle {
+    background: #fbbf24;
+}
+
+.school-box.active .school-toggle i {
+    transform: rotate(180deg);
+    color: white;
+}
+
+.school-schedules {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+
+.school-schedules-inner {
+    padding: 0 20px 20px 20px;
+}
+
+.school-box.active .school-schedules {
+    max-height: 1000px;
+}
+
+
     </style>
 </head>
 <body class="flex items-center justify-center p-4">
@@ -563,7 +664,7 @@
                 </div>
             </div>
 
-            <!-- STEP 4: Schedule (Improved Box Design) -->
+            <!-- STEP 4: Schedule (Dropdown Box Design) -->
 <div id="step-4" class="step-content">
     <h2 class="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
         <i class="fa-regular fa-calendar-check text-amber-500"></i> 训练时间 Training Schedule
@@ -571,141 +672,208 @@
 
     <!-- Fee Info -->
     <div class="bg-amber-50 text-amber-900 p-4 rounded-xl text-xs mb-8 border border-amber-100">
-        <p class="font-bold mb-1"><i class="fas fa-info-circle"></i> 凡选择项目，日期 📅 与锻炼地点 📍 可自选<br>Choose your program, date 📅, and training location 📍 freely</p>
-        <p>学费如下 Fees:</p>
-        <p>• 每月（每周一堂课）Monthly (1 class per week) <strong>RM 120</strong></p>
-        <p>• 每月（每周两堂课）Monthly (2 class per week) <strong>RM 200</strong></p>
-        <p>• 每月（每周三堂课）Monthly (3 class per week) <strong>RM 280</strong></p>
-        <p>• 每月（每周四堂课）Monthly (4 class per week) <strong>RM 320</strong></p>
+        <p class="font-bold mb-1"><i class="fas fa-info-circle"></i>注明 (Remark)：州队运动员需至少选择 两堂课。<br></p>
+        <p>• 选择 一堂课：收费 <strong>RM 120</strong></p>
+        <p>• 选择 二堂课：收费 <strong>RM 200</strong></p>
+        <p>• 选择 三堂课：收费 <strong>RM 280</strong></p>
+        <p>• 选择 四堂课：收费 <strong>RM 320</strong></p>
+        <p class="font-bold mb-1"><br>State team athletes must choose at least two classes.</p>
+        <p>• If only one class is chosen: <strong>RM 120</strong></p>
+        <p>• If a second class is chosen: <strong>RM 200</strong></p>
+        <p>• If a third class is chosen: <strong>RM 280</strong></p>
+        <p>• If a forth class is chosen: <strong>RM 320</strong></p>
     </div>
 
-    <div class="space-y-8">
-        <!-- LOCATION: SJKC -->
-        <div>
-            <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider border-b-2 border-slate-900 pb-3 mb-4 flex items-center gap-2">
-                <i class="fas fa-map-marker-alt text-amber-500"></i>
-                SJK(C) Puay Chai 2 
-                <span class="text-slate-400 font-normal text-xs ml-2">Bandar Utama</span>
-            </h3>
-            <div class="space-y-3">
-                <label class="custom-checkbox border-2 border-slate-200 rounded-xl hover:border-amber-400 hover:bg-amber-50/30 transition-all">
-                    <input type="checkbox" name="sch" value="SJK(C) Puay Chai 2: Tue 8pm-10pm">
-                    <div class="custom-checkbox-label">
-                        <div class="text-sm font-bold text-slate-800 mb-1">
-                            <i class="far fa-calendar mr-2 text-amber-500"></i>Tuesday 星期二 · 8:00 PM - 10:00 PM
-                        </div>
-                        <div class="text-xs text-slate-600">
-                            <span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-md font-semibold">只限于州队/后备队 Only for State/Backup Team</span>
-                            <span class="text-slate-400 ml-1">(D/C/B/A 套路 Routine)</span>
-                        </div>
-                        <div class="text-[10px] text-red-500 font-bold hidden disabled-msg mt-1">
-                            <i class="fas fa-ban mr-1"></i>Not available for Normal Students 普通学生不允许参加
-                        </div>
+    <div class="space-y-4">
+        <!-- SCHOOL 2: Wushu Sport Academy -->
+        <div class="school-box" onclick="toggleSchoolBox(this)">
+            <div class="school-header">
+                <div class="school-info">
+                    <img src="https://wushu-assets.s3.ap-southeast-1.amazonaws.com/Wushu+Sport+Academy+Circle+Yellow.png" alt="WSA Logo" class="school-logo">
+                    <div class="school-text">
+                        <h3>
+                            <i class="fas fa-map-marker-alt text-amber-500"></i>
+                            Wushu Sport Academy 武术体育学院
+                        </h3>
+                        <p><i class="fas fa-location-dot text-slate-400 mr-1"></i>No. 2, Jalan BP 5/6, Bandar Bukit Puchong, 47120 Puchong, Selangor</p>
                     </div>
-                </label>
+                </div>
+                <div class="school-toggle">
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+            </div>
+            <div class="school-schedules">
+                <div class="school-schedules-inner">
+                    <div class="space-y-3">
+                        <label class="custom-checkbox border-2 border-slate-200 rounded-xl hover:border-amber-400 hover:bg-amber-50/30 transition-all">
+                            <input type="checkbox" name="sch" value="Wushu Sport Academy: Sun 10am-12pm">
+                            <div class="custom-checkbox-label">
+                                <div class="text-sm font-bold text-slate-800 mb-1">
+                                    <i class="far fa-calendar mr-2 text-amber-500"></i>Sunday 星期日 · 10:00 AM - 12:00 PM
+                                </div>
+                                <div class="text-xs text-slate-600">
+                                    <span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-md font-semibold">只限于州队/后备队 Only for State/Backup Team</span>
+                                </div>
+                                <div class="text-[10px] text-red-500 font-bold hidden disabled-msg mt-1">
+                                    <i class="fas fa-ban mr-1"></i>Not available for Normal Students 普通学生不允许参加
+                                </div>
+                            </div>
+                        </label>
+
+                        <label class="custom-checkbox border-2 border-slate-200 rounded-xl hover:border-amber-400 hover:bg-amber-50/30 transition-all">
+                            <input type="checkbox" name="sch" value="Wushu Sport Academy: Sun 12pm-2pm">
+                            <div class="custom-checkbox-label">
+                                <div class="text-sm font-bold text-slate-800">
+                                    <i class="far fa-calendar mr-2 text-amber-500"></i>Sunday 星期日 · 12:00 PM - 2:00 PM
+                                </div>
+                            </div>
+                        </label>
+
+                        <label class="custom-checkbox border-2 border-slate-200 rounded-xl hover:border-amber-400 hover:bg-amber-50/30 transition-all">
+                            <input type="checkbox" name="sch" value="Wushu Sport Academy: Wed 8pm-10pm">
+                            <div class="custom-checkbox-label">
+                                <div class="text-sm font-bold text-slate-800 mb-1">
+                                    <i class="far fa-calendar mr-2 text-amber-500"></i>Wednesday 星期三 · 8:00 PM - 10:00 PM
+                                </div>
+                                <div class="text-xs text-slate-500">全部组别 All Groups (A/B/C/D, 太极 Tai Chi, 传统 Traditional)</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- SCHOOL 1: SJK(C) Puay Chai 2 -->
+        <div class="school-box" onclick="toggleSchoolBox(this)">
+            <div class="school-header">
+                <div class="school-info">
+                    <img src="https://wushu-assets.s3.ap-southeast-1.amazonaws.com/PC2+Logo.png" alt="PC2 Logo" class="school-logo">
+                    <div class="school-text">
+                        <h3>
+                            <i class="fas fa-map-marker-alt text-amber-500"></i>
+                            SJK(C) Puay Chai 2 培才二校
+                        </h3>
+                        <p><i class="fas fa-location-dot text-slate-400 mr-1"></i>Jln BU 3/1, Bandar Utama, 47800 Petaling Jaya, Selangor</p>
+                    </div>
+                </div>
+                <div class="school-toggle">
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+            </div>
+            <div class="school-schedules">
+                <div class="school-schedules-inner">
+                    <div class="space-y-3">
+                        <label class="custom-checkbox border-2 border-slate-200 rounded-xl hover:border-amber-400 hover:bg-amber-50/30 transition-all">
+                            <input type="checkbox" name="sch" value="SJK(C) Puay Chai 2: Tue 8pm-10pm">
+                            <div class="custom-checkbox-label">
+                                <div class="text-sm font-bold text-slate-800 mb-1">
+                                    <i class="far fa-calendar mr-2 text-amber-500"></i>Tuesday 星期二 · 8:00 PM - 10:00 PM
+                                </div>
+                                <div class="text-xs text-slate-600">
+                                    <span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-md font-semibold">只限于州队/后备队 Only for State/Backup Team</span>
+                                    <span class="text-slate-400 ml-1">(D/C/B/A 套路 Routine)</span>
+                                </div>
+                                <div class="text-[10px] text-red-500 font-bold hidden disabled-msg mt-1">
+                                    <i class="fas fa-ban mr-1"></i>Not available for Normal Students 普通学生不允许参加
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- LOCATION: WSA -->
-        <div>
-            <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider border-b-2 border-slate-900 pb-3 mb-4 flex items-center gap-2">
-                <i class="fas fa-map-marker-alt text-amber-500"></i>
-                Wushu Sport Academy 
-                <span class="text-slate-400 font-normal text-xs ml-2">Bukit Puchong</span>
-            </h3>
-            
-            <div class="space-y-3">
-                <label class="custom-checkbox border-2 border-slate-200 rounded-xl hover:border-amber-400 hover:bg-amber-50/30 transition-all">
-                    <input type="checkbox" name="sch" value="Wushu Sport Academy: Sun 10am-12pm">
-                    <div class="custom-checkbox-label">
-                        <div class="text-sm font-bold text-slate-800 mb-1">
-                            <i class="far fa-calendar mr-2 text-amber-500"></i>Sunday 星期日 · 10:00 AM - 12:00 PM
-                        </div>
-                        <div class="text-xs text-slate-600">
-                            <span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-md font-semibold">只限于州队/后备队 Only for State/Backup Team</span>
-                        </div>
-                        <div class="text-[10px] text-red-500 font-bold hidden disabled-msg mt-1">
-                            <i class="fas fa-ban mr-1"></i>Not available for Normal Students 普通学生不允许参加
-                        </div>
+        <!-- SCHOOL 3: Stadium Chinwoo -->
+        <div class="school-box" onclick="toggleSchoolBox(this)">
+            <div class="school-header">
+                <div class="school-info">
+                    <div class="school-logo" style="background: linear-gradient(135deg, #1e293b 0%, #475569 100%); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 18px;">精</div>
+                    <div class="school-text">
+                        <h3>
+                            <i class="fas fa-map-marker-alt text-amber-500"></i>
+                            Stadium Chinwoo 精武体育馆
+                        </h3>
+                        <p><i class="fas fa-location-dot text-slate-400 mr-1"></i>Jalan Hang Jebat, 50150 Kuala Lumpur</p>
                     </div>
-                </label>
-
-                <label class="custom-checkbox border-2 border-slate-200 rounded-xl hover:border-amber-400 hover:bg-amber-50/30 transition-all">
-                    <input type="checkbox" name="sch" value="Wushu Sport Academy: Sun 12pm-2pm">
-                    <div class="custom-checkbox-label">
-                        <div class="text-sm font-bold text-slate-800">
-                            <i class="far fa-calendar mr-2 text-amber-500"></i>Sunday 星期日 · 12:00 PM - 2:00 PM
-                        </div>
+                </div>
+                <div class="school-toggle">
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+            </div>
+            <div class="school-schedules">
+                <div class="school-schedules-inner">
+                    <div class="space-y-3">
+                        <label class="custom-checkbox border-2 border-slate-200 rounded-xl hover:border-amber-400 hover:bg-amber-50/30 transition-all">
+                            <input type="checkbox" name="sch" value="Stadium Chinwoo: Sun 2pm-4pm">
+                            <div class="custom-checkbox-label">
+                                <div class="text-sm font-bold text-slate-800 mb-1">
+                                    <i class="far fa-calendar mr-2 text-amber-500"></i>Sunday 星期日 · 2:00 PM - 4:00 PM
+                                </div>
+                                <div class="text-xs text-slate-600">
+                                    <span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-md font-semibold">只限于州队/后备队 Only for State/Backup Team</span>
+                                    <span class="bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-md font-semibold ml-1">学费交给精武 Fees paid to Chinwoo</span>
+                                    <span class="text-slate-400 ml-1">(C/B/A 套路 Routine)</span>
+                                </div>
+                                <div class="text-[10px] text-red-500 font-bold hidden disabled-msg mt-1">
+                                    <i class="fas fa-ban mr-1"></i>Not available for Normal Students 普通学生不允许参加
+                                </div>
+                            </div>
+                        </label>
                     </div>
-                </label>
-
-                <label class="custom-checkbox border-2 border-slate-200 rounded-xl hover:border-amber-400 hover:bg-amber-50/30 transition-all">
-                    <input type="checkbox" name="sch" value="Wushu Sport Academy: Wed 8pm-10pm">
-                    <div class="custom-checkbox-label">
-                        <div class="text-sm font-bold text-slate-800 mb-1">
-                            <i class="far fa-calendar mr-2 text-amber-500"></i>Wednesday 星期三 · 8:00 PM - 10:00 PM
-                        </div>
-                        <div class="text-xs text-slate-500">全部组别 All Groups (A/B/C/D, 太极 Tai Chi, 传统 Traditional)</div>
-                    </div>
-                </label>
+                </div>
             </div>
         </div>
 
-        <!-- LOCATION: CHINWOO -->
-        <div>
-            <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider border-b-2 border-slate-900 pb-3 mb-4 flex items-center gap-2">
-                <i class="fas fa-map-marker-alt text-amber-500"></i>
-                Stadium Chinwoo 
-                <span class="text-slate-400 font-normal text-xs ml-2">Kuala Lumpur</span>
-            </h3>
-            <div class="space-y-3">
-                <label class="custom-checkbox border-2 border-slate-200 rounded-xl hover:border-amber-400 hover:bg-amber-50/30 transition-all">
-                    <input type="checkbox" name="sch" value="Stadium Chinwoo: Sun 2pm-4pm">
-                    <div class="custom-checkbox-label">
-                        <div class="text-sm font-bold text-slate-800 mb-1">
-                            <i class="far fa-calendar mr-2 text-amber-500"></i>Sunday 星期日 · 2:00 PM - 4:00 PM
-                        </div>
-                        <div class="text-xs text-slate-600">
-                            <span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-md font-semibold">只限于州队/后备队 Only for State/Backup Team</span>
-                            <span class="bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-md font-semibold ml-1">学费交给精武 Fees paid to Chinwoo</span>
-                            <span class="text-slate-400 ml-1">(C/B/A 套路 Routine)</span>
-                        </div>
-                        <div class="text-[10px] text-red-500 font-bold hidden disabled-msg mt-1">
-                            <i class="fas fa-ban mr-1"></i>Not available for Normal Students 普通学生不允许参加
-                        </div>
+        <!-- TAI CHI CLASSES -->
+        <div class="school-box" onclick="toggleSchoolBox(this)">
+            <div class="school-header">
+                <div class="school-info">
+                    <div class="school-logo" style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-yin-yang" style="color: white; font-size: 24px;"></i>
                     </div>
-                </label>
+                    <div class="school-text">
+                        <h3>
+                            <i class="fas fa-yin-yang text-emerald-600"></i>
+                            Tai Chi Classes 太极班
+                        </h3>
+                        <p><i class="fas fa-info-circle text-slate-400 mr-1"></i>Multiple Locations Available</p>
+                    </div>
+                </div>
+                <div class="school-toggle">
+                    <i class="fas fa-chevron-down"></i>
+                </div>
             </div>
-        </div>
-
-        <!-- TAI CHI -->
-        <div>
-            <h3 class="text-sm font-bold text-emerald-700 uppercase tracking-wider border-b-2 border-emerald-500 pb-3 mb-4 flex items-center gap-2">
-                <i class="fas fa-yin-yang text-emerald-600"></i>
-                Tai Chi Classes 太极班
-            </h3>
-            <div class="space-y-3">
-                <label class="custom-checkbox border-2 border-emerald-200 rounded-xl hover:border-emerald-500 hover:bg-emerald-50/30 transition-all">
-                    <input type="checkbox" name="sch" value="Tai Chi: SJK(C) Puay Chai 2 Fri 8pm-10pm">
-                    <div class="custom-checkbox-label">
-                        <div class="text-sm font-bold text-slate-800">
-                            <i class="far fa-calendar mr-2 text-emerald-600"></i>Friday 星期五 · 8:00 PM (SJKC Puay Chai 2)
-                        </div>
+            <div class="school-schedules">
+                <div class="school-schedules-inner">
+                    <div class="space-y-3">
+                        <label class="custom-checkbox border-2 border-emerald-200 rounded-xl hover:border-emerald-500 hover:bg-emerald-50/30 transition-all">
+                            <input type="checkbox" name="sch" value="Tai Chi: SJK(C) Puay Chai 2 Fri 8pm-10pm">
+                            <div class="custom-checkbox-label">
+                                <div class="text-sm font-bold text-slate-800">
+                                    <i class="far fa-calendar mr-2 text-emerald-600"></i>Friday 星期五 · 8:00 PM - 10:00 PM
+                                </div>
+                                <div class="text-xs text-slate-500 mt-1">
+                                    <i class="fas fa-location-dot text-emerald-500 mr-1"></i>SJK(C) Puay Chai 2, Bandar Utama
+                                </div>
+                            </div>
+                        </label>
+                        <label class="custom-checkbox border-2 border-emerald-200 rounded-xl hover:border-emerald-500 hover:bg-emerald-50/30 transition-all">
+                            <input type="checkbox" name="sch" value="Tai Chi: Wushu Sport Academy Sun 10am-12pm">
+                            <div class="custom-checkbox-label">
+                                <div class="text-sm font-bold text-slate-800">
+                                    <i class="far fa-calendar mr-2 text-emerald-600"></i>Sunday 星期日 · 10:00 AM - 12:00 PM
+                                </div>
+                                <div class="text-xs text-slate-500 mt-1">
+                                    <i class="fas fa-location-dot text-emerald-500 mr-1"></i>Wushu Sport Academy, Bukit Puchong
+                                </div>
+                            </div>
+                        </label>
                     </div>
-                </label>
-                <label class="custom-checkbox border-2 border-emerald-200 rounded-xl hover:border-emerald-500 hover:bg-emerald-50/30 transition-all">
-                    <input type="checkbox" name="sch" value="Tai Chi: Wushu Sport Academy Sun 10am-12pm">
-                    <div class="custom-checkbox-label">
-                        <div class="text-sm font-bold text-slate-800">
-                            <i class="far fa-calendar mr-2 text-emerald-600"></i>Sunday 星期日 · 10:00 AM (Wushu Sport Academy)
-                        </div>
-                    </div>
-                </label>
+                </div>
             </div>
         </div>
     </div>
 </div>
-
 
 
 
@@ -1842,6 +2010,16 @@ function showError(message) {
         
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
+    
+    function toggleSchoolBox(element) {
+    // Prevent toggle when clicking on checkbox
+    if (event.target.type === 'checkbox' || event.target.closest('.custom-checkbox')) {
+        return;
+    }
+    
+    element.classList.toggle('active');
+}
+
 </script>
 </body>
 </html>
