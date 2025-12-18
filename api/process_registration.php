@@ -23,11 +23,34 @@ if (!$data) {
     exit;
 }
 
-// Log received data for debugging
-error_log('=== REGISTRATION SUBMISSION DEBUG ===');
-error_log('Received data keys: ' . implode(', ', array_keys($data)));
-error_log('Events data: ' . ($data['events'] ?? 'MISSING'));
-error_log('Signature exists: ' . (isset($data['signature_base64']) ? 'YES (length: ' . strlen($data['signature_base64']) . ')' : 'NO'));
+// DETAILED LOGGING - Check what we actually received
+error_log('========== REGISTRATION SUBMISSION DEBUG ==========');
+error_log('All received fields: ' . implode(', ', array_keys($data)));
+
+// Check signature specifically
+if (isset($data['signature_base64'])) {
+    $sig_len = strlen($data['signature_base64']);
+    $sig_start = substr($data['signature_base64'], 0, 50);
+    error_log("signature_base64: EXISTS, Length={$sig_len}, Starts with: {$sig_start}");
+} else {
+    error_log('signature_base64: MISSING!');
+}
+
+// Check schedule
+if (isset($data['schedule'])) {
+    error_log("schedule: EXISTS, Value='{$data['schedule']}', Type=" . gettype($data['schedule']));
+} else {
+    error_log('schedule: MISSING!');
+}
+
+// Check events
+if (isset($data['events'])) {
+    error_log("events: EXISTS, Value='{$data['events']}', Type=" . gettype($data['events']));
+} else {
+    error_log('events: MISSING!');
+}
+
+error_log('===================================================');
 
 // Validate required fields
 $required = [
@@ -45,14 +68,19 @@ foreach ($required as $field) {
 }
 
 if (!empty($missing_fields)) {
-    echo json_encode([
+    $error_response = [
         'success' => false, 
         'error' => 'Missing required fields: ' . implode(', ', $missing_fields),
         'debug' => [
             'missing' => $missing_fields,
-            'received_keys' => array_keys($data)
+            'received_keys' => array_keys($data),
+            'signature_check' => isset($data['signature_base64']) ? 'exists (len=' . strlen($data['signature_base64']) . ')' : 'missing',
+            'schedule_check' => isset($data['schedule']) ? "exists ('{$data['schedule']}')": 'missing',
+            'events_check' => isset($data['events']) ? "exists ('{$data['events']}')": 'missing'
         ]
-    ]);
+    ];
+    error_log('Validation failed: ' . json_encode($error_response['debug']));
+    echo json_encode($error_response);
     exit;
 }
 
@@ -82,15 +110,21 @@ try {
     $form_date = $data['form_date'] ?? date('Y-m-d');
     $payment_status = 'pending';
     
-    // Ensure events is a string (in case it's sent as array)
+    // Process events - handle both array and string
     $events = is_array($data['events']) ? implode(', ', $data['events']) : $data['events'];
     
-    // Log what we're saving
-    error_log('Saving registration:');
-    error_log('  Registration Number: ' . $registration_number);
-    error_log('  Events: ' . $events);
-    error_log('  Signature length: ' . strlen($data['signature_base64']));
-    error_log('  Signed PDF length: ' . strlen($data['signed_pdf_base64']));
+    // Process schedule - ensure it's a string
+    $schedule = (string)$data['schedule'];
+    
+    // Process signature - ensure it's a string
+    $signature_base64 = (string)$data['signature_base64'];
+    
+    // Log what we're about to save
+    error_log('SAVING TO DATABASE:');
+    error_log("  Registration: {$registration_number}");
+    error_log("  Events: '{$events}' (length: " . strlen($events) . ")");
+    error_log("  Schedule: '{$schedule}' (length: " . strlen($schedule) . ")");
+    error_log("  Signature: length=" . strlen($signature_base64));
     
     // Prepare SQL statement
     $sql = "INSERT INTO registrations (
@@ -107,31 +141,30 @@ try {
         throw new Exception('Database prepare failed: ' . $conn->error);
     }
     
-    // Bind parameters
-    // Type string: s=string, i=integer, d=double
+    // Bind parameters - all as strings except age and class_count
     $stmt->bind_param(
         'ssssississsisssdssssss',  // 22 parameters
         $registration_number,      // 1
         $data['name_en'],          // 2
         $name_cn,                  // 3
         $data['ic'],               // 4
-        $data['age'],              // 5
+        $data['age'],              // 5 - integer
         $data['school'],           // 6
         $data['status'],           // 7
         $data['phone'],            // 8
         $data['email'],            // 9
         $level,                    // 10
-        $events,                   // 11 - Fixed: use processed events
-        $data['schedule'],         // 12
-        $class_count,              // 13
+        $events,                   // 11 - processed events
+        $schedule,                 // 12 - processed schedule
+        $class_count,              // 13 - integer
         $data['parent_name'],      // 14
         $data['parent_ic'],        // 15
-        $data['signature_base64'], // 16 - Signature
-        $data['payment_amount'],   // 17
+        $signature_base64,         // 16 - processed signature
+        $data['payment_amount'],   // 17 - double
         $data['payment_date'],     // 18
         $data['payment_receipt_base64'], // 19
         $payment_status,           // 20
-        $data['signed_pdf_base64'],// 21 - Signed PDF
+        $data['signed_pdf_base64'],// 21
         $form_date                 // 22
     );
     
@@ -139,19 +172,20 @@ try {
     if ($stmt->execute()) {
         $insert_id = $conn->insert_id;
         
-        error_log('✓ Registration saved successfully! ID: ' . $insert_id);
+        error_log("✓ Registration saved successfully! ID: {$insert_id}");
         
         // Verify data was saved by reading it back
-        $verify_sql = "SELECT events, signature_base64 FROM registrations WHERE id = ?";
+        $verify_sql = "SELECT events, schedule, signature_base64 FROM registrations WHERE id = ?";
         $verify_stmt = $conn->prepare($verify_sql);
         $verify_stmt->bind_param('i', $insert_id);
         $verify_stmt->execute();
         $result = $verify_stmt->get_result();
         $saved_data = $result->fetch_assoc();
         
-        error_log('Verification:');
-        error_log('  Events saved: ' . ($saved_data['events'] ?? 'NULL'));
-        error_log('  Signature saved: ' . (isset($saved_data['signature_base64']) ? 'YES (' . strlen($saved_data['signature_base64']) . ' bytes)' : 'NO'));
+        error_log('VERIFICATION - Data read back from database:');
+        error_log("  Events: '" . ($saved_data['events'] ?? 'NULL') . "'");
+        error_log("  Schedule: '" . ($saved_data['schedule'] ?? 'NULL') . "'");
+        error_log("  Signature: " . (isset($saved_data['signature_base64']) && $saved_data['signature_base64'] ? 'YES (' . strlen($saved_data['signature_base64']) . ' bytes)' : 'NO/NULL'));
         
         $verify_stmt->close();
         
@@ -162,6 +196,7 @@ try {
             'message' => 'Registration submitted successfully. Admin will review your payment.',
             'debug' => [
                 'events_saved' => $saved_data['events'],
+                'schedule_saved' => $saved_data['schedule'],
                 'signature_length' => isset($saved_data['signature_base64']) ? strlen($saved_data['signature_base64']) : 0
             ]
         ]);
