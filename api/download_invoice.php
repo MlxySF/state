@@ -1,7 +1,7 @@
 <?php
 /**
  * Professional Invoice PDF Generator
- * Fixed: Shows registered routines properly and includes schedule in description
+ * Updated: Multi-line description without LEVEL column
  */
 
 error_reporting(E_ALL);
@@ -255,7 +255,7 @@ try {
     
     $pdf->Ln(7);
     
-    // LINE ITEMS TABLE
+    // LINE ITEMS TABLE (without LEVEL column)
     $pdf->SetX(15);
     $pdf->SetFillColor(15, 52, 96);
     $pdf->SetDrawColor(15, 52, 96);
@@ -263,32 +263,42 @@ try {
     $pdf->SetFont('Helvetica', 'B', 10);
     $pdf->SetTextColor(255, 255, 255);
     
-    $pdf->Cell(100, 8, 'DESCRIPTION', 1, 0, 'L', true);
-    $pdf->Cell(30, 8, 'LEVEL', 1, 0, 'C', true);
+    // Header: DESCRIPTION | QTY | AMOUNT (removed LEVEL)
+    $pdf->Cell(135, 8, 'DESCRIPTION', 1, 0, 'L', true);
     $pdf->Cell(20, 8, 'QTY', 1, 0, 'C', true);
-    $pdf->Cell(35, 8, 'AMOUNT (RM)', 1, 1, 'R', true);
+    $pdf->Cell(30, 8, 'AMOUNT (RM)', 1, 1, 'R', true);
     
-    // Item row - Include schedule in description
-    $pdf->SetFont('Helvetica', '', 8);
-    $pdf->SetTextColor(0, 0, 0);
+    // Item row - Multi-line description with classes and schedule
     $pdf->SetDrawColor(220, 220, 220);
     $pdf->SetLineWidth(0.2);
+    $pdf->SetFont('Helvetica', '', 9);
+    $pdf->SetTextColor(0, 0, 0);
     
-    // Build description with routines and schedule
-    $description = 'Routines: ' . $englishRoutines . ' | ' . $cleanSchedule;
+    // Split routines by comma for line breaks
+    $routinesList = explode(', ', $englishRoutines);
+    $descriptionText = implode("\n", $routinesList) . "\n" . $cleanSchedule;
     
-    // Truncate if too long for table cell
-    if (strlen($description) > 90) {
-        $description = substr($description, 0, 87) . '...';
-    }
+    // Calculate height needed for multi-line cell
+    $lineHeight = 4;
+    $numLines = substr_count($descriptionText, "\n") + 1;
+    $cellHeight = max($numLines * $lineHeight, 8);
     
-    $pdf->SetX(15);
-    $pdf->Cell(100, 8, $description, 1, 0, 'L');
-    $pdf->SetFont('Helvetica', '', 10);
-    $pdf->Cell(30, 8, $reg['level'], 1, 0, 'C');
-    $pdf->Cell(20, 8, $reg['class_count'], 1, 0, 'C');
+    // Store current X and Y for other columns
+    $startX = 15;
+    $startY = $pdf->GetY();
+    
+    // Description cell with MultiCell
+    $pdf->SetXY($startX, $startY);
+    $pdf->MultiCell(135, $lineHeight, $descriptionText, 1, 'L');
+    
+    // QTY cell
+    $pdf->SetXY($startX + 135, $startY);
+    $pdf->Cell(20, $cellHeight, $reg['class_count'], 1, 0, 'C');
+    
+    // Amount cell
     $pdf->SetFont('Helvetica', 'B', 10);
-    $pdf->Cell(35, 8, number_format((float)$reg['payment_amount'], 2), 1, 1, 'R');
+    $pdf->SetX($startX + 155);
+    $pdf->Cell(30, $cellHeight, number_format((float)$reg['payment_amount'], 2), 1, 1, 'R');
     
     $pdf->Ln(5);
     
@@ -349,7 +359,7 @@ try {
         $pdf->Ln(4);
     }
     
-    // CLASS DETAILS - Now properly shows the registered routines
+    // CLASS DETAILS
     $pdf->SetFont('Helvetica', 'B', 10);
     $pdf->SetTextColor(15, 52, 96);
     $pdf->SetX(15);
@@ -358,8 +368,6 @@ try {
     $pdf->SetFont('Helvetica', '', 9);
     $pdf->SetTextColor(60, 60, 60);
     $pdf->SetX(15);
-    
-    // Show the actual routines from events field
     $pdf->MultiCell(180, 4.5, 'Registered Routines: ' . $englishRoutines, 0, 'L');
     
     $pdf->SetX(15);
