@@ -265,6 +265,52 @@
             font-size: 16px;
         }
 
+        .pricing-scenarios {
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+            padding: 30px;
+            border-radius: 10px;
+            margin-top: 30px;
+            border-left: 5px solid #4caf50;
+        }
+
+        .pricing-scenarios h3 {
+            font-size: 20px;
+            color: #1a1a2e;
+            margin-bottom: 20px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .scenario-item {
+            background: white;
+            padding: 18px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid #4caf50;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+        }
+
+        .scenario-title {
+            font-size: 17px;
+            font-weight: bold;
+            color: #2e7d32;
+            margin-bottom: 10px;
+        }
+
+        .scenario-details {
+            font-size: 15px;
+            color: #333;
+            line-height: 1.8;
+            margin-left: 10px;
+        }
+
+        .scenario-price {
+            font-size: 18px;
+            font-weight: bold;
+            color: #d4af37;
+            margin-top: 8px;
+        }
+
         .footer {
             background: #1a1a2e;
             color: white;
@@ -312,6 +358,11 @@
             }
 
             .remark-section {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .pricing-scenarios {
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
             }
@@ -614,6 +665,67 @@
                             <div class="info-value">RM 120</div>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- PRICING SCENARIOS SECTION -->
+            <div class="pricing-scenarios">
+                <h3>💰 学费组合配套 FEE COMBINATION PACKAGES</h3>
+                
+                <div class="scenario-item">
+                    <div class="scenario-title">Scenario 1: MBA Sunday Classes Only</div>
+                    <div class="scenario-details">
+                        • Select MBA Sunday classes (10am-12pm or 12pm-2pm) at Wushu Sport Academy<br>
+                        • RM30 per individual class session
+                    </div>
+                    <div class="scenario-price">Total: RM120 (4 sessions per month)</div>
+                </div>
+
+                <div class="scenario-item">
+                    <div class="scenario-title">Scenario 2: Tuesday + Sunday (12pm-2pm)</div>
+                    <div class="scenario-details">
+                        • PC2 Tuesday 8pm-10pm (RM120)<br>
+                        • MBA Sunday 12pm-2pm (Fee calculated based on attendance)
+                    </div>
+                    <div class="scenario-price">Total: RM120 + Sunday fee calculation</div>
+                </div>
+
+                <div class="scenario-item">
+                    <div class="scenario-title">Scenario 3: Tuesday Class Only</div>
+                    <div class="scenario-details">
+                        • PC2 Tuesday 8pm-10pm only
+                    </div>
+                    <div class="scenario-price">Total: RM120</div>
+                </div>
+
+                <div class="scenario-item">
+                    <div class="scenario-title">Scenario 4: Comprehensive Package (4 Classes)</div>
+                    <div class="scenario-details">
+                        • PC2 Tuesday 8pm-10pm<br>
+                        • PC2 Wednesday 8pm-10pm<br>
+                        • PC2 Friday 8pm-10pm (Tai Chi)<br>
+                        • MBA Sunday 12pm-2pm
+                    </div>
+                    <div class="scenario-price">Total: RM320 (4 classes per week)</div>
+                </div>
+
+                <div class="scenario-item">
+                    <div class="scenario-title">Scenario 5: Two-Class Combinations (RM200)</div>
+                    <div class="scenario-details">
+                        <strong>Option A:</strong> PC2 Tuesday 8pm-10pm + PC2 Wednesday 8pm-10pm<br>
+                        <strong>Option B:</strong> PC2 Tuesday 8pm-10pm + PC2 Wednesday 8pm-10pm OR PC2 Tuesday 8pm-10pm + PC2 Friday 8pm-10pm<br>
+                        <strong>Option C:</strong> PC2 Tuesday 8pm-10pm + MBA Sunday 12pm-2pm
+                    </div>
+                    <div class="scenario-price">Total: RM200 (2 classes per week)</div>
+                </div>
+
+                <div class="scenario-item">
+                    <div class="scenario-title">Scenario 6: Three-Class Combinations (RM280)</div>
+                    <div class="scenario-details">
+                        <strong>Option A:</strong> PC2 Wednesday 8pm-10pm + MBA Wednesday 8pm-10pm + MBA Sunday 12pm-2pm<br>
+                        <strong>Option B:</strong> PC2 Tuesday 8pm-10pm + PC2 Wednesday 8pm-10pm + PC2 Friday 8pm-10pm (Tai Chi focus)
+                    </div>
+                    <div class="scenario-price">Total: RM280 (3 classes per week)</div>
                 </div>
             </div>
 
