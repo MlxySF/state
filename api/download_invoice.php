@@ -322,25 +322,23 @@ try {
     $pdf->Cell(20, 8, 'QTY', 1, 0, 'C', true);
     $pdf->Cell(30, 8, 'AMOUNT (RM)', 1, 1, 'R', true);
     
-    // Item row
+    // Item row - FIXED: Keep event names together on single line
     $pdf->SetDrawColor(220, 220, 220);
     $pdf->SetLineWidth(0.2);
     $pdf->SetFont('Helvetica', '', 9);
     $pdf->SetTextColor(0, 0, 0);
     
-    // Split routines by comma
-    $routinesList = array_filter(array_map('trim', explode(',', $englishRoutines)));
+    // Keep routines as comma-separated list (don't split into separate lines)
+    $descriptionText = $englishRoutines;
     
-    // Split schedule by comma
-    $scheduleList = array_filter(array_map('trim', explode(',', $cleanSchedule)));
+    // Add schedule on new line if exists
+    if (!empty($cleanSchedule)) {
+        $descriptionText .= "\n" . $cleanSchedule;
+    }
     
-    // Combine
-    $allLines = array_merge($routinesList, $scheduleList);
-    $descriptionText = implode("\n", $allLines);
-    
-    // Calculate height
+    // Calculate height based on number of lines
     $lineHeight = 4.5;
-    $numLines = count($allLines);
+    $numLines = substr_count($descriptionText, "\n") + 1;
     $cellHeight = max($numLines * $lineHeight, 8);
     
     $startX = 15;
