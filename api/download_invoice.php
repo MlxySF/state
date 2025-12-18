@@ -1,7 +1,7 @@
 <?php
 /**
  * Professional Invoice PDF Generator
- * Updated: Multi-line description without LEVEL column
+ * Fixed: Proper line breaks after commas in schedule
  */
 
 error_reporting(E_ALL);
@@ -263,7 +263,7 @@ try {
     $pdf->SetFont('Helvetica', 'B', 10);
     $pdf->SetTextColor(255, 255, 255);
     
-    // Header: DESCRIPTION | QTY | AMOUNT (removed LEVEL)
+    // Header: DESCRIPTION | QTY | AMOUNT
     $pdf->Cell(135, 8, 'DESCRIPTION', 1, 0, 'L', true);
     $pdf->Cell(20, 8, 'QTY', 1, 0, 'C', true);
     $pdf->Cell(30, 8, 'AMOUNT (RM)', 1, 1, 'R', true);
@@ -276,11 +276,17 @@ try {
     
     // Split routines by comma for line breaks
     $routinesList = explode(', ', $englishRoutines);
-    $descriptionText = implode("\n", $routinesList) . "\n" . $cleanSchedule;
+    
+    // Split schedule by comma and trim spaces - each venue on new line
+    $scheduleList = array_map('trim', explode(',', $cleanSchedule));
+    
+    // Combine: routines first, then schedule items
+    $allLines = array_merge($routinesList, $scheduleList);
+    $descriptionText = implode("\n", $allLines);
     
     // Calculate height needed for multi-line cell
-    $lineHeight = 4;
-    $numLines = substr_count($descriptionText, "\n") + 1;
+    $lineHeight = 4.5;
+    $numLines = count($allLines);
     $cellHeight = max($numLines * $lineHeight, 8);
     
     // Store current X and Y for other columns
