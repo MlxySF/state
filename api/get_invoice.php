@@ -126,44 +126,81 @@ function generateInvoiceHTML($reg) {
     <title>Invoice ' . $safe_invoice_num . '</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; color: #333; line-height: 1.6; padding: 40px 20px; background: #f5f5f5; }
-        .invoice-container { max-width: 900px; margin: 0 auto; background: white; padding: 40px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); border-radius: 8px; }
-        .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px; border-bottom: 2px solid #0f3460; padding-bottom: 20px; }
-        .company-info { flex: 1; }
-        .letterhead-img { max-width: 450px; height: auto; }
-        .invoice-title-box { text-align: right; display: flex; flex-direction: column; align-items: flex-end; justify-content: center; }
-        .status-badge { display: inline-block; padding: 8px 16px; border-radius: 4px; font-weight: bold; font-size: 14px; margin-bottom: 10px; color: white; background: ' . $status_color . '; }
-        .invoice-number { font-size: 12px; color: #666; }
-        .details-section { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 40px; }
-        .section-title { font-size: 12px; font-weight: bold; color: #0f3460; text-transform: uppercase; margin-bottom: 15px; letter-spacing: 1px; }
-        .detail-row { margin-bottom: 8px; display: flex; justify-content: space-between; }
-        .detail-label { font-size: 12px; color: #666; font-weight: 500; }
-        .detail-value { font-size: 12px; color: #000; font-weight: bold; }
-        .student-name { font-size: 14px; font-weight: bold; color: #000; margin-bottom: 8px; }
-        .student-info { font-size: 11px; color: #666; line-height: 1.8; }
-        .items-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; color: #333; line-height: 1.6; padding: 20px 10px; background: #f5f5f5; }
+        .invoice-container { max-width: 900px; margin: 0 auto; background: white; padding: 30px 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); border-radius: 8px; }
+        .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; border-bottom: 2px solid #0f3460; padding-bottom: 15px; flex-wrap: wrap; gap: 15px; }
+        .company-info { flex: 1; min-width: 250px; }
+        .letterhead-img { max-width: 100%; width: 100%; max-width: 400px; height: auto; display: block; }
+        .invoice-title-box { text-align: right; display: flex; flex-direction: column; align-items: flex-end; justify-content: center; min-width: 180px; }
+        .status-badge { display: inline-block; padding: 8px 16px; border-radius: 4px; font-weight: bold; font-size: 13px; margin-bottom: 8px; color: white; background: ' . $status_color . '; white-space: nowrap; }
+        .invoice-number { font-size: 11px; color: #666; white-space: nowrap; }
+        .details-section { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px; }
+        .section-title { font-size: 11px; font-weight: bold; color: #0f3460; text-transform: uppercase; margin-bottom: 12px; letter-spacing: 0.5px; }
+        .detail-row { margin-bottom: 6px; display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+        .detail-label { font-size: 11px; color: #666; font-weight: 500; }
+        .detail-value { font-size: 11px; color: #000; font-weight: bold; text-align: right; word-break: break-word; }
+        .student-name { font-size: 13px; font-weight: bold; color: #000; margin-bottom: 8px; word-break: break-word; }
+        .student-info { font-size: 10px; color: #666; line-height: 1.8; }
+        .items-table { width: 100%; border-collapse: collapse; margin-bottom: 25px; font-size: 11px; }
         .items-table thead { background: #0f3460; color: white; }
-        .items-table th { padding: 12px; text-align: left; font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
+        .items-table th { padding: 10px 8px; text-align: left; font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.3px; }
         .items-table th:last-child { text-align: right; }
-        .items-table td { padding: 12px; border-bottom: 1px solid #e0e0e0; font-size: 12px; }
+        .items-table td { padding: 10px 8px; border-bottom: 1px solid #e0e0e0; font-size: 11px; }
         .items-table tbody tr:last-child td { border-bottom: none; }
-        .items-table td:last-child { text-align: right; font-weight: bold; }
-        .totals-section { display: flex; justify-content: flex-end; margin-bottom: 30px; }
-        .totals-box { width: 300px; }
-        .total-row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 12px; border-bottom: 1px solid #e0e0e0; }
+        .items-table td:last-child { text-align: right; font-weight: bold; white-space: nowrap; }
+        .totals-section { display: flex; justify-content: flex-end; margin-bottom: 25px; }
+        .totals-box { width: 100%; max-width: 300px; }
+        .total-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 11px; border-bottom: 1px solid #e0e0e0; }
         .total-row.amount { color: #666; }
         .total-row.amount span:last-child { font-weight: bold; color: #000; }
-        .total-row.separator { border-top: 2px solid #0f3460; border-bottom: 2px solid #0f3460; padding: 10px 0; font-weight: bold; font-size: 14px; }
+        .total-row.separator { border-top: 2px solid #0f3460; border-bottom: 2px solid #0f3460; padding: 8px 0; font-weight: bold; font-size: 13px; }
         .total-row.separator span:last-child { color: #0f3460; }
-        .payment-status-box { background: #dcfce7; border: 1px solid #22c55e; border-radius: 4px; padding: 15px; margin-bottom: 30px; display: none; }
+        .payment-status-box { background: #dcfce7; border: 1px solid #22c55e; border-radius: 4px; padding: 12px; margin-bottom: 25px; display: none; }
         .payment-status-box.paid { display: block; }
-        .payment-status-title { font-weight: bold; color: #22c55e; font-size: 12px; text-transform: uppercase; margin-bottom: 5px; }
-        .payment-status-detail { font-size: 11px; color: #16a34a; }
-        .notes-section { margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0; }
-        .notes-title { font-size: 11px; font-weight: bold; color: #0f3460; text-transform: uppercase; margin-bottom: 10px; letter-spacing: 0.5px; }
-        .notes-content { font-size: 11px; color: #666; line-height: 1.6; margin-bottom: 15px; }
-        .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0; text-align: center; font-size: 10px; color: #999; line-height: 1.8; }
-        @media print { body { background: white; padding: 0; } .invoice-container { box-shadow: none; border-radius: 0; padding: 20mm; } }
+        .payment-status-title { font-weight: bold; color: #22c55e; font-size: 11px; text-transform: uppercase; margin-bottom: 4px; }
+        .payment-status-detail { font-size: 10px; color: #16a34a; }
+        .notes-section { margin-top: 25px; padding-top: 15px; border-top: 1px solid #e0e0e0; }
+        .notes-title { font-size: 10px; font-weight: bold; color: #0f3460; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px; }
+        .notes-content { font-size: 10px; color: #666; line-height: 1.6; margin-bottom: 12px; }
+        .footer { margin-top: 25px; padding-top: 15px; border-top: 1px solid #e0e0e0; text-align: center; font-size: 9px; color: #999; line-height: 1.6; }
+        
+        /* Mobile Responsive Design */
+        @media screen and (max-width: 768px) {
+            body { padding: 10px 5px; }
+            .invoice-container { padding: 20px 15px; border-radius: 4px; }
+            .header { flex-direction: column; gap: 15px; }
+            .company-info { min-width: 100%; }
+            .letterhead-img { max-width: 100%; }
+            .invoice-title-box { width: 100%; text-align: left; align-items: flex-start; }
+            .status-badge { font-size: 12px; padding: 6px 12px; }
+            .invoice-number { font-size: 10px; }
+            .details-section { grid-template-columns: 1fr; gap: 20px; }
+            .section-title { font-size: 10px; }
+            .detail-row { font-size: 10px; }
+            .detail-label { font-size: 10px; }
+            .detail-value { font-size: 10px; }
+            .student-name { font-size: 12px; }
+            .items-table { font-size: 9px; }
+            .items-table th { padding: 8px 4px; font-size: 8px; }
+            .items-table td { padding: 8px 4px; font-size: 9px; }
+            .totals-box { max-width: 100%; }
+            .total-row { font-size: 10px; }
+            .total-row.separator { font-size: 11px; }
+            .notes-title { font-size: 9px; }
+            .notes-content { font-size: 9px; }
+            .footer { font-size: 8px; }
+        }
+        
+        @media screen and (max-width: 480px) {
+            .invoice-container { padding: 15px 10px; }
+            .items-table th:nth-child(2),
+            .items-table td:nth-child(2) { display: none; }
+        }
+        
+        @media print { 
+            body { background: white; padding: 0; } 
+            .invoice-container { box-shadow: none; border-radius: 0; padding: 20mm; }
+        }
     </style>
 </head>
 <body>
