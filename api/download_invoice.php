@@ -1,7 +1,7 @@
 <?php
 /**
- * Professional Invoice PDF Generator
- * Using tFPDF for UTF-8/Chinese character support
+ * Professional Invoice PDF Generator  
+ * Using FPDF with comprehensive translation mapping
  */
 
 error_reporting(E_ALL);
@@ -32,8 +32,8 @@ logError("Processing registration ID: $registration_id");
 
 try {
     require_once __DIR__ . '/../config.php';
-    require_once __DIR__ . '/../tfpdf.php';
-    logError('Config and tFPDF loaded');
+    require_once __DIR__ . '/../fpdf.php';
+    logError('Config and FPDF loaded');
     
     $stmt = $conn->prepare("SELECT * FROM registrations WHERE id = ?");
     $stmt->bind_param('i', $registration_id);
@@ -51,6 +51,82 @@ try {
     
     function stripChinese($text) {
         return preg_replace('/[\x{4E00}-\x{9FFF}]/u', '', $text);
+    }
+    
+    function createEnglishDescription($events) {
+        if (empty($events) || trim($events) === '') {
+            logError('Events empty, returning fallback');
+            return 'Wushu Training Classes';
+        }
+        
+        logError('Original events: ' . $events);
+        
+        // Comprehensive Chinese to English routine translations
+        $replacements = [
+            // Basic Level (基础)
+            '基础-长拳' => 'Basic Changquan',
+            '基础-剑' => 'Basic Sword',
+            '基础-刀' => 'Basic Broadsword',
+            '基础-棍' => 'Basic Staff',
+            '基础-枪' => 'Basic Spear',
+            '基础-南拳' => 'Basic Nanquan',
+            '基础-太极' => 'Basic Taiji',
+            
+            // Beginner Level (初级)
+            '初级-长拳' => 'Beginner Changquan',
+            '初级-剑' => 'Beginner Sword',
+            '初级-刀' => 'Beginner Broadsword',
+            '初级-棍' => 'Beginner Staff',
+            '初级-枪' => 'Beginner Spear',
+            '初级-南拳' => 'Beginner Nanquan',
+            '初级-太极' => 'Beginner Taiji',
+            
+            // Intermediate Level (中级)
+            '中级-长拳' => 'Intermediate Changquan',
+            '中级-剑' => 'Intermediate Sword',
+            '中级-刀' => 'Intermediate Broadsword',
+            '中级-棍' => 'Intermediate Staff',
+            '中级-枪' => 'Intermediate Spear',
+            '中级-南拳' => 'Intermediate Nanquan',
+            '中级-太极' => 'Intermediate Taiji',
+            
+            // Advanced Level (高级)
+            '高级-长拳' => 'Advanced Changquan',
+            '高级-剑' => 'Advanced Sword',
+            '高级-刀' => 'Advanced Broadsword',
+            '高级-棍' => 'Advanced Staff',
+            '高级-枪' => 'Advanced Spear',
+            '高级-南拳' => 'Advanced Nanquan',
+            '高级-太极' => 'Advanced Taiji',
+        ];
+        
+        $description = $events;
+        
+        foreach ($replacements as $chinese => $english) {
+            if (strpos($description, $chinese) !== false) {
+                logError("Found match: $chinese => $english");
+                $description = str_replace($chinese, $english, $description);
+            }
+        }
+        
+        logError('After replacement: ' . $description);
+        
+        // Strip remaining Chinese characters
+        $cleanDescription = stripChinese($description);
+        
+        // Clean up extra spaces, commas, and dashes
+        $cleanDescription = preg_replace('/[-,\s]+/', ', ', $cleanDescription);
+        $cleanDescription = trim($cleanDescription, ', -');
+        
+        logError('Final clean description: ' . $cleanDescription);
+        
+        // If empty after processing, return fallback
+        if (empty($cleanDescription) || $cleanDescription === '') {
+            logError('Description empty after cleaning, returning fallback');
+            return 'Wushu Training Classes';
+        }
+        
+        return $cleanDescription;
     }
     
     function getLetterheadImage() {
@@ -87,7 +163,7 @@ try {
     $letterheadPath = getLetterheadImage();
     logError('Letterhead: ' . ($letterheadPath ? 'cached successfully' : 'using fallback'));
     
-    class InvoicePDF extends tFPDF {
+    class InvoicePDF extends FPDF {
         private $letterheadPath = '';
         private $invoice;
         
@@ -125,13 +201,13 @@ try {
             
             $this->SetLineWidth(0.5);
             $this->Rect(165, 10, 30, 12, 'FD');
-            $this->SetFont('Arial', 'B', 14);
+            $this->SetFont('Helvetica', 'B', 14);
             $this->SetTextColor(255, 255, 255);
             $this->Cell(30, 12, $badgeText, 0, 0, 'C');
             
             $invoice_number = !empty($this->invoice['invoice_number']) ? $this->invoice['invoice_number'] : 'INV-' . $this->invoice['registration_number'];
             $this->SetXY(155, 25);
-            $this->SetFont('Arial', '', 8);
+            $this->SetFont('Helvetica', '', 8);
             $this->SetTextColor(100, 100, 100);
             $this->Cell(40, 4, $invoice_number, 0, 0, 'R');
             
@@ -146,14 +222,14 @@ try {
             $this->SetFillColor(15, 52, 96);
             $this->Rect(0, 0, 210, 35, 'F');
             $this->SetXY(15, 12);
-            $this->SetFont('Arial', 'B', 22);
+            $this->SetFont('Helvetica', 'B', 22);
             $this->SetTextColor(255, 255, 255);
             $this->Cell(0, 10, 'WUSHU SPORT ACADEMY', 0, 1, 'L');
         }
         
         function Footer() {
             $this->SetY(-15);
-            $this->SetFont('Arial', '', 8);
+            $this->SetFont('Helvetica', '', 8);
             $this->SetTextColor(120, 120, 120);
             $this->Cell(0, 4, 'This is a computer-generated invoice. No signature required.', 0, 1, 'C');
             $this->Cell(0, 4, 'Generated: ' . date('d M Y, g:i A'), 0, 1, 'C');
@@ -167,34 +243,27 @@ try {
     }
     $pdf->SetMargins(15, 43, 15);
     $pdf->SetAutoPageBreak(true, 25);
-    
-    // Add Unicode font - check if DejaVu exists, otherwise use Arial
-    if(file_exists(__DIR__ . '/../font/DejaVuSans.ttf')) {
-        $pdf->AddFont('DejaVu','',__DIR__ . '/../font/DejaVuSans.ttf', true);
-        $pdf->AddFont('DejaVu','B',__DIR__ . '/../font/DejaVuSans-Bold.ttf', true);
-    }
-    
     $pdf->AddPage();
     logError('PDF page added');
     
     $invoice_number = !empty($reg['invoice_number']) ? $reg['invoice_number'] : 'INV-' . $reg['registration_number'];
     $is_paid = ($reg['payment_status'] === 'approved');
     
-    // Keep original Chinese events
-    $chineseEvents = $reg['events'];
+    // Translate Chinese to English for display
+    $englishRoutines = createEnglishDescription($reg['events']);
     $cleanSchedule = stripChinese($reg['schedule']);
     
-    logError('Chinese events: ' . $chineseEvents);
+    logError('English routines: ' . $englishRoutines);
     logError('Clean schedule: ' . $cleanSchedule);
     
     // Left Column - Invoice Details
-    $pdf->SetFont('Arial', 'B', 11);
+    $pdf->SetFont('Helvetica', 'B', 11);
     $pdf->SetTextColor(15, 52, 96);
     $pdf->SetX(15);
     $pdf->Cell(90, 6, 'INVOICE DETAILS', 0, 1, 'L');
     $pdf->Ln(1);
     
-    $pdf->SetFont('Arial', '', 10);
+    $pdf->SetFont('Helvetica', '', 10);
     $details = [
         ['Invoice Number:', $invoice_number],
         ['Date Issued:', date('d M Y', strtotime($reg['created_at']))],
@@ -207,20 +276,20 @@ try {
         $pdf->SetTextColor(100, 100, 100);
         $pdf->Cell(35, 5.5, $row[0], 0, 0, 'L');
         $pdf->SetTextColor(0, 0, 0);
-        $pdf->SetFont('Arial', 'B', 10);
+        $pdf->SetFont('Helvetica', 'B', 10);
         $pdf->Cell(0, 5.5, $row[1], 0, 1, 'L');
-        $pdf->SetFont('Arial', '', 10);
+        $pdf->SetFont('Helvetica', '', 10);
     }
     
     // Right Column - Billed To
     $pdf->SetXY(115, 43);
-    $pdf->SetFont('Arial', 'B', 11);
+    $pdf->SetFont('Helvetica', 'B', 11);
     $pdf->SetTextColor(15, 52, 96);
     $pdf->Cell(80, 6, 'BILLED TO', 0, 1, 'L');
     $pdf->Ln(1);
     
     $pdf->SetX(115);
-    $pdf->SetFont('Arial', 'B', 11);
+    $pdf->SetFont('Helvetica', 'B', 11);
     $pdf->SetTextColor(0, 0, 0);
     $pdf->Cell(0, 5.5, $reg['name_en'], 0, 1, 'L');
     
@@ -232,7 +301,7 @@ try {
     
     foreach ($billedDetails as $row) {
         $pdf->SetX(115);
-        $pdf->SetFont('Arial', '', 9);
+        $pdf->SetFont('Helvetica', '', 9);
         $pdf->SetTextColor(100, 100, 100);
         $pdf->Cell(22, 5, $row[0], 0, 0, 'L');
         $pdf->SetTextColor(0, 0, 0);
@@ -246,7 +315,7 @@ try {
     $pdf->SetFillColor(15, 52, 96);
     $pdf->SetDrawColor(15, 52, 96);
     $pdf->SetLineWidth(0.3);
-    $pdf->SetFont('Arial', 'B', 10);
+    $pdf->SetFont('Helvetica', 'B', 10);
     $pdf->SetTextColor(255, 255, 255);
     
     $pdf->Cell(135, 8, 'DESCRIPTION', 1, 0, 'L', true);
@@ -256,28 +325,28 @@ try {
     // Item row
     $pdf->SetDrawColor(220, 220, 220);
     $pdf->SetLineWidth(0.2);
-    $pdf->SetFont('Arial', '', 8);
+    $pdf->SetFont('Helvetica', '', 9);
     $pdf->SetTextColor(0, 0, 0);
     
-    // Split events by comma for display
-    $eventsList = array_filter(array_map('trim', explode(',', $chineseEvents)));
+    // Split routines by comma
+    $routinesList = array_filter(array_map('trim', explode(',', $englishRoutines)));
     
     // Split schedule by comma
     $scheduleList = array_filter(array_map('trim', explode(',', $cleanSchedule)));
     
-    // Combine Chinese events with English schedule
-    $allLines = array_merge($eventsList, $scheduleList);
+    // Combine
+    $allLines = array_merge($routinesList, $scheduleList);
     $descriptionText = implode("\n", $allLines);
     
     // Calculate height
-    $lineHeight = 4;
+    $lineHeight = 4.5;
     $numLines = count($allLines);
     $cellHeight = max($numLines * $lineHeight, 8);
     
     $startX = 15;
     $startY = $pdf->GetY();
     
-    // Description cell with Chinese characters
+    // Description cell
     $pdf->SetXY($startX, $startY);
     $pdf->MultiCell(135, $lineHeight, $descriptionText, 1, 'L');
     
@@ -286,7 +355,7 @@ try {
     $pdf->Cell(20, $cellHeight, $reg['class_count'], 1, 0, 'C');
     
     // Amount cell
-    $pdf->SetFont('Arial', 'B', 10);
+    $pdf->SetFont('Helvetica', 'B', 10);
     $pdf->SetX($startX + 155);
     $pdf->Cell(30, $cellHeight, number_format((float)$reg['payment_amount'], 2), 1, 1, 'R');
     
@@ -296,19 +365,19 @@ try {
     $amount = (float)$reg['payment_amount'];
     
     $pdf->SetX(105);
-    $pdf->SetFont('Arial', '', 10);
+    $pdf->SetFont('Helvetica', '', 10);
     $pdf->SetTextColor(80, 80, 80);
     $pdf->Cell(60, 6, 'Subtotal:', 0, 0, 'R');
     $pdf->SetTextColor(0, 0, 0);
-    $pdf->SetFont('Arial', 'B', 10);
+    $pdf->SetFont('Helvetica', 'B', 10);
     $pdf->Cell(0, 6, 'RM ' . number_format($amount, 2), 0, 1, 'R');
     
     $pdf->SetX(105);
-    $pdf->SetFont('Arial', '', 10);
+    $pdf->SetFont('Helvetica', '', 10);
     $pdf->SetTextColor(80, 80, 80);
     $pdf->Cell(60, 6, 'Tax (0%):', 0, 0, 'R');
     $pdf->SetTextColor(0, 0, 0);
-    $pdf->SetFont('Arial', 'B', 10);
+    $pdf->SetFont('Helvetica', 'B', 10);
     $pdf->Cell(0, 6, 'RM 0.00', 0, 1, 'R');
     
     $pdf->SetX(105);
@@ -318,11 +387,11 @@ try {
     $pdf->Ln(2);
     
     $pdf->SetX(105);
-    $pdf->SetFont('Arial', 'B', 11);
+    $pdf->SetFont('Helvetica', 'B', 11);
     $pdf->SetFillColor(15, 52, 96);
     $pdf->SetTextColor(255, 255, 255);
     $pdf->Cell(60, 9, 'TOTAL AMOUNT:', 0, 0, 'R', true);
-    $pdf->SetFont('Arial', 'B', 12);
+    $pdf->SetFont('Helvetica', 'B', 12);
     $pdf->Cell(0, 9, 'RM ' . number_format($amount, 2), 0, 1, 'R', true);
     
     $pdf->Ln(8);
@@ -336,12 +405,12 @@ try {
         $pdf->Rect(15, $current_y, 180, 14, 'FD');
         
         $pdf->SetXY(20, $current_y + 2);
-        $pdf->SetFont('Arial', 'B', 11);
+        $pdf->SetFont('Helvetica', 'B', 11);
         $pdf->SetTextColor(34, 197, 94);
         $pdf->Cell(0, 5, 'PAYMENT COMPLETED AND VERIFIED', 0, 1, 'L');
         
         $pdf->SetX(20);
-        $pdf->SetFont('Arial', '', 9);
+        $pdf->SetFont('Helvetica', '', 9);
         $pdf->SetTextColor(22, 163, 74);
         $pdf->Cell(0, 4, 'Payment received on ' . date('d M Y, g:i A', strtotime($reg['payment_date'])), 0, 1, 'L');
         
@@ -350,16 +419,15 @@ try {
     }
     
     // CLASS DETAILS
-    $pdf->SetFont('Arial', 'B', 10);
+    $pdf->SetFont('Helvetica', 'B', 10);
     $pdf->SetTextColor(15, 52, 96);
     $pdf->SetX(15);
     $pdf->Cell(0, 6, 'CLASS DETAILS', 0, 1, 'L');
     
-    $pdf->SetFont('Arial', '', 9);
+    $pdf->SetFont('Helvetica', '', 9);
     $pdf->SetTextColor(60, 60, 60);
     $pdf->SetX(15);
-    // Display Chinese events directly
-    $pdf->MultiCell(180, 4.5, 'Registered Routines: ' . $chineseEvents, 0, 'L');
+    $pdf->MultiCell(180, 4.5, 'Registered Routines: ' . $englishRoutines, 0, 'L');
     
     $pdf->SetX(15);
     $pdf->MultiCell(180, 4.5, 'Schedule: ' . $cleanSchedule, 0, 'L');
@@ -367,12 +435,12 @@ try {
     $pdf->Ln(2);
     
     // IMPORTANT NOTES
-    $pdf->SetFont('Arial', 'B', 10);
+    $pdf->SetFont('Helvetica', 'B', 10);
     $pdf->SetTextColor(15, 52, 96);
     $pdf->SetX(15);
     $pdf->Cell(0, 6, 'IMPORTANT NOTES', 0, 1, 'L');
     
-    $pdf->SetFont('Arial', '', 9);
+    $pdf->SetFont('Helvetica', '', 9);
     $pdf->SetTextColor(60, 60, 60);
     $pdf->SetX(15);
     $pdf->MultiCell(180, 4.5, 'Thank you for your payment. This invoice confirms your class enrollment and payment. Please keep this document for your records.', 0, 'L');
@@ -380,12 +448,12 @@ try {
     $pdf->Ln(2);
     
     // NOTES / TERMS
-    $pdf->SetFont('Arial', 'B', 10);
+    $pdf->SetFont('Helvetica', 'B', 10);
     $pdf->SetTextColor(15, 52, 96);
     $pdf->SetX(15);
     $pdf->Cell(0, 6, 'NOTES / TERMS:', 0, 1, 'L');
     
-    $pdf->SetFont('Arial', '', 8);
+    $pdf->SetFont('Helvetica', '', 8);
     $pdf->SetTextColor(60, 60, 60);
     $pdf->SetX(15);
     $notesText = 'Fees are non-refundable and must be paid by the 10th of every month. Strict discipline and punctuality are required at all times. The Academy reserves the right to adjust training schedules and venues when necessary.';
