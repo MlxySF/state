@@ -1,0 +1,51 @@
+# Sensitive Configuration Files
+config.php
+
+# Database Backups
+*.sql
+*.sql.gz
+backups/
+
+# Environment Files
+.env
+.env.local
+
+# System Files
+.DS_Store
+Thumbs.db
+
+# IDE Files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+error_log
+php_errors.log
+
+# Temporary Files
+tmp/
+temp/
+cache/
+
+# Data Files (if storing locally)
+data/
+*.json
+
+# Upload Directories (if not tracked)
+uploads/
+receipts/
+
+# Node Modules (if using npm)
+node_modules/
+
+# Composer (if using PHP dependencies)
+vendor/
+
+# OS Generated
+.Spotlight-V100
+.Trashes
+ehthumbs.db
