@@ -1,6 +1,6 @@
 <?php
 // Update Registration Status API
-// Allows admin to approve/reject registrations
+// Allows admin to approve/reject registrations with email notifications
 
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
@@ -18,6 +18,9 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 // Include database configuration
 require_once __DIR__ . '/../config.php';
+
+// Include email functions
+require_once __DIR__ . '/send_email.php';
 
 $input = file_get_contents('php://input');
 $data = json_decode($input, true);
@@ -38,35 +41,91 @@ if (!in_array($payment_status, $valid_statuses)) {
 }
 
 try {
-    // Update the registration
-    $sql = "UPDATE registrations SET payment_status = ?, updated_at = NOW() WHERE id = ?";
-    $stmt = $conn->prepare($sql);
+    // First, get the registration details for email
+    $selectSql = "SELECT name_en, email, registration_number, payment_amount, payment_status FROM registrations WHERE id = ?";
+    $selectStmt = $conn->prepare($selectSql);
     
-    if (!$stmt) {
+    if (!$selectStmt) {
         throw new Exception('Database prepare failed: ' . $conn->error);
     }
     
-    $stmt->bind_param('si', $payment_status, $id);
+    $selectStmt->bind_param('i', $id);
+    $selectStmt->execute();
+    $result = $selectStmt->get_result();
     
-    if ($stmt->execute()) {
-        if ($stmt->affected_rows > 0) {
-            echo json_encode([
+    if ($result->num_rows === 0) {
+        echo json_encode([
+            'success' => false,
+            'error' => 'No registration found with the provided ID'
+        ]);
+        exit;
+    }
+    
+    $registration = $result->fetch_assoc();
+    $oldStatus = $registration['payment_status'];
+    $selectStmt->close();
+    
+    // Only send email if status is actually changing and it's approved or rejected
+    $shouldSendEmail = ($oldStatus !== $payment_status) && ($payment_status === 'approved' || $payment_status === 'rejected');
+    
+    // Update the registration
+    $updateSql = "UPDATE registrations SET payment_status = ?, updated_at = NOW() WHERE id = ?";
+    $updateStmt = $conn->prepare($updateSql);
+    
+    if (!$updateStmt) {
+        throw new Exception('Database prepare failed: ' . $conn->error);
+    }
+    
+    $updateStmt->bind_param('si', $payment_status, $id);
+    
+    if ($updateStmt->execute()) {
+        if ($updateStmt->affected_rows > 0) {
+            $response = [
                 'success' => true,
                 'message' => 'Registration status updated successfully',
                 'id' => $id,
-                'new_status' => $payment_status
-            ]);
+                'new_status' => $payment_status,
+                'email_sent' => false
+            ];
+            
+            // Send email notification if status changed to approved or rejected
+            if ($shouldSendEmail) {
+                try {
+                    $emailSent = sendPaymentEmail(
+                        $registration['email'],
+                        $registration['name_en'],
+                        $registration['registration_number'],
+                        $payment_status,
+                        $registration['payment_amount']
+                    );
+                    
+                    $response['email_sent'] = $emailSent;
+                    
+                    if ($emailSent) {
+                        $response['message'] .= ' and email notification sent to ' . $registration['email'];
+                        error_log("Email sent successfully to {$registration['email']} for registration {$registration['registration_number']}");
+                    } else {
+                        $response['message'] .= ' but email notification failed';
+                        error_log("Failed to send email to {$registration['email']} for registration {$registration['registration_number']}");
+                    }
+                } catch (Exception $emailError) {
+                    error_log("Email error: " . $emailError->getMessage());
+                    $response['message'] .= ' but email notification encountered an error';
+                }
+            }
+            
+            echo json_encode($response);
         } else {
             echo json_encode([
                 'success' => false,
-                'error' => 'No registration found with the provided ID or status unchanged'
+                'error' => 'No changes made - status may already be set to this value'
             ]);
         }
     } else {
-        throw new Exception('Failed to update registration: ' . $stmt->error);
+        throw new Exception('Failed to update registration: ' . $updateStmt->error);
     }
     
-    $stmt->close();
+    $updateStmt->close();
     
 } catch (Exception $e) {
     error_log('Error updating registration: ' . $e->getMessage());
