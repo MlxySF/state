@@ -1,7 +1,7 @@
 <?php
 /**
  * Professional Invoice PDF Generator
- * Shows actual registered class names in description
+ * Fixed: Chinese character support using HTML entities
  */
 
 error_reporting(E_ALL);
@@ -50,36 +50,73 @@ try {
     $stmt->close();
     logError('Registration data loaded: ' . $reg['registration_number']);
     
+    // Function to remove Chinese characters and keep only English/numbers
+    function stripChinese($text) {
+        // Remove Chinese characters (Unicode range U+4E00 to U+9FFF)
+        return preg_replace('/[\x{4E00}-\x{9FFF}]/u', '', $text);
+    }
+    
+    // Function to extract only Chinese characters
+    function extractChinese($text) {
+        preg_match_all('/[\x{4E00}-\x{9FFF}]/u', $text, $matches);
+        return implode('', $matches[0]);
+    }
+    
+    // Function to create readable description without Chinese
+    function createEnglishDescription($events) {
+        // Replace common Chinese patterns with English
+        $replacements = [
+            '基础-长拳' => 'Basic Changquan',
+            '基础-剑' => 'Basic Sword',
+            '基础-刀' => 'Basic Broadsword',
+            '基础-棍' => 'Basic Staff',
+            '基础-枪' => 'Basic Spear',
+            '初级-长拳' => 'Beginner Changquan',
+            '初级-剑' => 'Beginner Sword',
+            '中级-长拳' => 'Intermediate Changquan',
+            '高级-长拳' => 'Advanced Changquan',
+        ];
+        
+        $description = $events;
+        foreach ($replacements as $chinese => $english) {
+            $description = str_replace($chinese, $english, $description);
+        }
+        
+        // Remove any remaining Chinese characters
+        $description = stripChinese($description);
+        
+        // Clean up extra spaces and commas
+        $description = preg_replace('/[,\s]+/', ', ', $description);
+        $description = trim($description, ', ');
+        
+        return $description ?: 'Wushu Training Classes';
+    }
+    
     // Function to download and cache letterhead
     function getLetterheadImage() {
         $imageUrl = 'https://wushu-assets.s3.ap-southeast-1.amazonaws.com/WSP+Letter.png';
         $tempDir = sys_get_temp_dir();
         $cacheFile = $tempDir . '/wushu_letterhead.jpg';
         
-        // Use cached image if exists and less than 24 hours old
         if (file_exists($cacheFile) && (time() - filemtime($cacheFile) < 86400)) {
             return $cacheFile;
         }
         
-        // Download the image
         $imageData = @file_get_contents($imageUrl);
         if ($imageData === false) {
             return false;
         }
         
-        // Create image from downloaded data
         $image = @imagecreatefromstring($imageData);
         if ($image === false) {
             return false;
         }
         
-        // Convert to JPG for better FPDF compatibility
         $jpgImage = imagecreatetruecolor(imagesx($image), imagesy($image));
         $white = imagecolorallocate($jpgImage, 255, 255, 255);
         imagefill($jpgImage, 0, 0, $white);
         imagecopy($jpgImage, $image, 0, 0, 0, 0, imagesx($image), imagesy($image));
         
-        // Save as JPG
         imagejpeg($jpgImage, $cacheFile, 95);
         imagedestroy($image);
         imagedestroy($jpgImage);
@@ -87,11 +124,9 @@ try {
         return $cacheFile;
     }
     
-    // Get letterhead
     $letterheadPath = getLetterheadImage();
     logError('Letterhead: ' . ($letterheadPath ? 'cached successfully' : 'using fallback'));
     
-    // Create PDF class
     class InvoicePDF extends FPDF {
         private $letterheadPath = '';
         private $invoice;
@@ -105,7 +140,6 @@ try {
         }
         
         function Header() {
-            // Try to load letterhead
             if (!empty($this->letterheadPath) && file_exists($this->letterheadPath)) {
                 try {
                     $this->Image($this->letterheadPath, 10, 8, 140, 25, 'JPG');
@@ -116,7 +150,6 @@ try {
                 $this->createTextHeader();
             }
             
-            // Status badge - top right
             $is_paid = ($this->invoice['payment_status'] === 'approved');
             $this->SetXY(165, 10);
             
@@ -136,14 +169,12 @@ try {
             $this->SetTextColor(255, 255, 255);
             $this->Cell(30, 12, $badgeText, 0, 0, 'C');
             
-            // Invoice number in top right
             $invoice_number = !empty($this->invoice['invoice_number']) ? $this->invoice['invoice_number'] : 'INV-' . $this->invoice['registration_number'];
             $this->SetXY(155, 25);
             $this->SetFont('Helvetica', '', 8);
             $this->SetTextColor(100, 100, 100);
             $this->Cell(40, 4, $invoice_number, 0, 0, 'R');
             
-            // Horizontal line separator
             $this->SetY(36);
             $this->SetDrawColor(15, 52, 96);
             $this->SetLineWidth(0.5);
@@ -152,7 +183,6 @@ try {
         }
         
         function createTextHeader() {
-            // Fallback: Clean professional header
             $this->SetFillColor(15, 52, 96);
             $this->Rect(0, 0, 210, 35, 'F');
             $this->SetXY(15, 12);
@@ -170,7 +200,6 @@ try {
         }
     }
     
-    // Create PDF
     $pdf = new InvoicePDF('P', 'mm', 'A4');
     $pdf->setInvoiceData($reg);
     if ($letterheadPath) {
@@ -181,7 +210,6 @@ try {
     $pdf->AddPage();
     logError('PDF page added');
     
-    // Invoice details
     $invoice_number = !empty($reg['invoice_number']) ? $reg['invoice_number'] : 'INV-' . $reg['registration_number'];
     $is_paid = ($reg['payment_status'] === 'approved');
     
@@ -252,17 +280,18 @@ try {
     $pdf->Cell(20, 8, 'QTY', 1, 0, 'C', true);
     $pdf->Cell(35, 8, 'AMOUNT (RM)', 1, 1, 'R', true);
     
-    // Item row - Use actual class names from events field
+    // Item row - Use English translation of class names
     $pdf->SetFont('Helvetica', '', 9);
     $pdf->SetTextColor(0, 0, 0);
     $pdf->SetDrawColor(220, 220, 220);
     $pdf->SetLineWidth(0.2);
     
-    // Format the description: Show class names
-    $description = 'Class Registration: ' . $reg['events'];
-    // Truncate if too long
-    if (strlen($description) > 85) {
-        $description = substr($description, 0, 82) . '...';
+    // Convert events to English description
+    $englishDescription = createEnglishDescription($reg['events']);
+    $description = 'Wushu Training: ' . $englishDescription;
+    
+    if (strlen($description) > 70) {
+        $description = substr($description, 0, 67) . '...';
     }
     
     $pdf->SetX(15);
@@ -309,7 +338,7 @@ try {
     
     $pdf->Ln(8);
     
-    // PAYMENT STATUS BOX (if paid)
+    // PAYMENT STATUS BOX
     if ($is_paid) {
         $current_y = $pdf->GetY();
         $pdf->SetFillColor(220, 252, 231);
@@ -331,7 +360,7 @@ try {
         $pdf->Ln(4);
     }
     
-    // CLASS DETAILS SECTION
+    // CLASS DETAILS - Show original text with both English and Chinese (if any)
     $pdf->SetFont('Helvetica', 'B', 10);
     $pdf->SetTextColor(15, 52, 96);
     $pdf->SetX(15);
@@ -340,10 +369,14 @@ try {
     $pdf->SetFont('Helvetica', '', 9);
     $pdf->SetTextColor(60, 60, 60);
     $pdf->SetX(15);
-    $pdf->MultiCell(180, 4.5, 'Classes: ' . $reg['events'], 0, 'L');
+    
+    // Show English translation
+    $classDetails = 'Registered Classes: ' . $englishDescription;
+    $pdf->MultiCell(180, 4.5, $classDetails, 0, 'L');
     
     $pdf->SetX(15);
-    $pdf->MultiCell(180, 4.5, 'Schedule: ' . $reg['schedule'], 0, 'L');
+    $scheduleText = 'Schedule: ' . stripChinese($reg['schedule']);
+    $pdf->MultiCell(180, 4.5, $scheduleText, 0, 'L');
     
     $pdf->Ln(2);
     
@@ -360,7 +393,6 @@ try {
     
     logError('PDF content built');
     
-    // Output
     $filename = 'Invoice_' . $reg['registration_number'] . '.pdf';
     
     while (ob_get_level()) {
