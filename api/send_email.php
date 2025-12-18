@@ -2,16 +2,15 @@
 // Email Notification System with PHPMailer
 // Sends emails for payment approval/rejection notifications using SMTP
 // Works without Composer - uses manual PHPMailer loading
+// Supports PDF attachments for approved payments
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
 // Try to load PHPMailer - check both Composer and manual installation
 if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
-    // Composer installation
     require __DIR__ . '/../vendor/autoload.php';
 } elseif (file_exists(__DIR__ . '/../phpmailer_autoload.php')) {
-    // Manual installation
     require __DIR__ . '/../phpmailer_autoload.php';
 } else {
     die('PHPMailer not found. Please install PHPMailer. Download from: https://github.com/PHPMailer/PHPMailer/releases');
@@ -20,35 +19,56 @@ if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
 // Load email configuration
 $emailConfig = require __DIR__ . '/../email_config.php';
 
-function sendPaymentEmail($to, $name, $registrationNumber, $status, $paymentAmount) {
+function sendPaymentEmail($to, $name, $registrationNumber, $status, $paymentAmount, $registrationData = null) {
     global $emailConfig;
     
     $mail = new PHPMailer(true);
     
     try {
         // Server settings
-        $mail->SMTPDebug = $emailConfig['smtp_debug'];                      // Debug output
-        $mail->isSMTP();                                                    // Send using SMTP
-        $mail->Host       = $emailConfig['smtp_host'];                     // SMTP server
-        $mail->SMTPAuth   = $emailConfig['smtp_auth'];                     // Enable authentication
-        $mail->Username   = $emailConfig['smtp_username'];                 // SMTP username
-        $mail->Password   = $emailConfig['smtp_password'];                 // SMTP password
-        $mail->SMTPSecure = $emailConfig['smtp_secure'];                   // Enable encryption
-        $mail->Port       = $emailConfig['smtp_port'];                     // TCP port
-        $mail->CharSet    = $emailConfig['charset'];                       // Character set
-        $mail->Timeout    = $emailConfig['timeout'];                       // SMTP timeout
+        $mail->SMTPDebug = $emailConfig['smtp_debug'];
+        $mail->isSMTP();
+        $mail->Host       = $emailConfig['smtp_host'];
+        $mail->SMTPAuth   = $emailConfig['smtp_auth'];
+        $mail->Username   = $emailConfig['smtp_username'];
+        $mail->Password   = $emailConfig['smtp_password'];
+        $mail->SMTPSecure = $emailConfig['smtp_secure'];
+        $mail->Port       = $emailConfig['smtp_port'];
+        $mail->CharSet    = $emailConfig['charset'];
+        $mail->Timeout    = $emailConfig['timeout'];
         
         // Recipients
         $mail->setFrom($emailConfig['from_email'], $emailConfig['from_name']);
-        $mail->addAddress($to, $name);                                     // Add recipient
+        $mail->addAddress($to, $name);
         $mail->addReplyTo($emailConfig['reply_to'], $emailConfig['from_name']);
         
         // Content
-        $mail->isHTML(true);                                               // Set email format to HTML
+        $mail->isHTML(true);
         
         if ($status === 'approved') {
             $mail->Subject = 'Payment Approved - Registration Confirmed';
             $mail->Body    = getApprovedEmailTemplate($name, $registrationNumber, $paymentAmount);
+            
+            // Add attachments for approved payments
+            if ($registrationData) {
+                // Add signed agreement PDF from database
+                if (!empty($registrationData['signed_pdf_base64'])) {
+                    $signedPdfData = base64_decode(preg_replace('/^data:application\/pdf;base64,/', '', $registrationData['signed_pdf_base64']));
+                    $mail->addStringAttachment($signedPdfData, 'Signed_Agreement_' . $registrationNumber . '.pdf', 'base64', 'application/pdf');
+                    error_log("  Added signed agreement PDF attachment");
+                }
+                
+                // Generate and add invoice PDF
+                try {
+                    require_once __DIR__ . '/generate_invoice_pdf.php';
+                    $invoiceHTML = getInvoiceHTML($registrationData);
+                    $mail->addStringAttachment($invoiceHTML, 'Invoice_' . $registrationNumber . '.html', 'base64', 'text/html');
+                    error_log("  Added invoice attachment");
+                } catch (Exception $invoiceError) {
+                    error_log("  Could not generate invoice: " . $invoiceError->getMessage());
+                }
+            }
+            
         } else if ($status === 'rejected') {
             $mail->Subject = 'Payment Verification Required - Action Needed';
             $mail->Body    = getRejectedEmailTemplate($name, $registrationNumber);
@@ -84,6 +104,7 @@ function getApprovedEmailTemplate($name, $registrationNumber, $paymentAmount) {
         .header { background: linear-gradient(135deg, #27ae60 0%, #229954 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
         .content { background: #f9f9f9; padding: 30px; border: 1px solid #ddd; }
         .info-box { background: white; padding: 20px; margin: 20px 0; border-left: 4px solid #27ae60; border-radius: 5px; }
+        .attachment-box { background: #e8f5e9; padding: 15px; margin: 20px 0; border-left: 4px solid #4caf50; border-radius: 5px; }
         .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
         .checkmark { font-size: 48px; color: white; }
         h1 { margin: 10px 0 0 0; }
@@ -108,11 +129,17 @@ function getApprovedEmailTemplate($name, $registrationNumber, $paymentAmount) {
                 Status: <strong style="color: #27ae60;">APPROVED ✓</strong>
             </div>
             
+            <div class="attachment-box">
+                <strong>📎 Attached Documents:</strong><br><br>
+                • <strong>Signed Agreement:</strong> Your completed and signed registration agreement<br>
+                • <strong>Invoice:</strong> Official payment invoice for your records
+            </div>
+            
             <p><strong>What happens next?</strong></p>
             <ul>
                 <li>Your registration is now active in our system</li>
                 <li>You will receive class schedule details via email within 1-2 business days</li>
-                <li>Please keep your registration number for future reference</li>
+                <li>Please keep your registration number and attached documents for future reference</li>
                 <li>Our team will contact you if any additional information is needed</li>
             </ul>
             
