@@ -29,15 +29,92 @@
         .btn-reject:hover { background: #c0392b; }
         .btn-download { background: #3498db; color: white; }
         .btn-download:hover { background: #2980b9; }
-        .btn-secondary { background: #9b59b6; color: white; }
-        .btn-secondary:hover { background: #8e44ad; }
         .btn-delete { background: #95a5a6; color: white; }
         .btn-delete:hover { background: #7f8c8d; }
         .image-preview { max-width: 100%; height: auto; border: 1px solid #ddd; border-radius: 5px; margin-top: 10px; }
-        .signature-preview { max-width: 400px; max-height: 200px; border: 2px solid #3498db; border-radius: 5px; padding: 10px; background: white; display: block; margin-top: 10px; }
         .loading { text-align: center; padding: 60px; color: #7f8c8d; }
         .error { background: #f8d7da; color: #721c24; padding: 20px; border-radius: 5px; margin: 20px 0; }
         .no-image { color: #95a5a6; font-style: italic; margin-top: 10px; }
+        
+        /* Collapsible PDF Preview Styles */
+        .pdf-collapsible {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        
+        .pdf-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 30px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        
+        .pdf-header:hover {
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        }
+        
+        .pdf-header h2 {
+            margin: 0;
+            border: none;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .pdf-toggle-icon {
+            font-size: 24px;
+            transition: transform 0.3s ease;
+        }
+        
+        .pdf-toggle-icon.open {
+            transform: rotate(180deg);
+        }
+        
+        .pdf-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease;
+            background: #f8f9fa;
+        }
+        
+        .pdf-content.open {
+            max-height: 1200px;
+        }
+        
+        .pdf-viewer {
+            padding: 20px;
+        }
+        
+        .pdf-embed {
+            width: 100%;
+            height: 800px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            background: white;
+        }
+        
+        .pdf-no-preview {
+            padding: 40px;
+            text-align: center;
+            color: #7f8c8d;
+        }
+        
+        .pdf-actions {
+            padding: 15px 20px;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
     </style>
 </head>
 <body>
@@ -165,14 +242,22 @@
                 </div>
             </div>
 
-            <!-- Signature -->
-            <div class="card">
-                <h2>✍️ Signature</h2>
-                <div class="info-item">
-                    <label>Applicant Signature</label>
-                    <div id="signatureContainer">
-                        <img id="signature" class="signature-preview" style="display: none;" alt="Signature" />
-                        <span id="noSignature" class="no-image" style="display: none;">No signature available</span>
+            <!-- Signed Agreement PDF Preview (Collapsible) -->
+            <div class="pdf-collapsible">
+                <div class="pdf-header" onclick="togglePdfPreview()">
+                    <h2>📝 Signed Agreement Document</h2>
+                    <span class="pdf-toggle-icon" id="pdfToggleIcon">▼</span>
+                </div>
+                <div class="pdf-content" id="pdfContent">
+                    <div class="pdf-viewer" id="pdfViewerContainer">
+                        <embed id="pdfEmbed" class="pdf-embed" type="application/pdf" />
+                        <div id="noPdf" class="pdf-no-preview" style="display: none;">
+                            <p>📄 No signed agreement available</p>
+                        </div>
+                    </div>
+                    <div class="pdf-actions">
+                        <button class="btn btn-download" onclick="downloadSignedAgreement()">💾 Download Signed Agreement</button>
+                        <button class="btn btn-download" onclick="openPdfNewTab()">↗ Open in New Tab</button>
                     </div>
                 </div>
             </div>
@@ -181,7 +266,6 @@
             <div class="card">
                 <h2>🔧 Actions</h2>
                 <div class="action-buttons">
-                    <button class="btn btn-download" onclick="downloadSignedAgreement()">📝 Download Signed Agreement</button>
                     <button class="btn btn-approve" id="approveBtn" onclick="updateStatus('approved')">✅ Approve Payment</button>
                     <button class="btn btn-reject" id="rejectBtn" onclick="updateStatus('rejected')">❌ Reject Payment</button>
                     <button class="btn btn-delete" onclick="deleteRegistration()">🗑️ Delete Registration</button>
@@ -194,6 +278,7 @@
     <script>
         let registrationId = null;
         let registrationData = null;
+        let pdfUrl = null;
 
         // Get registration ID from URL
         const urlParams = new URLSearchParams(window.location.search);
@@ -220,6 +305,29 @@
             
             // Add the proper data URI prefix
             return `data:${mimeType};base64,${base64String}`;
+        }
+
+        // Toggle PDF preview section
+        function togglePdfPreview() {
+            const content = document.getElementById('pdfContent');
+            const icon = document.getElementById('pdfToggleIcon');
+            
+            if (content.classList.contains('open')) {
+                content.classList.remove('open');
+                icon.classList.remove('open');
+            } else {
+                content.classList.add('open');
+                icon.classList.add('open');
+            }
+        }
+
+        // Open PDF in new tab
+        function openPdfNewTab() {
+            if (pdfUrl) {
+                window.open(pdfUrl, '_blank');
+            } else {
+                alert('⚠️ PDF not available');
+            }
         }
 
         async function loadRegistration() {
@@ -296,28 +404,17 @@
                 document.getElementById('noReceipt').style.display = 'block';
             }
 
-            // Signature - with proper base64 handling
-            const signatureData = ensureDataUri(reg.signature_base64, 'image/png');
-            if (signatureData) {
-                const signatureImg = document.getElementById('signature');
-                
-                signatureImg.onerror = function() {
-                    console.error('Failed to load signature image');
-                    console.log('Signature data preview:', reg.signature_base64.substring(0, 100));
-                    this.style.display = 'none';
-                    document.getElementById('noSignature').style.display = 'block';
-                };
-                
-                signatureImg.onload = function() {
-                    console.log('Signature loaded successfully');
-                    this.style.display = 'block';
-                    document.getElementById('noSignature').style.display = 'none';
-                };
-                
-                signatureImg.src = signatureData;
+            // Signed Agreement PDF Preview
+            const pdfData = ensureDataUri(reg.signed_pdf_base64, 'application/pdf');
+            if (pdfData) {
+                pdfUrl = pdfData;
+                const pdfEmbed = document.getElementById('pdfEmbed');
+                pdfEmbed.src = pdfData;
+                console.log('PDF preview loaded successfully');
             } else {
-                console.log('No signature data available');
-                document.getElementById('noSignature').style.display = 'block';
+                document.getElementById('pdfEmbed').style.display = 'none';
+                document.getElementById('noPdf').style.display = 'block';
+                console.log('No PDF data available');
             }
 
             // Show/hide action buttons based on status
