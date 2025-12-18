@@ -15,6 +15,9 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 // Include database configuration
 require_once __DIR__ . '/../config.php';
 
+// Set charset to UTF-8 to handle Chinese characters
+$conn->set_charset('utf8mb4');
+
 $input = file_get_contents('php://input');
 $data = json_decode($input, true);
 
@@ -23,34 +26,27 @@ if (!$data) {
     exit;
 }
 
-// DETAILED LOGGING - Check what we actually received
+// DETAILED LOGGING
 error_log('========== REGISTRATION SUBMISSION DEBUG ==========');
 error_log('All received fields: ' . implode(', ', array_keys($data)));
 
-// Check signature specifically
 if (isset($data['signature_base64'])) {
-    $sig_len = strlen($data['signature_base64']);
-    $sig_start = substr($data['signature_base64'], 0, 50);
-    error_log("signature_base64: EXISTS, Length={$sig_len}, Starts with: {$sig_start}");
+    error_log("signature_base64: EXISTS, Length=" . strlen($data['signature_base64']));
 } else {
     error_log('signature_base64: MISSING!');
 }
 
-// Check schedule
 if (isset($data['schedule'])) {
-    error_log("schedule: EXISTS, Value='{$data['schedule']}', Type=" . gettype($data['schedule']));
+    error_log("schedule: EXISTS, Value='{$data['schedule']}'");
 } else {
     error_log('schedule: MISSING!');
 }
 
-// Check events
 if (isset($data['events'])) {
-    error_log("events: EXISTS, Value='{$data['events']}', Type=" . gettype($data['events']));
+    error_log("events: EXISTS, Value='{$data['events']}'");
 } else {
     error_log('events: MISSING!');
 }
-
-error_log('===================================================');
 
 // Validate required fields
 $required = [
@@ -63,36 +59,23 @@ $missing_fields = [];
 foreach ($required as $field) {
     if (!isset($data[$field]) || $data[$field] === '' || $data[$field] === null) {
         $missing_fields[] = $field;
-        error_log("Missing or empty field: {$field}");
     }
 }
 
 if (!empty($missing_fields)) {
-    $error_response = [
+    echo json_encode([
         'success' => false, 
         'error' => 'Missing required fields: ' . implode(', ', $missing_fields),
-        'debug' => [
-            'missing' => $missing_fields,
-            'received_keys' => array_keys($data),
-            'signature_check' => isset($data['signature_base64']) ? 'exists (len=' . strlen($data['signature_base64']) . ')' : 'missing',
-            'schedule_check' => isset($data['schedule']) ? "exists ('{$data['schedule']}')": 'missing',
-            'events_check' => isset($data['events']) ? "exists ('{$data['events']}')": 'missing'
-        ]
-    ];
-    error_log('Validation failed: ' . json_encode($error_response['debug']));
-    echo json_encode($error_response);
+        'debug' => ['missing' => $missing_fields]
+    ]);
     exit;
 }
 
-// Validate signature is proper base64 data
+// Validate signature format
 if (!preg_match('/^data:image\/[a-z]+;base64,/', $data['signature_base64'])) {
-    error_log('Invalid signature format - missing data URI prefix');
     echo json_encode([
         'success' => false, 
-        'error' => 'Invalid signature format. Must be a data URL.',
-        'debug' => [
-            'signature_start' => substr($data['signature_base64'], 0, 50)
-        ]
+        'error' => 'Invalid signature format.'
     ]);
     exit;
 }
@@ -110,84 +93,71 @@ try {
     $form_date = $data['form_date'] ?? date('Y-m-d');
     $payment_status = 'pending';
     
-    // Process events - handle both array and string
+    // Process data
     $events = is_array($data['events']) ? implode(', ', $data['events']) : $data['events'];
+    $schedule = $data['schedule'];
+    $signature_base64 = $data['signature_base64'];
+    $age = (int)$data['age'];
+    $payment_amount = (float)$data['payment_amount'];
     
-    // Process schedule - ensure it's a string
-    $schedule = (string)$data['schedule'];
-    
-    // Process signature - ensure it's a string
-    $signature_base64 = (string)$data['signature_base64'];
-    
-    // Log what we're about to save
     error_log('SAVING TO DATABASE:');
-    error_log("  Registration: {$registration_number}");
-    error_log("  Events: '{$events}' (length: " . strlen($events) . ")");
-    error_log("  Schedule: '{$schedule}' (length: " . strlen($schedule) . ")");
-    error_log("  Signature: length=" . strlen($signature_base64));
+    error_log("  Events: '{$events}' (len: " . strlen($events) . ")");
+    error_log("  Schedule: '{$schedule}' (len: " . strlen($schedule) . ")");
+    error_log("  Signature: len=" . strlen($signature_base64));
     
-    // Prepare SQL statement
+    // Use prepared statement with proper escaping
+    // Escape all string values to prevent SQL injection and handle special characters
+    $registration_number = $conn->real_escape_string($registration_number);
+    $name_en = $conn->real_escape_string($data['name_en']);
+    $name_cn = $conn->real_escape_string($name_cn);
+    $ic = $conn->real_escape_string($data['ic']);
+    $school = $conn->real_escape_string($data['school']);
+    $status = $conn->real_escape_string($data['status']);
+    $phone = $conn->real_escape_string($data['phone']);
+    $email = $conn->real_escape_string($data['email']);
+    $level = $conn->real_escape_string($level);
+    $events = $conn->real_escape_string($events);
+    $schedule = $conn->real_escape_string($schedule);
+    $parent_name = $conn->real_escape_string($data['parent_name']);
+    $parent_ic = $conn->real_escape_string($data['parent_ic']);
+    $signature_base64 = $conn->real_escape_string($signature_base64);
+    $payment_date = $conn->real_escape_string($data['payment_date']);
+    $payment_receipt_base64 = $conn->real_escape_string($data['payment_receipt_base64']);
+    $signed_pdf_base64 = $conn->real_escape_string($data['signed_pdf_base64']);
+    $form_date = $conn->real_escape_string($form_date);
+    $payment_status = $conn->real_escape_string($payment_status);
+    
+    // Build SQL with escaped values
     $sql = "INSERT INTO registrations (
         registration_number, name_en, name_cn, ic, age, school, status,
         phone, email, level, events, schedule, class_count,
         parent_name, parent_ic, signature_base64,
         payment_amount, payment_date, payment_receipt_base64, payment_status,
         signed_pdf_base64, form_date
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    ) VALUES (
+        '{$registration_number}', '{$name_en}', '{$name_cn}', '{$ic}', {$age}, '{$school}', '{$status}',
+        '{$phone}', '{$email}', '{$level}', '{$events}', '{$schedule}', {$class_count},
+        '{$parent_name}', '{$parent_ic}', '{$signature_base64}',
+        {$payment_amount}, '{$payment_date}', '{$payment_receipt_base64}', '{$payment_status}',
+        '{$signed_pdf_base64}', '{$form_date}'
+    )";
     
-    $stmt = $conn->prepare($sql);
+    error_log('Executing SQL insert...');
     
-    if (!$stmt) {
-        throw new Exception('Database prepare failed: ' . $conn->error);
-    }
-    
-    // Bind parameters - all as strings except age and class_count
-    $stmt->bind_param(
-        'ssssississsisssdssssss',  // 22 parameters
-        $registration_number,      // 1
-        $data['name_en'],          // 2
-        $name_cn,                  // 3
-        $data['ic'],               // 4
-        $data['age'],              // 5 - integer
-        $data['school'],           // 6
-        $data['status'],           // 7
-        $data['phone'],            // 8
-        $data['email'],            // 9
-        $level,                    // 10
-        $events,                   // 11 - processed events
-        $schedule,                 // 12 - processed schedule
-        $class_count,              // 13 - integer
-        $data['parent_name'],      // 14
-        $data['parent_ic'],        // 15
-        $signature_base64,         // 16 - processed signature
-        $data['payment_amount'],   // 17 - double
-        $data['payment_date'],     // 18
-        $data['payment_receipt_base64'], // 19
-        $payment_status,           // 20
-        $data['signed_pdf_base64'],// 21
-        $form_date                 // 22
-    );
-    
-    // Execute query
-    if ($stmt->execute()) {
+    if ($conn->query($sql)) {
         $insert_id = $conn->insert_id;
         
-        error_log("✓ Registration saved successfully! ID: {$insert_id}");
+        error_log("✓ Registration saved! ID: {$insert_id}");
         
-        // Verify data was saved by reading it back
-        $verify_sql = "SELECT events, schedule, signature_base64 FROM registrations WHERE id = ?";
-        $verify_stmt = $conn->prepare($verify_sql);
-        $verify_stmt->bind_param('i', $insert_id);
-        $verify_stmt->execute();
-        $result = $verify_stmt->get_result();
+        // Verify data was saved
+        $verify_sql = "SELECT events, schedule, signature_base64 FROM registrations WHERE id = {$insert_id}";
+        $result = $conn->query($verify_sql);
         $saved_data = $result->fetch_assoc();
         
-        error_log('VERIFICATION - Data read back from database:');
+        error_log('VERIFICATION - Data read back:');
         error_log("  Events: '" . ($saved_data['events'] ?? 'NULL') . "'");
         error_log("  Schedule: '" . ($saved_data['schedule'] ?? 'NULL') . "'");
-        error_log("  Signature: " . (isset($saved_data['signature_base64']) && $saved_data['signature_base64'] ? 'YES (' . strlen($saved_data['signature_base64']) . ' bytes)' : 'NO/NULL'));
-        
-        $verify_stmt->close();
+        error_log("  Signature length: " . (isset($saved_data['signature_base64']) ? strlen($saved_data['signature_base64']) : 0));
         
         echo json_encode([
             'success' => true,
@@ -201,13 +171,11 @@ try {
             ]
         ]);
     } else {
-        throw new Exception('Failed to save registration: ' . $stmt->error);
+        throw new Exception('Failed to save: ' . $conn->error);
     }
     
-    $stmt->close();
-    
 } catch (Exception $e) {
-    error_log('ERROR saving registration: ' . $e->getMessage());
+    error_log('ERROR: ' . $e->getMessage());
     echo json_encode([
         'success' => false,
         'error' => $e->getMessage()
