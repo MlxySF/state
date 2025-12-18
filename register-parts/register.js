@@ -10,6 +10,7 @@ let currentStep = 1;
 const totalSteps = 7;
 let registrationData = null;
 let savedPdfBlob = null;
+let receiptBase64 = null;
 
 // ========================================
 // DOM CONTENT LOADED
@@ -285,6 +286,86 @@ function toggleOtherSchool() {
 function toggleSchoolBox(element) { element.classList.toggle('active'); }
 
 // ========================================
+// PAYMENT FUNCTIONS
+// ========================================
+function calculateFees() {
+    const schedules = document.querySelectorAll('input[name="sch"]:checked');
+    const classCount = schedules.length;
+    let totalFee = 0;
+
+    if (classCount === 1) totalFee = 120;
+    else if (classCount === 2) totalFee = 200;
+    else if (classCount === 3) totalFee = 280;
+    else if (classCount >= 4) totalFee = 320;
+
+    return { classCount, totalFee };
+}
+
+function updatePaymentDisplay() {
+    const { classCount, totalFee } = calculateFees();
+    const statusRadios = document.getElementsByName('status');
+    let status = '';
+    for (const radio of statusRadios) {
+        if (radio.checked) {
+            status = radio.value;
+            break;
+        }
+    }
+
+    document.getElementById('payment-class-count').textContent = classCount;
+    document.getElementById('payment-status').textContent = status;
+    document.getElementById('payment-total').textContent = `RM ${totalFee}`;
+}
+
+function copyAccountNumber() {
+    const accountNumber = '5621 2345 6789';
+    navigator.clipboard.writeText(accountNumber).then(() => {
+        Swal.fire({
+            icon: 'success',
+            title: 'Copied!',
+            text: 'Account number copied to clipboard',
+            timer: 1500,
+            showConfirmButton: false
+        });
+    });
+}
+
+function handleReceiptUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+        Swal.fire('Error', 'File size must be less than 5MB', 'error');
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        receiptBase64 = e.target.result.split(',')[1];
+        
+        document.getElementById('upload-prompt').classList.add('hidden');
+        document.getElementById('upload-preview').classList.remove('hidden');
+        
+        if (file.type.startsWith('image/')) {
+            document.getElementById('preview-image').src = e.target.result;
+            document.getElementById('preview-image').style.display = 'block';
+        } else {
+            document.getElementById('preview-image').style.display = 'none';
+        }
+        
+        document.getElementById('preview-filename').textContent = file.name;
+    };
+    reader.readAsDataURL(file);
+}
+
+function removeReceipt() {
+    receiptBase64 = null;
+    document.getElementById('receipt-upload').value = '';
+    document.getElementById('upload-preview').classList.add('hidden');
+    document.getElementById('upload-prompt').classList.remove('hidden');
+}
+
+// ========================================
 // STEP NAVIGATION
 // ========================================
 function changeStep(dir) {
@@ -347,8 +428,6 @@ async function submitPayment() {
             class_count: classCount
         };
 
-        console.log('Submitting payload:', payload);
-
         const response = await fetch('./api/process_registration.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -356,12 +435,10 @@ async function submitPayment() {
         });
 
         const result = await response.json();
-
         if (overlay) overlay.style.display = 'none';
 
         if (result.success) {
             registrationData.registrationNumber = result.registration_number;
-
             document.getElementById('reg-number-display').innerHTML = `
                 <strong style="font-size: 20px; color: #7c3aed;">Registration Number: ${result.registration_number}</strong>
             `;
@@ -372,13 +449,11 @@ async function submitPayment() {
             
             const stepCounter = document.getElementById('step-counter');
             stepCounter.innerHTML = `07<span style="color: #475569; font-size: 14px;">/07</span>`;
-            
             const progressBar = document.getElementById('progress-bar');
             progressBar.style.width = '100%';
             
             document.getElementById('btn-prev').disabled = true;
             document.getElementById('btn-next').style.display = 'none';
-            
             window.scrollTo({ top: 0, behavior: 'smooth' });
             
             Swal.fire({
@@ -397,7 +472,7 @@ async function submitPayment() {
     } catch (error) {
         if (overlay) overlay.style.display = 'none';
         console.error('Error:', error);
-        Swal.fire('Error', 'An error occurred during submission: ' + error.message, 'error');
+        Swal.fire('Error', 'An error occurred: ' + error.message, 'error');
     }
 }
 
@@ -454,4 +529,252 @@ function validateStep(step) {
     return true;
 }
 
-// REST OF THE CODE CONTINUES IN NEXT MESSAGE DUE TO LENGTH...
+// ========================================
+// PDF GENERATION
+// ========================================
+async function submitAndGeneratePDF() {
+    const overlay = document.getElementById('loading-overlay');
+    if (overlay) overlay.style.display = 'flex';
+
+    try {
+        const nameEn = document.getElementById('name-en').value;
+        const nameCn = document.getElementById('name-cn').value || '';
+        const ic = document.getElementById('ic').value;
+        const age = document.getElementById('age').value;
+        const school = document.getElementById('school').value === 'Others' 
+            ? document.getElementById('school-other').value 
+            : document.getElementById('school').value;
+        
+        const statusRadios = document.getElementsByName('status');
+        let status = '';
+        for (const radio of statusRadios) {
+            if (radio.checked) { status = radio.value; break; }
+        }
+
+        const phone = document.getElementById('phone').value;
+        const email = document.getElementById('email').value;
+
+        const levelRadios = document.getElementsByName('lvl');
+        let level = '';
+        for (const radio of levelRadios) {
+            if (radio.checked) {
+                level = radio.value === 'Other' 
+                    ? document.getElementById('level-other').value 
+                    : radio.value;
+                break;
+            }
+        }
+
+        const eventsCheckboxes = document.querySelectorAll('input[name="evt"]:checked');
+        const events = Array.from(eventsCheckboxes).map(cb => cb.value).join(', ');
+
+        const scheduleCheckboxes = document.querySelectorAll('input[name="sch"]:checked');
+        const schedules = Array.from(scheduleCheckboxes).map(cb => cb.value).join(', ');
+
+        const parentName = document.getElementById('parent-name').value;
+        const parentIC = document.getElementById('parent-ic').value;
+        const formDate = document.getElementById('today-date').value;
+
+        const signatureBase64 = canvas.toDataURL('image/png');
+        const pdfBase64 = await generatePDFFile();
+
+        registrationData = {
+            nameCn: nameCn,
+            nameEn: nameEn,
+            ic: ic,
+            age: age,
+            school: school,
+            status: status,
+            phone: phone,
+            email: email,
+            level: level,
+            events: events,
+            schedule: schedules,
+            parent: parentName,
+            parentIC: parentIC,
+            date: formDate,
+            signature: signatureBase64,
+            pdfBase64: pdfBase64
+        };
+
+        if (overlay) overlay.style.display = 'none';
+
+        document.getElementById(`step-${currentStep}`).classList.remove('active');
+        currentStep = 6;
+        document.getElementById(`step-${currentStep}`).classList.add('active');
+        
+        const stepCounter = document.getElementById('step-counter');
+        stepCounter.innerHTML = `06<span style="color: #475569; font-size: 14px;">/07</span>`;
+        const progressBar = document.getElementById('progress-bar');
+        progressBar.style.width = `${(6 / 7) * 100}%`;
+        
+        updatePaymentDisplay();
+        document.getElementById('payment-date').value = new Date().toISOString().split('T')[0];
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    } catch (error) {
+        if (overlay) overlay.style.display = 'none';
+        console.error('Error:', error);
+        Swal.fire('Error', 'PDF generation failed: ' + error.message, 'error');
+    }
+}
+
+async function generatePDFFile() {
+    const displayName = (document.getElementById('name-cn').value ? 
+        `${document.getElementById('name-en').value} (${document.getElementById('name-cn').value})` : 
+        document.getElementById('name-en').value);
+    
+    const ic = document.getElementById('ic').value;
+    const age = document.getElementById('age').value;
+    const school = document.getElementById('school').value === 'Others' ? 
+        document.getElementById('school-other').value : 
+        document.getElementById('school').value;
+    
+    const statusRadios = document.getElementsByName('status');
+    let status = '';
+    for (const radio of statusRadios) {
+        if (radio.checked) { status = radio.value; break; }
+    }
+    
+    const phone = document.getElementById('phone').value;
+    const email = document.getElementById('email').value;
+    
+    const levelRadios = document.getElementsByName('lvl');
+    let level = '';
+    for (const radio of levelRadios) {
+        if (radio.checked) {
+            level = radio.value === 'Other' ? 
+                document.getElementById('level-other').value : 
+                radio.value;
+            break;
+        }
+    }
+    
+    const eventsCheckboxes = document.querySelectorAll('input[name="evt"]:checked');
+    const events = Array.from(eventsCheckboxes).map(cb => cb.value).join(', ');
+    
+    const scheduleCheckboxes = document.querySelectorAll('input[name="sch"]:checked');
+    const schedule = Array.from(scheduleCheckboxes).map(cb => cb.value).join(', ');
+    
+    const parent = document.getElementById('parent-name').value;
+    const parentIC = document.getElementById('parent-ic').value;
+    const date = document.getElementById('today-date').value;
+    const signature = canvas.toDataURL('image/png');
+
+    document.getElementById('pdf-name').innerText = displayName;
+    document.getElementById('pdf-ic').innerText = ic;
+    document.getElementById('pdf-age').innerText = age;
+    document.getElementById('pdf-school').innerText = school;
+    document.getElementById('pdf-status').innerText = status;
+    document.getElementById('pdf-phone').innerText = phone;
+    document.getElementById('pdf-email').innerText = email;
+    document.getElementById('pdf-level').innerText = level;
+    document.getElementById('pdf-events').innerText = events;
+    document.getElementById('pdf-schedule').innerText = schedule;
+    document.getElementById('pdf-parent-name').innerText = parent;
+    document.getElementById('pdf-parent-ic').innerText = parentIC;
+    document.getElementById('pdf-date').innerText = date;
+    document.getElementById('pdf-sig-img').src = signature;
+
+    document.getElementById('pdf-parent-name-2').innerText = parent;
+    document.getElementById('pdf-parent-ic-2').innerText = parentIC;
+    document.getElementById('pdf-date-2').innerText = date;
+
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF('p', 'mm', 'a4');
+
+    const page1 = document.getElementById('pdf-template-page1');
+    page1.style.visibility = 'visible';
+    page1.style.opacity = '1';
+    page1.style.position = 'absolute';
+    page1.style.left = '0';
+    page1.style.top = '0';
+    page1.style.zIndex = '9999';
+
+    await new Promise(resolve => setTimeout(resolve, 200));
+
+    const canvas1 = await html2canvas(page1, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        width: 794,
+        height: 1123,
+        logging: false,
+        backgroundColor: '#ffffff'
+    });
+
+    const imgData1 = canvas1.toDataURL('image/jpeg', 0.95);
+    pdf.addImage(imgData1, 'JPEG', 0, 0, 210, 297);
+
+    page1.style.visibility = 'hidden';
+    page1.style.opacity = '0';
+    page1.style.position = 'fixed';
+    page1.style.left = '-99999px';
+    page1.style.top = '-99999px';
+    page1.style.zIndex = '-9999';
+
+    const page2 = document.getElementById('pdf-template-page2');
+    page2.style.visibility = 'visible';
+    page2.style.opacity = '1';
+    page2.style.position = 'absolute';
+    page2.style.left = '0';
+    page2.style.top = '0';
+    page2.style.zIndex = '9999';
+
+    await new Promise(resolve => setTimeout(resolve, 200));
+
+    const canvas2 = await html2canvas(page2, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        width: 794,
+        height: 1123,
+        logging: false,
+        backgroundColor: '#ffffff'
+    });
+
+    const imgData2 = canvas2.toDataURL('image/jpeg', 0.95);
+    pdf.addPage();
+    pdf.addImage(imgData2, 'JPEG', 0, 0, 210, 297);
+
+    page2.style.visibility = 'hidden';
+    page2.style.opacity = '0';
+    page2.style.position = 'fixed';
+    page2.style.left = '-99999px';
+    page2.style.top = '-99999px';
+    page2.style.zIndex = '-9999';
+
+    const nameForFile = document.getElementById('name-en').value.replace(/\s+/g, '_');
+    pdf.save(`${nameForFile}_Registration_Agreement.pdf`);
+
+    savedPdfBlob = pdf.output('blob');
+    return pdf.output('datauristring').split(',')[1];
+}
+
+function downloadPDF() {
+    if (savedPdfBlob) {
+        const nameForFile = registrationData.nameEn.replace(/\s+/g, '_');
+        const url = URL.createObjectURL(savedPdfBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${nameForFile}_Registration_Agreement.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        Swal.fire({
+            icon: 'success',
+            title: 'Downloaded!',
+            text: 'Your registration agreement has been downloaded.',
+            timer: 2000,
+            showConfirmButton: false
+        });
+    } else {
+        Swal.fire('Error', 'PDF not available. Please try again.', 'error');
+    }
+}
+
+function submitAnother() {
+    location.reload();
+}
