@@ -1,7 +1,7 @@
 <?php
 /**
  * Professional Invoice PDF Generator
- * Fixed: Properly display events data even when fully Chinese
+ * Fixed: Added comprehensive Chinese routine translations
  */
 
 error_reporting(E_ALL);
@@ -58,16 +58,43 @@ try {
             return 'Wushu Training Classes';
         }
         
+        // Comprehensive Chinese to English routine translations
         $replacements = [
+            // Basic Level (基础)
             '基础-长拳' => 'Basic Changquan',
             '基础-剑' => 'Basic Sword',
             '基础-刀' => 'Basic Broadsword',
             '基础-棍' => 'Basic Staff',
             '基础-枪' => 'Basic Spear',
+            '基础-南拳' => 'Basic Nanquan',
+            '基础-太极' => 'Basic Taiji',
+            
+            // Beginner Level (初级)
             '初级-长拳' => 'Beginner Changquan',
             '初级-剑' => 'Beginner Sword',
+            '初级-刀' => 'Beginner Broadsword',
+            '初级-棍' => 'Beginner Staff',
+            '初级-枪' => 'Beginner Spear',
+            '初级-南拳' => 'Beginner Nanquan',
+            '初级-太极' => 'Beginner Taiji',
+            
+            // Intermediate Level (中级)
             '中级-长拳' => 'Intermediate Changquan',
+            '中级-剑' => 'Intermediate Sword',
+            '中级-刀' => 'Intermediate Broadsword',
+            '中级-棍' => 'Intermediate Staff',
+            '中级-枪' => 'Intermediate Spear',
+            '中级-南拳' => 'Intermediate Nanquan',
+            '中级-太极' => 'Intermediate Taiji',
+            
+            // Advanced Level (高级)
             '高级-长拳' => 'Advanced Changquan',
+            '高级-剑' => 'Advanced Sword',
+            '高级-刀' => 'Advanced Broadsword',
+            '高级-棍' => 'Advanced Staff',
+            '高级-枪' => 'Advanced Spear',
+            '高级-南拳' => 'Advanced Nanquan',
+            '高级-太极' => 'Advanced Taiji',
         ];
         
         $description = $events;
@@ -82,13 +109,13 @@ try {
         // Strip remaining Chinese characters
         $description = stripChinese($description);
         
-        // Clean up extra spaces and commas
-        $description = preg_replace('/[,\s]+/', ', ', $description);
-        $description = trim($description, ', ');
+        // Clean up extra spaces, commas, and dashes
+        $description = preg_replace('/[-,\s]+/', ', ', $description);
+        $description = trim($description, ', -');
         
         logError('Final description: ' . $description);
         
-        // If empty after processing, return original with Chinese stripped
+        // If empty after processing, return fallback
         if (empty($description) || $description === '') {
             return 'Wushu Training Classes';
         }
