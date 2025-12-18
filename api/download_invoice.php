@@ -1,30 +1,23 @@
 <?php
 // download_invoice.php - Generate and download invoice PDF using FPDF
-// With comprehensive error logging
+// Fixed: Use text header instead of remote image to avoid crashes
 
-// Enable ALL error reporting and logging
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 ini_set('log_errors', 1);
 ini_set('error_log', __DIR__ . '/../error_invoice.log');
 
-// Log function
 function logError($message) {
     $logFile = __DIR__ . '/../error_invoice.log';
     $timestamp = date('Y-m-d H:i:s');
     $logMessage = "[$timestamp] $message\n";
     file_put_contents($logFile, $logMessage, FILE_APPEND);
-    return $logMessage;
 }
 
-// Log start
 logError('=== Invoice Generation Started ===');
 logError('Request Method: ' . $_SERVER['REQUEST_METHOD']);
 logError('Request URI: ' . $_SERVER['REQUEST_URI']);
-logError('Script Path: ' . __FILE__);
-logError('Working Directory: ' . getcwd());
 
-// Check GET request
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     logError('ERROR: Invalid request method');
     http_response_code(405);
@@ -46,15 +39,13 @@ try {
     logError("Checking config.php at: $config_path");
     
     if (!file_exists($config_path)) {
-        throw new Exception("config.php not found at: $config_path");
+        throw new Exception("config.php not found");
     }
-    logError('config.php found, requiring...');
-    
     require_once $config_path;
     logError('config.php loaded successfully');
     
     if (!isset($conn)) {
-        throw new Exception('Database connection variable $conn not set in config.php');
+        throw new Exception('Database connection not established');
     }
     logError('Database connection verified');
     
@@ -63,16 +54,13 @@ try {
     logError("Checking fpdf.php at: $fpdf_path");
     
     if (!file_exists($fpdf_path)) {
-        throw new Exception("fpdf.php not found at: $fpdf_path");
+        throw new Exception("fpdf.php not found");
     }
-    logError('fpdf.php found, requiring...');
-    
     require_once $fpdf_path;
     logError('fpdf.php loaded successfully');
     
-    // Check if FPDF class exists
     if (!class_exists('FPDF')) {
-        throw new Exception('FPDF class not found after requiring fpdf.php');
+        throw new Exception('FPDF class not found');
     }
     logError('FPDF class verified');
     
@@ -82,15 +70,11 @@ try {
     if (!$stmt) {
         throw new Exception('Database prepare failed: ' . $conn->error);
     }
-    logError('Database statement prepared');
     
     $stmt->bind_param('i', $registration_id);
-    logError('Parameters bound');
-    
     if (!$stmt->execute()) {
         throw new Exception('Query execution failed: ' . $stmt->error);
     }
-    logError('Query executed');
     
     $result = $stmt->get_result();
     logError('Result fetched, rows: ' . $result->num_rows);
@@ -105,32 +89,28 @@ try {
     $stmt->close();
     logError('Registration data loaded: ' . $reg['registration_number']);
     
-    // Create PDF
+    // Create PDF with simple text header (no remote images)
     logError('Creating PDF class...');
     
     class InvoicePDF extends FPDF {
         function Header() {
-            global $headerError;
-            // Try to load letterhead from S3
-            $letterhead = 'https://wushu-assets.s3.ap-southeast-1.amazonaws.com/WSP+Letter.png';
-            try {
-                $this->Image($letterhead, 10, 10, 190);
-                $this->Ln(40);
-            } catch (Exception $e) {
-                $headerError = $e->getMessage();
-                // If letterhead fails, show text header
-                $this->SetFont('Arial', 'B', 18);
-                $this->Cell(0, 10, 'WUSHU SPORT ACADEMY', 0, 1, 'C');
-                $this->SetFont('Arial', '', 10);
-                $this->Cell(0, 5, 'Registration Invoice', 0, 1, 'C');
-                $this->Ln(10);
-            }
+            // Simple text header - no remote images to avoid crashes
+            $this->SetFont('Arial', 'B', 20);
+            $this->SetTextColor(15, 52, 96);
+            $this->Cell(0, 12, 'WUSHU SPORT ACADEMY', 0, 1, 'C');
+            $this->SetFont('Arial', '', 11);
+            $this->SetTextColor(100, 100, 100);
+            $this->Cell(0, 6, 'Registration & Payment Invoice', 0, 1, 'C');
+            $this->SetTextColor(0, 0, 0);
+            $this->Ln(8);
         }
         
         function Footer() {
             $this->SetY(-15);
             $this->SetFont('Arial', 'I', 8);
+            $this->SetTextColor(150, 150, 150);
             $this->Cell(0, 10, 'Page ' . $this->PageNo(), 0, 0, 'C');
+            $this->SetTextColor(0, 0, 0);
         }
     }
     
@@ -138,14 +118,11 @@ try {
     $pdf = new InvoicePDF('P', 'mm', 'A4');
     logError('PDF object created');
     
+    logError('Adding page...');
     $pdf->AddPage();
-    logError('Page added');
+    logError('Page added successfully');
     
     $pdf->SetAutoPageBreak(true, 20);
-    
-    if (isset($headerError)) {
-        logError('Header image error: ' . $headerError);
-    }
     
     // Invoice details
     $invoice_number = !empty($reg['invoice_number']) ? $reg['invoice_number'] : 'INV-' . $reg['registration_number'];
@@ -239,7 +216,13 @@ try {
     $filename = 'Invoice_' . $reg['registration_number'] . '.pdf';
     logError("Outputting PDF: $filename");
     
+    // Clear any output buffers
+    while (ob_get_level()) {
+        ob_end_clean();
+    }
+    
     // Output as download
+    logError('Calling PDF Output...');
     $pdf->Output('D', $filename);
     logError('PDF output completed successfully');
     logError('=== Invoice Generation Completed Successfully ===');
@@ -250,30 +233,12 @@ try {
     logError('Stack trace: ' . $e->getTraceAsString());
     logError('=== Invoice Generation Failed ===');
     
-    // Show error in plain HTML
     http_response_code(500);
     echo '<!DOCTYPE html><html><head><title>Error</title></head><body style="font-family:Arial;padding:40px;">';
     echo '<h1 style="color:#e74c3c;">❌ Error Generating Invoice</h1>';
     echo '<p><strong>Error:</strong> ' . htmlspecialchars($e->getMessage()) . '</p>';
-    echo '<hr><h2>Error Log</h2>';
-    echo '<p>Check the error log file at: <code>' . __DIR__ . '/../error_invoice.log</code></p>';
-    echo '<p><strong>Last few log entries:</strong></p>';
-    
-    $logFile = __DIR__ . '/../error_invoice.log';
-    if (file_exists($logFile)) {
-        $logs = file($logFile);
-        $recentLogs = array_slice($logs, -20);
-        echo '<pre style="background:#f5f5f5;padding:15px;border-radius:5px;overflow:auto;">';
-        echo htmlspecialchars(implode('', $recentLogs));
-        echo '</pre>';
-    }
-    
-    echo '<hr><h2>Troubleshooting</h2><ul>';
-    echo '<li>Make sure <code>fpdf.php</code> exists in: <code>' . __DIR__ . '/../fpdf.php</code></li>';
-    echo '<li>Make sure <code>config.php</code> exists in: <code>' . __DIR__ . '/../config.php</code></li>';
-    echo '<li>Run: <code>git pull origin main</code> on your server</li>';
-    echo '<li>Check server error logs in cPanel or error_log file</li>';
-    echo '</ul></body></html>';
+    echo '<p>Check the error log at: <code>error_invoice.log</code></p>';
+    echo '</body></html>';
     exit;
 }
 ?>
