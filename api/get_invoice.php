@@ -2,6 +2,9 @@
 // Get Invoice API
 // Generates and returns invoice HTML for a specific registration
 
+error_reporting(0);
+ini_set('display_errors', 0);
+
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET');
@@ -60,8 +63,16 @@ try {
 function generateInvoiceHTML($reg) {
     // Generate invoice number if not exists
     $invoice_number = !empty($reg['invoice_number']) ? $reg['invoice_number'] : 'INV-' . $reg['registration_number'];
-    $created_date = new DateTime($reg['created_at']);
-    $due_date = $created_date->modify('+30 days');
+    
+    // Safe date handling
+    try {
+        $created_date = new DateTime($reg['created_at']);
+        $due_date = clone $created_date;
+        $due_date->modify('+30 days');
+    } catch (Exception $e) {
+        $created_date = new DateTime();
+        $due_date = new DateTime('+30 days');
+    }
     
     // Calculate payment status
     $is_paid = ($reg['payment_status'] === 'approved') ? true : false;
@@ -69,13 +80,15 @@ function generateInvoiceHTML($reg) {
     $payment_status_text = $is_paid ? 'PAID' : 'PENDING';
     $status_color = $is_paid ? '#22c55e' : '#f59e0b';
     
-    $html = <<<HTML
-<!DOCTYPE html>
+    // Format payment amount
+    $payment_amount = number_format((float)$reg['payment_amount'], 2);
+    
+    $html = '<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Invoice {$invoice_number}</title>
+    <title>Invoice ' . htmlspecialchars($invoice_number) . '</title>
     <style>
         * {
             margin: 0;
@@ -84,7 +97,7 @@ function generateInvoiceHTML($reg) {
         }
         
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
             color: #333;
             line-height: 1.6;
             padding: 40px 20px;
@@ -139,7 +152,7 @@ function generateInvoiceHTML($reg) {
             font-size: 14px;
             margin-bottom: 10px;
             color: white;
-            background: {$status_color};
+            background: ' . $status_color . ';
         }
         
         .invoice-number {
@@ -164,14 +177,6 @@ function generateInvoiceHTML($reg) {
             letter-spacing: 1px;
         }
         
-        .section-title-small {
-            font-size: 11px;
-            color: #666;
-            text-transform: uppercase;
-            font-weight: 600;
-            margin-bottom: 3px;
-        }
-        
         .detail-row {
             margin-bottom: 8px;
             display: flex;
@@ -188,10 +193,6 @@ function generateInvoiceHTML($reg) {
             font-size: 12px;
             color: #000;
             font-weight: bold;
-        }
-        
-        .billed-to-content {
-            padding-left: 0;
         }
         
         .student-name {
@@ -386,8 +387,8 @@ function generateInvoiceHTML($reg) {
                 </div>
             </div>
             <div class="invoice-title-box">
-                <div class="status-badge">{$payment_status_text}</div>
-                <div class="invoice-number">Invoice: {$invoice_number}</div>
+                <div class="status-badge">' . $payment_status_text . '</div>
+                <div class="invoice-number">Invoice: ' . htmlspecialchars($invoice_number) . '</div>
             </div>
         </div>
         
@@ -399,19 +400,19 @@ function generateInvoiceHTML($reg) {
                 
                 <div class="detail-row">
                     <span class="detail-label">Invoice Number:</span>
-                    <span class="detail-value">{$invoice_number}</span>
+                    <span class="detail-value">' . htmlspecialchars($invoice_number) . '</span>
                 </div>
                 <div class="detail-row">
                     <span class="detail-label">Date Issued:</span>
-                    <span class="detail-value">{$created_date->format('d M Y')}</span>
+                    <span class="detail-value">' . $created_date->format('d M Y') . '</span>
                 </div>
                 <div class="detail-row">
                     <span class="detail-label">Due Date:</span>
-                    <span class="detail-value">{$due_date->format('d M Y')}</span>
+                    <span class="detail-value">' . $due_date->format('d M Y') . '</span>
                 </div>
                 <div class="detail-row">
                     <span class="detail-label">Payment Date:</span>
-                    <span class="detail-value">{$created_date->format('d M Y, g:i A')}</span>
+                    <span class="detail-value">' . $created_date->format('d M Y, g:i A') . '</span>
                 </div>
             </div>
             
@@ -419,23 +420,23 @@ function generateInvoiceHTML($reg) {
             <div>
                 <div class="section-title">Billed To</div>
                 
-                <div class="student-name">{$reg['name_en']}</div>
+                <div class="student-name">' . htmlspecialchars($reg['name_en']) . '</div>
                 <div class="student-info">
                     <div class="detail-row">
                         <span class="detail-label">Registration ID:</span>
-                        <span class="detail-value">{$reg['registration_number']}</span>
+                        <span class="detail-value">' . htmlspecialchars($reg['registration_number']) . '</span>
                     </div>
                     <div class="detail-row">
                         <span class="detail-label">IC Number:</span>
-                        <span class="detail-value">{$reg['ic']}</span>
+                        <span class="detail-value">' . htmlspecialchars($reg['ic']) . '</span>
                     </div>
                     <div class="detail-row">
                         <span class="detail-label">Email:</span>
-                        <span class="detail-value">{$reg['email']}</span>
+                        <span class="detail-value">' . htmlspecialchars($reg['email']) . '</span>
                     </div>
                     <div class="detail-row">
                         <span class="detail-label">Phone:</span>
-                        <span class="detail-value">{$reg['phone']}</span>
+                        <span class="detail-value">' . htmlspecialchars($reg['phone']) . '</span>
                     </div>
                 </div>
             </div>
@@ -454,9 +455,9 @@ function generateInvoiceHTML($reg) {
             <tbody>
                 <tr>
                     <td>Class Registration & Training Enrollment</td>
-                    <td style="text-align: center;">{$reg['level']}</td>
-                    <td style="text-align: center;">{$reg['class_count']}</td>
-                    <td>RM {$reg['payment_amount']}</td>
+                    <td style="text-align: center;">' . htmlspecialchars($reg['level']) . '</td>
+                    <td style="text-align: center;">' . htmlspecialchars($reg['class_count']) . '</td>
+                    <td>RM ' . $payment_amount . '</td>
                 </tr>
             </tbody>
         </table>
@@ -466,7 +467,7 @@ function generateInvoiceHTML($reg) {
             <div class="totals-box">
                 <div class="total-row amount">
                     <span>Subtotal:</span>
-                    <span>RM {$reg['payment_amount']}</span>
+                    <span>RM ' . $payment_amount . '</span>
                 </div>
                 <div class="total-row tax">
                     <span>Tax (0%):</span>
@@ -474,25 +475,27 @@ function generateInvoiceHTML($reg) {
                 </div>
                 <div class="total-row separator">
                     <span>Total Amount:</span>
-                    <span>RM {$reg['payment_amount']}</span>
+                    <span>RM ' . $payment_amount . '</span>
                 </div>
             </div>
         </div>
-        
-        <!-- Payment Status Box -->
-HTML;
+        ';
     
     if ($is_paid) {
-        $payment_date = new DateTime($reg['payment_date'] ?? date('Y-m-d H:i:s'));
-        $html .= <<<HTML
+        try {
+            $payment_date = new DateTime($reg['payment_date'] ?? date('Y-m-d H:i:s'));
+        } catch (Exception $e) {
+            $payment_date = new DateTime();
+        }
+        
+        $html .= '
         <div class="payment-status-box paid">
             <div class="payment-status-title">✓ Payment Completed and Verified</div>
-            <div class="payment-status-detail">Payment received and verified on {$payment_date->format('d M Y, g:i A')}</div>
-        </div>
-HTML;
+            <div class="payment-status-detail">Payment received and verified on ' . $payment_date->format('d M Y, g:i A') . '</div>
+        </div>';
     }
     
-    $html .= <<<HTML
+    $html .= '
         
         <!-- Notes & Terms -->
         <div class="notes-section">
@@ -510,14 +513,13 @@ HTML;
         <!-- Footer -->
         <div class="footer">
             This is a computer-generated invoice. No signature required.<br>
-            Generated: {$created_date->format('d M Y, g:i A')}<br>
+            Generated: ' . $created_date->format('d M Y, g:i A') . '<br>
             <br>
             © 2025 Wushu Sport Academy. All rights reserved.
         </div>
     </div>
 </body>
-</html>
-HTML;
+</html>';
     
     return $html;
 }
