@@ -1,7 +1,7 @@
 <?php
 /**
  * Professional Invoice PDF Generator
- * Fixed: Proper line breaks after commas in schedule
+ * Fixed: Properly display events data even when fully Chinese
  */
 
 error_reporting(E_ALL);
@@ -47,12 +47,17 @@ try {
     $reg = $result->fetch_assoc();
     $stmt->close();
     logError('Registration data loaded: ' . $reg['registration_number']);
+    logError('Events field: ' . $reg['events']);
     
     function stripChinese($text) {
         return preg_replace('/[\x{4E00}-\x{9FFF}]/u', '', $text);
     }
     
     function createEnglishDescription($events) {
+        if (empty($events) || trim($events) === '') {
+            return 'Wushu Training Classes';
+        }
+        
         $replacements = [
             '基础-长拳' => 'Basic Changquan',
             '基础-剑' => 'Basic Sword',
@@ -66,15 +71,29 @@ try {
         ];
         
         $description = $events;
+        logError('Before replacement: ' . $description);
+        
         foreach ($replacements as $chinese => $english) {
             $description = str_replace($chinese, $english, $description);
         }
         
+        logError('After replacement: ' . $description);
+        
+        // Strip remaining Chinese characters
         $description = stripChinese($description);
+        
+        // Clean up extra spaces and commas
         $description = preg_replace('/[,\s]+/', ', ', $description);
         $description = trim($description, ', ');
         
-        return $description ?: 'Wushu Training';
+        logError('Final description: ' . $description);
+        
+        // If empty after processing, return original with Chinese stripped
+        if (empty($description) || $description === '') {
+            return 'Wushu Training Classes';
+        }
+        
+        return $description;
     }
     
     function getLetterheadImage() {
@@ -201,6 +220,9 @@ try {
     $englishRoutines = createEnglishDescription($reg['events']);
     $cleanSchedule = stripChinese($reg['schedule']);
     
+    logError('English routines: ' . $englishRoutines);
+    logError('Clean schedule: ' . $cleanSchedule);
+    
     // Left Column - Invoice Details
     $pdf->SetFont('Helvetica', 'B', 11);
     $pdf->SetTextColor(15, 52, 96);
@@ -255,7 +277,7 @@ try {
     
     $pdf->Ln(7);
     
-    // LINE ITEMS TABLE (without LEVEL column)
+    // LINE ITEMS TABLE
     $pdf->SetX(15);
     $pdf->SetFillColor(15, 52, 96);
     $pdf->SetDrawColor(15, 52, 96);
@@ -263,37 +285,35 @@ try {
     $pdf->SetFont('Helvetica', 'B', 10);
     $pdf->SetTextColor(255, 255, 255);
     
-    // Header: DESCRIPTION | QTY | AMOUNT
     $pdf->Cell(135, 8, 'DESCRIPTION', 1, 0, 'L', true);
     $pdf->Cell(20, 8, 'QTY', 1, 0, 'C', true);
     $pdf->Cell(30, 8, 'AMOUNT (RM)', 1, 1, 'R', true);
     
-    // Item row - Multi-line description with classes and schedule
+    // Item row
     $pdf->SetDrawColor(220, 220, 220);
     $pdf->SetLineWidth(0.2);
     $pdf->SetFont('Helvetica', '', 9);
     $pdf->SetTextColor(0, 0, 0);
     
-    // Split routines by comma for line breaks
-    $routinesList = explode(', ', $englishRoutines);
+    // Split routines by comma
+    $routinesList = array_filter(array_map('trim', explode(',', $englishRoutines)));
     
-    // Split schedule by comma and trim spaces - each venue on new line
-    $scheduleList = array_map('trim', explode(',', $cleanSchedule));
+    // Split schedule by comma
+    $scheduleList = array_filter(array_map('trim', explode(',', $cleanSchedule)));
     
-    // Combine: routines first, then schedule items
+    // Combine
     $allLines = array_merge($routinesList, $scheduleList);
     $descriptionText = implode("\n", $allLines);
     
-    // Calculate height needed for multi-line cell
+    // Calculate height
     $lineHeight = 4.5;
     $numLines = count($allLines);
     $cellHeight = max($numLines * $lineHeight, 8);
     
-    // Store current X and Y for other columns
     $startX = 15;
     $startY = $pdf->GetY();
     
-    // Description cell with MultiCell
+    // Description cell
     $pdf->SetXY($startX, $startY);
     $pdf->MultiCell(135, $lineHeight, $descriptionText, 1, 'L');
     
