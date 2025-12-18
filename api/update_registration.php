@@ -1,6 +1,6 @@
 <?php
 // Update Registration Status API
-// Allows admin to approve/reject registrations with email notifications
+// Allows admin to approve/reject registrations with email notifications and PDF attachments
 
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
@@ -41,8 +41,8 @@ if (!in_array($payment_status, $valid_statuses)) {
 }
 
 try {
-    // First, get the registration details for email
-    $selectSql = "SELECT name_en, email, registration_number, payment_amount, payment_status FROM registrations WHERE id = ?";
+    // Get FULL registration details including PDFs for email attachments
+    $selectSql = "SELECT * FROM registrations WHERE id = ?";
     $selectStmt = $conn->prepare($selectSql);
     
     if (!$selectStmt) {
@@ -91,25 +91,30 @@ try {
             // Send email notification if status changed to approved or rejected
             if ($shouldSendEmail) {
                 try {
+                    error_log("Sending {$payment_status} email with attachments to {$registration['email']}");
+                    
+                    // Pass full registration data for PDF attachments
                     $emailSent = sendPaymentEmail(
                         $registration['email'],
                         $registration['name_en'],
                         $registration['registration_number'],
                         $payment_status,
-                        $registration['payment_amount']
+                        $registration['payment_amount'],
+                        $payment_status === 'approved' ? $registration : null // Only attach PDFs for approved
                     );
                     
                     $response['email_sent'] = $emailSent;
                     
                     if ($emailSent) {
-                        $response['message'] .= ' and email notification sent to ' . $registration['email'];
-                        error_log("Email sent successfully to {$registration['email']} for registration {$registration['registration_number']}");
+                        $attachmentInfo = $payment_status === 'approved' ? ' with attachments' : '';
+                        $response['message'] .= " and email notification sent{$attachmentInfo} to " . $registration['email'];
+                        error_log("✓ Email sent successfully to {$registration['email']} for registration {$registration['registration_number']}");
                     } else {
                         $response['message'] .= ' but email notification failed';
-                        error_log("Failed to send email to {$registration['email']} for registration {$registration['registration_number']}");
+                        error_log("⚠ Failed to send email to {$registration['email']} for registration {$registration['registration_number']}");
                     }
                 } catch (Exception $emailError) {
-                    error_log("Email error: " . $emailError->getMessage());
+                    error_log("⚠ Email error: " . $emailError->getMessage());
                     $response['message'] .= ' but email notification encountered an error';
                 }
             }
