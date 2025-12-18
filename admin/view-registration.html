@@ -36,7 +36,7 @@
         .error { background: #f8d7da; color: #721c24; padding: 20px; border-radius: 5px; margin: 20px 0; }
         .no-image { color: #95a5a6; font-style: italic; margin-top: 10px; }
         
-        /* Collapsible PDF/Invoice Preview Styles */
+        /* Collapsible PDF Preview Styles */
         .pdf-collapsible {
             background: white;
             border-radius: 10px;
@@ -58,14 +58,6 @@
         
         .pdf-header:hover {
             background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
-        }
-        
-        .invoice-header {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-        }
-        
-        .invoice-header:hover {
-            background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%);
         }
         
         .pdf-header h2 {
@@ -101,7 +93,7 @@
             padding: 20px;
         }
         
-        .pdf-embed, .invoice-embed {
+        .pdf-embed {
             width: 100%;
             height: 800px;
             border: 2px solid #ddd;
@@ -270,31 +262,11 @@
                 </div>
             </div>
 
-            <!-- Invoice Preview (Collapsible) -->
-            <div class="pdf-collapsible">
-                <div class="pdf-header invoice-header" onclick="togglePdfPreview('invoice')">
-                    <h2>🧾 Invoice Document</h2>
-                    <span class="pdf-toggle-icon" id="invoiceToggleIcon">▼</span>
-                </div>
-                <div class="pdf-content" id="invoiceContent">
-                    <div class="pdf-viewer" id="invoiceViewerContainer">
-                        <iframe id="invoiceEmbed" class="invoice-embed"></iframe>
-                        <div id="noInvoice" class="pdf-no-preview">
-                            <p>🧾 Generating invoice...</p>
-                        </div>
-                    </div>
-                    <div class="pdf-actions">
-                        <button class="btn btn-download" onclick="downloadInvoice()">💾 Download Invoice</button>
-                        <button class="btn btn-download" onclick="openInvoiceNewTab()">↗ Open in New Tab</button>
-                        <button class="btn btn-download" onclick="printInvoice()">🖨️ Print Invoice</button>
-                    </div>
-                </div>
-            </div>
-
             <!-- Action Buttons -->
             <div class="card">
                 <h2>🔧 Actions</h2>
                 <div class="action-buttons">
+                    <button class="btn btn-download" onclick="downloadInvoice()">🧾 Download Invoice (PDF)</button>
                     <button class="btn btn-approve" id="approveBtn" onclick="updateStatus('approved')">✅ Approve Payment</button>
                     <button class="btn btn-reject" id="rejectBtn" onclick="updateStatus('rejected')">❌ Reject Payment</button>
                     <button class="btn btn-delete" onclick="deleteRegistration()">🗑️ Delete Registration</button>
@@ -308,7 +280,6 @@
         let registrationId = null;
         let registrationData = null;
         let pdfUrl = null;
-        let invoiceHTML = null;
 
         // Get registration ID from URL
         const urlParams = new URLSearchParams(window.location.search);
@@ -320,7 +291,6 @@
             document.getElementById('errorMessage').textContent = 'Error: No registration ID provided';
         } else {
             loadRegistration();
-            loadInvoice();
         }
 
         // Helper function to ensure proper base64 data URI format
@@ -336,7 +306,7 @@
             return `data:${mimeType};base64,${base64String}`;
         }
 
-        // Toggle PDF/Invoice preview section
+        // Toggle PDF preview section
         function togglePdfPreview(type) {
             const content = document.getElementById(type === 'pdf' ? 'pdfContent' : 'invoiceContent');
             const icon = document.getElementById(type === 'pdf' ? 'pdfToggleIcon' : 'invoiceToggleIcon');
@@ -359,81 +329,16 @@
             }
         }
 
-        // Open Invoice in new tab
-        function openInvoiceNewTab() {
-            if (invoiceHTML) {
-                const newWindow = window.open();
-                newWindow.document.write(invoiceHTML);
-                newWindow.document.close();
-            } else {
-                alert('⚠️ Invoice not available');
-            }
-        }
-
-        // Print Invoice
-        function printInvoice() {
-            if (invoiceHTML) {
-                const printWindow = window.open('', '', 'height=600,width=800');
-                printWindow.document.write(invoiceHTML);
-                printWindow.document.close();
-                printWindow.focus();
-                printWindow.print();
-            } else {
-                alert('⚠️ Invoice not available');
-            }
-        }
-
-        // Download Invoice
+        // Download Invoice as PDF
         function downloadInvoice() {
-            if (!invoiceHTML || !registrationData) {
-                alert('⚠️ Invoice not available');
+            if (!registrationId) {
+                alert('⚠️ Registration ID not available');
                 return;
             }
 
-            const blob = new Blob([invoiceHTML], { type: 'text/html' });
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `Invoice_${registrationData.registration_number}.html`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            window.URL.revokeObjectURL(url);
-        }
-
-        async function loadInvoice() {
-            try {
-                console.log('Loading invoice for registration ID:', registrationId);
-                const response = await fetch(`../api/get_invoice.php?id=${registrationId}`);
-                
-                // Check if response is JSON
-                const contentType = response.headers.get('content-type');
-                console.log('Response content-type:', contentType);
-                
-                if (!contentType || !contentType.includes('application/json')) {
-                    const text = await response.text();
-                    console.error('Non-JSON response received:', text.substring(0, 500));
-                    throw new Error('Server returned invalid response format. Please check server logs.');
-                }
-                
-                const data = await response.json();
-                console.log('Invoice API response:', data);
-
-                if (data.success && data.invoice_html) {
-                    invoiceHTML = data.invoice_html;
-                    const invoiceEmbed = document.getElementById('invoiceEmbed');
-                    const blob = new Blob([invoiceHTML], { type: 'text/html' });
-                    const url = window.URL.createObjectURL(blob);
-                    invoiceEmbed.src = url;
-                    document.getElementById('noInvoice').style.display = 'none';
-                    console.log('Invoice loaded successfully');
-                } else {
-                    throw new Error(data.error || 'Unknown error loading invoice');
-                }
-            } catch (error) {
-                console.error('Error loading invoice:', error);
-                document.getElementById('noInvoice').innerHTML = '<p>❌ Failed to load invoice: ' + error.message + '</p>';
-            }
+            // Open download_invoice.php which will generate and download PDF
+            const downloadUrl = `../api/download_invoice.php?id=${registrationId}`;
+            window.location.href = downloadUrl;
         }
 
         async function loadRegistration() {
