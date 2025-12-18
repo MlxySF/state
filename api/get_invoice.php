@@ -32,9 +32,9 @@ if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
 
 try {
     // Include database configuration
-    $db_path = __DIR__ . '/../config/database.php';
+    $db_path = __DIR__ . '/../config.php';
     if (!file_exists($db_path)) {
-        throw new Exception('Database configuration file not found');
+        throw new Exception('Database configuration file not found at: ' . $db_path);
     }
     
     require_once $db_path;
@@ -50,7 +50,7 @@ try {
     $stmt = $conn->prepare($sql);
     
     if (!$stmt) {
-        throw new Exception('Database query preparation failed');
+        throw new Exception('Database query preparation failed: ' . $conn->error);
     }
     
     $stmt->bind_param('i', $registration_id);
