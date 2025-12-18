@@ -16,7 +16,7 @@
         .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
         .info-item { margin-bottom: 15px; }
         .info-item label { display: block; font-weight: 600; color: #7f8c8d; font-size: 12px; text-transform: uppercase; margin-bottom: 5px; }
-        .info-item .value { color: #2c3e50; font-size: 16px; }
+        .info-item .value { color: #2c3e50; font-size: 16px; word-break: break-word; }
         .status { padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: 600; display: inline-block; }
         .status.pending { background: #fff3cd; color: #856404; }
         .status.approved { background: #d4edda; color: #155724; }
@@ -37,7 +37,7 @@
         .signature-preview { max-width: 400px; max-height: 200px; border: 2px solid #3498db; border-radius: 5px; padding: 10px; background: white; display: block; margin-top: 10px; }
         .loading { text-align: center; padding: 60px; color: #7f8c8d; }
         .error { background: #f8d7da; color: #721c24; padding: 20px; border-radius: 5px; margin: 20px 0; }
-        .no-image { color: #95a5a6; font-style: italic; }
+        .no-image { color: #95a5a6; font-style: italic; margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -182,7 +182,6 @@
                 <h2>🔧 Actions</h2>
                 <div class="action-buttons">
                     <button class="btn btn-download" onclick="downloadSignedAgreement()">📝 Download Signed Agreement</button>
-                    <button class="btn btn-secondary" onclick="downloadPDF()">💾 Download Registration PDF</button>
                     <button class="btn btn-approve" id="approveBtn" onclick="updateStatus('approved')">✅ Approve Payment</button>
                     <button class="btn btn-reject" id="rejectBtn" onclick="updateStatus('rejected')">❌ Reject Payment</button>
                     <button class="btn btn-delete" onclick="deleteRegistration()">🗑️ Delete Registration</button>
@@ -208,6 +207,21 @@
             loadRegistration();
         }
 
+        // Helper function to ensure proper base64 data URI format
+        function ensureDataUri(base64String, mimeType) {
+            if (!base64String || base64String.trim() === '') {
+                return null;
+            }
+            
+            // If already has data URI prefix, return as is
+            if (base64String.startsWith('data:')) {
+                return base64String;
+            }
+            
+            // Add the proper data URI prefix
+            return `data:${mimeType};base64,${base64String}`;
+        }
+
         async function loadRegistration() {
             try {
                 const response = await fetch(`../api/get_registration.php?id=${registrationId}`);
@@ -215,6 +229,12 @@
 
                 if (data.success && data.registration) {
                     registrationData = data.registration;
+                    console.log('Registration data loaded:', {
+                        hasSignature: !!registrationData.signature_base64,
+                        signatureLength: registrationData.signature_base64 ? registrationData.signature_base64.length : 0,
+                        hasReceipt: !!registrationData.payment_receipt_base64,
+                        hasPDF: !!registrationData.signed_pdf_base64
+                    });
                     displayRegistration(registrationData);
                 } else {
                     throw new Error(data.error || 'Failed to load registration');
@@ -258,8 +278,9 @@
             statusEl.textContent = reg.payment_status.toUpperCase();
             statusEl.className = 'status ' + reg.payment_status;
 
-            // Payment Receipt - with error handling
-            if (reg.payment_receipt_base64 && reg.payment_receipt_base64.trim() !== '') {
+            // Payment Receipt - with proper base64 handling
+            const receiptData = ensureDataUri(reg.payment_receipt_base64, 'image/png');
+            if (receiptData) {
                 const receiptImg = document.getElementById('paymentReceipt');
                 receiptImg.onerror = function() {
                     console.error('Failed to load payment receipt image');
@@ -269,34 +290,31 @@
                 receiptImg.onload = function() {
                     console.log('Payment receipt loaded successfully');
                 };
-                receiptImg.src = reg.payment_receipt_base64;
+                receiptImg.src = receiptData;
                 receiptImg.style.display = 'block';
             } else {
                 document.getElementById('noReceipt').style.display = 'block';
             }
 
-            // Signature - with proper base64 handling and error checking
-            if (reg.signature_base64 && reg.signature_base64.trim() !== '') {
+            // Signature - with proper base64 handling
+            const signatureData = ensureDataUri(reg.signature_base64, 'image/png');
+            if (signatureData) {
                 const signatureImg = document.getElementById('signature');
                 
-                // Add error handler
                 signatureImg.onerror = function() {
                     console.error('Failed to load signature image');
-                    console.log('Signature data length:', reg.signature_base64.length);
-                    console.log('Signature starts with:', reg.signature_base64.substring(0, 50));
+                    console.log('Signature data preview:', reg.signature_base64.substring(0, 100));
                     this.style.display = 'none';
                     document.getElementById('noSignature').style.display = 'block';
                 };
                 
-                // Add load handler for debugging
                 signatureImg.onload = function() {
                     console.log('Signature loaded successfully');
+                    this.style.display = 'block';
+                    document.getElementById('noSignature').style.display = 'none';
                 };
                 
-                // Set the image source
-                signatureImg.src = reg.signature_base64;
-                signatureImg.style.display = 'block';
-                document.getElementById('noSignature').style.display = 'none';
+                signatureImg.src = signatureData;
             } else {
                 console.log('No signature data available');
                 document.getElementById('noSignature').style.display = 'block';
@@ -331,7 +349,7 @@
 
                 if (data.success) {
                     alert(`✅ Registration ${action}d successfully!`);
-                    loadRegistration(); // Reload to update display
+                    loadRegistration();
                 } else {
                     alert('❌ Error: ' + (data.error || 'Failed to update status'));
                 }
@@ -366,38 +384,43 @@
         }
 
         function downloadSignedAgreement() {
-            if (registrationData && registrationData.signed_pdf_base64 && registrationData.signed_pdf_base64.trim() !== '') {
-                try {
-                    const link = document.createElement('a');
-                    link.href = registrationData.signed_pdf_base64;
-                    link.download = `Signed_Agreement_${registrationData.registration_number}.pdf`;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                } catch (error) {
-                    console.error('Error downloading signed agreement:', error);
-                    alert('❌ Error downloading signed agreement');
-                }
-            } else {
+            if (!registrationData || !registrationData.signed_pdf_base64 || registrationData.signed_pdf_base64.trim() === '') {
                 alert('⚠️ Signed agreement PDF not available for this registration');
+                return;
             }
-        }
 
-        function downloadPDF() {
-            if (registrationData && registrationData.signed_pdf_base64 && registrationData.signed_pdf_base64.trim() !== '') {
-                try {
-                    const link = document.createElement('a');
-                    link.href = registrationData.signed_pdf_base64;
-                    link.download = `Registration_${registrationData.registration_number}.pdf`;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                } catch (error) {
-                    console.error('Error downloading PDF:', error);
-                    alert('❌ Error downloading PDF');
+            try {
+                // Ensure proper PDF data URI format
+                const pdfData = ensureDataUri(registrationData.signed_pdf_base64, 'application/pdf');
+                
+                if (!pdfData) {
+                    alert('❌ Invalid PDF data');
+                    return;
                 }
-            } else {
-                alert('⚠️ Registration PDF not available');
+                
+                // Convert base64 to blob for proper download
+                const base64Data = pdfData.split(',')[1];
+                const binaryString = atob(base64Data);
+                const bytes = new Uint8Array(binaryString.length);
+                
+                for (let i = 0; i < binaryString.length; i++) {
+                    bytes[i] = binaryString.charCodeAt(i);
+                }
+                
+                const blob = new Blob([bytes], { type: 'application/pdf' });
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `Signed_Agreement_${registrationData.registration_number}.pdf`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(url);
+                
+                console.log('PDF download initiated successfully');
+            } catch (error) {
+                console.error('Error downloading signed agreement:', error);
+                alert('❌ Error downloading signed agreement: ' + error.message);
             }
         }
     </script>
