@@ -1,7 +1,7 @@
 <?php
 /**
  * Professional Invoice PDF Generator
- * Shows registered routines with proper notes
+ * Fixed: Shows registered routines properly and includes schedule in description
  */
 
 error_reporting(E_ALL);
@@ -197,6 +197,10 @@ try {
     $invoice_number = !empty($reg['invoice_number']) ? $reg['invoice_number'] : 'INV-' . $reg['registration_number'];
     $is_paid = ($reg['payment_status'] === 'approved');
     
+    // Prepare data
+    $englishRoutines = createEnglishDescription($reg['events']);
+    $cleanSchedule = stripChinese($reg['schedule']);
+    
     // Left Column - Invoice Details
     $pdf->SetFont('Helvetica', 'B', 11);
     $pdf->SetTextColor(15, 52, 96);
@@ -264,21 +268,23 @@ try {
     $pdf->Cell(20, 8, 'QTY', 1, 0, 'C', true);
     $pdf->Cell(35, 8, 'AMOUNT (RM)', 1, 1, 'R', true);
     
-    // Item row
-    $pdf->SetFont('Helvetica', '', 9);
+    // Item row - Include schedule in description
+    $pdf->SetFont('Helvetica', '', 8);
     $pdf->SetTextColor(0, 0, 0);
     $pdf->SetDrawColor(220, 220, 220);
     $pdf->SetLineWidth(0.2);
     
-    $englishDescription = createEnglishDescription($reg['events']);
-    $description = 'Wushu Training: ' . $englishDescription;
+    // Build description with routines and schedule
+    $description = 'Routines: ' . $englishRoutines . ' | ' . $cleanSchedule;
     
-    if (strlen($description) > 70) {
-        $description = substr($description, 0, 67) . '...';
+    // Truncate if too long for table cell
+    if (strlen($description) > 90) {
+        $description = substr($description, 0, 87) . '...';
     }
     
     $pdf->SetX(15);
     $pdf->Cell(100, 8, $description, 1, 0, 'L');
+    $pdf->SetFont('Helvetica', '', 10);
     $pdf->Cell(30, 8, $reg['level'], 1, 0, 'C');
     $pdf->Cell(20, 8, $reg['class_count'], 1, 0, 'C');
     $pdf->SetFont('Helvetica', 'B', 10);
@@ -343,7 +349,7 @@ try {
         $pdf->Ln(4);
     }
     
-    // CLASS DETAILS - Changed to "Registered Routines"
+    // CLASS DETAILS - Now properly shows the registered routines
     $pdf->SetFont('Helvetica', 'B', 10);
     $pdf->SetTextColor(15, 52, 96);
     $pdf->SetX(15);
@@ -353,13 +359,11 @@ try {
     $pdf->SetTextColor(60, 60, 60);
     $pdf->SetX(15);
     
-    // Changed label to "Registered Routines"
-    $classDetails = 'Registered Routines: ' . $englishDescription;
-    $pdf->MultiCell(180, 4.5, $classDetails, 0, 'L');
+    // Show the actual routines from events field
+    $pdf->MultiCell(180, 4.5, 'Registered Routines: ' . $englishRoutines, 0, 'L');
     
     $pdf->SetX(15);
-    $scheduleText = 'Schedule: ' . stripChinese($reg['schedule']);
-    $pdf->MultiCell(180, 4.5, $scheduleText, 0, 'L');
+    $pdf->MultiCell(180, 4.5, 'Schedule: ' . $cleanSchedule, 0, 'L');
     
     $pdf->Ln(2);
     
@@ -376,7 +380,7 @@ try {
     
     $pdf->Ln(2);
     
-    // NOTES / TERMS (Added bilingual notes)
+    // NOTES / TERMS
     $pdf->SetFont('Helvetica', 'B', 10);
     $pdf->SetTextColor(15, 52, 96);
     $pdf->SetX(15);
