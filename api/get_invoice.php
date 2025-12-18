@@ -130,9 +130,8 @@ function generateInvoiceHTML($reg) {
         .invoice-container { max-width: 900px; margin: 0 auto; background: white; padding: 40px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); border-radius: 8px; }
         .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px; border-bottom: 2px solid #0f3460; padding-bottom: 20px; }
         .company-info { flex: 1; }
-        .company-name { font-size: 28px; font-weight: bold; color: #0f3460; margin-bottom: 5px; }
-        .company-details { font-size: 12px; color: #666; line-height: 1.8; }
-        .invoice-title-box { text-align: right; }
+        .letterhead-img { max-width: 450px; height: auto; }
+        .invoice-title-box { text-align: right; display: flex; flex-direction: column; align-items: flex-end; justify-content: center; }
         .status-badge { display: inline-block; padding: 8px 16px; border-radius: 4px; font-weight: bold; font-size: 14px; margin-bottom: 10px; color: white; background: ' . $status_color . '; }
         .invoice-number { font-size: 12px; color: #666; }
         .details-section { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 40px; }
@@ -171,8 +170,7 @@ function generateInvoiceHTML($reg) {
     <div class="invoice-container">
         <div class="header">
             <div class="company-info">
-                <div class="company-name">WUSHU SPORT ACADEMY</div>
-                <div class="company-details">Professional Training Center<br>Malaysia<br><br><strong>Contact:</strong> registration@wushu-academy.edu.my</div>
+                <img src="https://wushu-assets.s3.ap-southeast-1.amazonaws.com/WSP+Letter.png" alt="Wushu Sport Academy" class="letterhead-img">
             </div>
             <div class="invoice-title-box">
                 <div class="status-badge">' . $payment_status_text . '</div>
