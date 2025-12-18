@@ -1,5 +1,5 @@
 <?php
-// register.php - receives JSON from front‑end and stores it
+// register.php - receives JSON from front-end and stores it
 
 require 'config.php';  // keeps DB connection + sets JSON header
 
@@ -13,8 +13,8 @@ if (!$data) {
 }
 
 // Extract fields (use ?? '' so everything is defined)
-$name_en  = $data['name_en']  ?? '';
-$name_cn  = $data['name_cn']  ?? '';
+$name_en  = $data['nameEn']  ?? ($data['name_en'] ?? '');
+$name_cn  = $data['nameCn']  ?? ($data['name_cn'] ?? '');
 $ic       = $data['ic']       ?? '';
 $age      = $data['age']      ?? '';   // keep as string, easier for bind_param
 $school   = $data['school']   ?? '';
@@ -24,18 +24,19 @@ $email    = $data['email']    ?? '';
 $level    = $data['level']    ?? '';
 $events   = $data['events']   ?? '';
 $schedule = $data['schedule'] ?? '';
-$parent_name = $data['parent_name'] ?? '';
-$parent_ic   = $data['parent_ic']   ?? '';
-$form_date   = $data['form_date']   ?? '';
-$signature_base64 = $data['signature_base64'] ?? '';
+$parent_name = $data['parent'] ?? ($data['parent_name'] ?? '');
+$parent_ic   = $data['parentIC'] ?? ($data['parent_ic']   ?? '');
+$form_date   = $data['date'] ?? ($data['form_date']   ?? '');
+$signature_base64 = $data['signature'] ?? ($data['signature_base64'] ?? '');
+$pdf_base64 = $data['pdfBase64'] ?? '';
 $raw_json = $input;
 
-// Prepare statement – 16 columns, 16 placeholders
+// Prepare statement
 $sql = "INSERT INTO registrations
         (name_en, name_cn, ic, age, school, status, phone, email, level,
          events, schedule, parent_name, parent_ic, form_date,
-         signature_base64, raw_json)
-        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+         signature_base64, pdf_base64, raw_json, created_at)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, NOW())";
 
 $stmt = $conn->prepare($sql);
 if (!$stmt) {
@@ -44,9 +45,9 @@ if (!$stmt) {
     exit;
 }
 
-// IMPORTANT: 16 type chars for 16 values
+// Bind parameters
 $stmt->bind_param(
-    'ssssssssssssssss',   // 16 × 's' so count matches 16 placeholders
+    'sssssssssssssssss',
     $name_en,
     $name_cn,
     $ic,
@@ -62,11 +63,19 @@ $stmt->bind_param(
     $parent_ic,
     $form_date,
     $signature_base64,
+    $pdf_base64,
     $raw_json
 );
 
 if ($stmt->execute()) {
-    echo json_encode(['success' => true, 'id' => $stmt->insert_id]);
+    $insert_id = $stmt->insert_id;
+    $registration_id = 'STATE-2026-' . str_pad($insert_id, 4, '0', STR_PAD_LEFT);
+    
+    echo json_encode([
+        'success' => true, 
+        'id' => $insert_id,
+        'registration_id' => $registration_id
+    ]);
 } else {
     http_response_code(500);
     echo json_encode(['success' => false, 'error' => 'Execute failed: ' . $stmt->error]);
