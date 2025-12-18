@@ -664,7 +664,7 @@ async function submitAndGeneratePDF() {
 }
 
 // ========================================
-// PDF GENERATION - FIXED WITH CORRECT IDs
+// PDF GENERATION
 // ========================================
 async function generatePDFFile() {
     const displayName = (document.getElementById('name-cn').value ? 
@@ -711,43 +711,29 @@ async function generatePDFFile() {
     const date = document.getElementById('today-date').value;
     const signature = canvas.toDataURL('image/png');
 
-    // FIXED: Using correct element IDs with 'preview-pdf-' prefix
-    const setElementText = (id, value) => {
-        const element = document.getElementById(id);
-        if (element) {
-            element.innerText = value || '';
-        } else {
-            console.warn(`Element not found: ${id}`);
-        }
-    };
+    document.getElementById('pdf-name').innerText = displayName;
+    document.getElementById('pdf-ic').innerText = ic;
+    document.getElementById('pdf-age').innerText = age;
+    document.getElementById('pdf-school').innerText = school;
+    document.getElementById('pdf-status').innerText = status;
+    document.getElementById('pdf-phone').innerText = phone;
+    document.getElementById('pdf-email').innerText = email;
+    document.getElementById('pdf-level').innerText = level;
+    document.getElementById('pdf-events').innerText = events;
+    document.getElementById('pdf-schedule').innerText = schedule;
+    document.getElementById('pdf-parent-name').innerText = parent;
+    document.getElementById('pdf-parent-ic').innerText = parentIC;
+    document.getElementById('pdf-date').innerText = date;
+    document.getElementById('pdf-sig-img').src = signature;
 
-    setElementText('preview-pdf-name', displayName);
-    setElementText('preview-pdf-ic', ic);
-    setElementText('preview-pdf-age', age);
-    setElementText('preview-pdf-school', school);
-    setElementText('preview-pdf-status', status);
-    setElementText('preview-pdf-phone', phone);
-    setElementText('preview-pdf-email', email);
-    setElementText('preview-pdf-level', level);
-    setElementText('preview-pdf-events', events);
-    setElementText('preview-pdf-schedule', schedule);
-    setElementText('preview-pdf-parent-name', parent);
-    setElementText('preview-pdf-parent-ic', parentIC);
-    setElementText('preview-pdf-date', date);
-    
-    const sigImg = document.getElementById('preview-pdf-sig-img');
-    if (sigImg) {
-        sigImg.src = signature;
-    }
-
-    setElementText('preview-pdf-parent-name-2', parent);
-    setElementText('preview-pdf-parent-ic-2', parentIC);
-    setElementText('preview-pdf-date-2', date);
+    document.getElementById('pdf-parent-name-2').innerText = parent;
+    document.getElementById('pdf-parent-ic-2').innerText = parentIC;
+    document.getElementById('pdf-date-2').innerText = date;
 
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF('p', 'mm', 'a4');
 
-    const page1 = document.getElementById('pdf-preview-template-page1');
+    const page1 = document.getElementById('pdf-template-page1');
     page1.style.visibility = 'visible';
     page1.style.opacity = '1';
     page1.style.position = 'absolute';
@@ -777,7 +763,7 @@ async function generatePDFFile() {
     page1.style.top = '-99999px';
     page1.style.zIndex = '-9999';
 
-    const page2 = document.getElementById('pdf-preview-template-page2');
+    const page2 = document.getElementById('pdf-template-page2');
     page2.style.visibility = 'visible';
     page2.style.opacity = '1';
     page2.style.position = 'absolute';
