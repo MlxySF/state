@@ -1,7 +1,7 @@
 <?php
 /**
  * Professional Invoice PDF Generator
- * Fixed: Chinese character support using HTML entities
+ * Shows registered routines with proper notes
  */
 
 error_reporting(E_ALL);
@@ -31,12 +31,10 @@ $registration_id = (int)$_GET['id'];
 logError("Processing registration ID: $registration_id");
 
 try {
-    // Load config and FPDF
     require_once __DIR__ . '/../config.php';
     require_once __DIR__ . '/../fpdf.php';
     logError('Config and FPDF loaded');
     
-    // Fetch registration
     $stmt = $conn->prepare("SELECT * FROM registrations WHERE id = ?");
     $stmt->bind_param('i', $registration_id);
     $stmt->execute();
@@ -50,21 +48,11 @@ try {
     $stmt->close();
     logError('Registration data loaded: ' . $reg['registration_number']);
     
-    // Function to remove Chinese characters and keep only English/numbers
     function stripChinese($text) {
-        // Remove Chinese characters (Unicode range U+4E00 to U+9FFF)
         return preg_replace('/[\x{4E00}-\x{9FFF}]/u', '', $text);
     }
     
-    // Function to extract only Chinese characters
-    function extractChinese($text) {
-        preg_match_all('/[\x{4E00}-\x{9FFF}]/u', $text, $matches);
-        return implode('', $matches[0]);
-    }
-    
-    // Function to create readable description without Chinese
     function createEnglishDescription($events) {
-        // Replace common Chinese patterns with English
         $replacements = [
             '基础-长拳' => 'Basic Changquan',
             '基础-剑' => 'Basic Sword',
@@ -82,17 +70,13 @@ try {
             $description = str_replace($chinese, $english, $description);
         }
         
-        // Remove any remaining Chinese characters
         $description = stripChinese($description);
-        
-        // Clean up extra spaces and commas
         $description = preg_replace('/[,\s]+/', ', ', $description);
         $description = trim($description, ', ');
         
-        return $description ?: 'Wushu Training Classes';
+        return $description ?: 'Wushu Training';
     }
     
-    // Function to download and cache letterhead
     function getLetterheadImage() {
         $imageUrl = 'https://wushu-assets.s3.ap-southeast-1.amazonaws.com/WSP+Letter.png';
         $tempDir = sys_get_temp_dir();
@@ -280,13 +264,12 @@ try {
     $pdf->Cell(20, 8, 'QTY', 1, 0, 'C', true);
     $pdf->Cell(35, 8, 'AMOUNT (RM)', 1, 1, 'R', true);
     
-    // Item row - Use English translation of class names
+    // Item row
     $pdf->SetFont('Helvetica', '', 9);
     $pdf->SetTextColor(0, 0, 0);
     $pdf->SetDrawColor(220, 220, 220);
     $pdf->SetLineWidth(0.2);
     
-    // Convert events to English description
     $englishDescription = createEnglishDescription($reg['events']);
     $description = 'Wushu Training: ' . $englishDescription;
     
@@ -360,7 +343,7 @@ try {
         $pdf->Ln(4);
     }
     
-    // CLASS DETAILS - Show original text with both English and Chinese (if any)
+    // CLASS DETAILS - Changed to "Registered Routines"
     $pdf->SetFont('Helvetica', 'B', 10);
     $pdf->SetTextColor(15, 52, 96);
     $pdf->SetX(15);
@@ -370,8 +353,8 @@ try {
     $pdf->SetTextColor(60, 60, 60);
     $pdf->SetX(15);
     
-    // Show English translation
-    $classDetails = 'Registered Classes: ' . $englishDescription;
+    // Changed label to "Registered Routines"
+    $classDetails = 'Registered Routines: ' . $englishDescription;
     $pdf->MultiCell(180, 4.5, $classDetails, 0, 'L');
     
     $pdf->SetX(15);
@@ -380,7 +363,7 @@ try {
     
     $pdf->Ln(2);
     
-    // NOTES
+    // IMPORTANT NOTES
     $pdf->SetFont('Helvetica', 'B', 10);
     $pdf->SetTextColor(15, 52, 96);
     $pdf->SetX(15);
@@ -390,6 +373,20 @@ try {
     $pdf->SetTextColor(60, 60, 60);
     $pdf->SetX(15);
     $pdf->MultiCell(180, 4.5, 'Thank you for your payment. This invoice confirms your class enrollment and payment. Please keep this document for your records.', 0, 'L');
+    
+    $pdf->Ln(2);
+    
+    // NOTES / TERMS (Added bilingual notes)
+    $pdf->SetFont('Helvetica', 'B', 10);
+    $pdf->SetTextColor(15, 52, 96);
+    $pdf->SetX(15);
+    $pdf->Cell(0, 6, 'NOTES / TERMS:', 0, 1, 'L');
+    
+    $pdf->SetFont('Helvetica', '', 8);
+    $pdf->SetTextColor(60, 60, 60);
+    $pdf->SetX(15);
+    $notesText = 'Fees are non-refundable and must be paid by the 10th of every month. Strict discipline and punctuality are required at all times. The Academy reserves the right to adjust training schedules and venues when necessary.';
+    $pdf->MultiCell(180, 4, $notesText, 0, 'L');
     
     logError('PDF content built');
     
