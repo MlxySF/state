@@ -1,12 +1,21 @@
 <?php
 // Email Notification System with PHPMailer
 // Sends emails for payment approval/rejection notifications using SMTP
+// Works without Composer - uses manual PHPMailer loading
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-// Load Composer's autoloader
-require __DIR__ . '/../vendor/autoload.php';
+// Try to load PHPMailer - check both Composer and manual installation
+if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
+    // Composer installation
+    require __DIR__ . '/../vendor/autoload.php';
+} elseif (file_exists(__DIR__ . '/../phpmailer_autoload.php')) {
+    // Manual installation
+    require __DIR__ . '/../phpmailer_autoload.php';
+} else {
+    die('PHPMailer not found. Please install PHPMailer. Download from: https://github.com/PHPMailer/PHPMailer/releases');
+}
 
 // Load email configuration
 $emailConfig = require __DIR__ . '/../email_config.php';
