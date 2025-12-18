@@ -1,40 +1,65 @@
 <?php
-// Email Notification System
-// Sends emails for payment approval/rejection notifications
+// Email Notification System with PHPMailer
+// Sends emails for payment approval/rejection notifications using SMTP
+
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
+// Load Composer's autoloader
+require __DIR__ . '/../vendor/autoload.php';
+
+// Load email configuration
+$emailConfig = require __DIR__ . '/../email_config.php';
 
 function sendPaymentEmail($to, $name, $registrationNumber, $status, $paymentAmount) {
-    // Email configuration
-    $from = "noreply@wushusportacademy.com"; // Change this to your domain
-    $fromName = "Wushu Sport Academy";
+    global $emailConfig;
     
-    // Determine email subject and body based on status
-    if ($status === 'approved') {
-        $subject = "Payment Approved - Registration Confirmed";
-        $htmlBody = getApprovedEmailTemplate($name, $registrationNumber, $paymentAmount);
-    } else if ($status === 'rejected') {
-        $subject = "Payment Verification Required - Action Needed";
-        $htmlBody = getRejectedEmailTemplate($name, $registrationNumber);
-    } else {
+    $mail = new PHPMailer(true);
+    
+    try {
+        // Server settings
+        $mail->SMTPDebug = $emailConfig['smtp_debug'];                      // Debug output
+        $mail->isSMTP();                                                    // Send using SMTP
+        $mail->Host       = $emailConfig['smtp_host'];                     // SMTP server
+        $mail->SMTPAuth   = $emailConfig['smtp_auth'];                     // Enable authentication
+        $mail->Username   = $emailConfig['smtp_username'];                 // SMTP username
+        $mail->Password   = $emailConfig['smtp_password'];                 // SMTP password
+        $mail->SMTPSecure = $emailConfig['smtp_secure'];                   // Enable encryption
+        $mail->Port       = $emailConfig['smtp_port'];                     // TCP port
+        $mail->CharSet    = $emailConfig['charset'];                       // Character set
+        $mail->Timeout    = $emailConfig['timeout'];                       // SMTP timeout
+        
+        // Recipients
+        $mail->setFrom($emailConfig['from_email'], $emailConfig['from_name']);
+        $mail->addAddress($to, $name);                                     // Add recipient
+        $mail->addReplyTo($emailConfig['reply_to'], $emailConfig['from_name']);
+        
+        // Content
+        $mail->isHTML(true);                                               // Set email format to HTML
+        
+        if ($status === 'approved') {
+            $mail->Subject = 'Payment Approved - Registration Confirmed';
+            $mail->Body    = getApprovedEmailTemplate($name, $registrationNumber, $paymentAmount);
+        } else if ($status === 'rejected') {
+            $mail->Subject = 'Payment Verification Required - Action Needed';
+            $mail->Body    = getRejectedEmailTemplate($name, $registrationNumber);
+        } else {
+            throw new Exception('Invalid email status');
+        }
+        
+        // Plain text alternative
+        $mail->AltBody = strip_tags(str_replace(['<br>', '<br/>', '<br />'], "\n", $mail->Body));
+        
+        // Send email
+        $mail->send();
+        
+        error_log("PHPMailer: Email sent successfully to {$to} - Status: {$status}");
+        return true;
+        
+    } catch (Exception $e) {
+        error_log("PHPMailer Error: Could not send email to {$to}. Error: {$mail->ErrorInfo}");
         return false;
     }
-    
-    // Plain text version
-    $textBody = strip_tags(str_replace(['<br>', '<br/>', '<br />'], "\n", $htmlBody));
-    
-    // Email headers
-    $headers = "MIME-Version: 1.0" . "\r\n";
-    $headers .= "Content-type: text/html; charset=UTF-8" . "\r\n";
-    $headers .= "From: {$fromName} <{$from}>" . "\r\n";
-    $headers .= "Reply-To: {$from}" . "\r\n";
-    $headers .= "X-Mailer: PHP/" . phpversion();
-    
-    // Send email
-    $sent = mail($to, $subject, $htmlBody, $headers);
-    
-    // Log email attempt
-    error_log("Email sent to {$to} - Status: {$status} - Success: " . ($sent ? 'Yes' : 'No'));
-    
-    return $sent;
 }
 
 function getApprovedEmailTemplate($name, $registrationNumber, $paymentAmount) {
@@ -45,14 +70,15 @@ function getApprovedEmailTemplate($name, $registrationNumber, $paymentAmount) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
         .container { max-width: 600px; margin: 0 auto; padding: 20px; }
         .header { background: linear-gradient(135deg, #27ae60 0%, #229954 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
         .content { background: #f9f9f9; padding: 30px; border: 1px solid #ddd; }
         .info-box { background: white; padding: 20px; margin: 20px 0; border-left: 4px solid #27ae60; border-radius: 5px; }
-        .button { display: inline-block; padding: 15px 30px; background: #27ae60; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
         .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
-        .checkmark { font-size: 48px; color: #27ae60; }
+        .checkmark { font-size: 48px; color: white; }
+        h1 { margin: 10px 0 0 0; }
+        ul { margin: 10px 0; padding-left: 20px; }
     </style>
 </head>
 <body>
@@ -67,7 +93,7 @@ function getApprovedEmailTemplate($name, $registrationNumber, $paymentAmount) {
             <p>Great news! Your payment has been verified and approved. Your registration with Wushu Sport Academy is now confirmed.</p>
             
             <div class="info-box">
-                <strong>Registration Details:</strong><br>
+                <strong>Registration Details:</strong><br><br>
                 Registration Number: <strong>' . htmlspecialchars($registrationNumber) . '</strong><br>
                 Payment Amount: <strong>RM ' . number_format($paymentAmount, 2) . '</strong><br>
                 Status: <strong style="color: #27ae60;">APPROVED ✓</strong>
@@ -90,7 +116,7 @@ function getApprovedEmailTemplate($name, $registrationNumber, $paymentAmount) {
         </div>
         <div class="footer">
             <p>This is an automated message. Please do not reply to this email.</p>
-            <p>&copy; 2025 Wushu Sport Academy. All rights reserved.</p>
+            <p>&copy; ' . date('Y') . ' Wushu Sport Academy. All rights reserved.</p>
         </div>
     </div>
 </body>
@@ -106,15 +132,16 @@ function getRejectedEmailTemplate($name, $registrationNumber) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
         .container { max-width: 600px; margin: 0 auto; padding: 20px; }
         .header { background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
         .content { background: #f9f9f9; padding: 30px; border: 1px solid #ddd; }
         .info-box { background: white; padding: 20px; margin: 20px 0; border-left: 4px solid #e74c3c; border-radius: 5px; }
         .warning-box { background: #fff3cd; padding: 15px; margin: 20px 0; border-left: 4px solid #ffc107; border-radius: 5px; }
-        .button { display: inline-block; padding: 15px 30px; background: #e74c3c; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
         .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
-        .icon { font-size: 48px; }
+        .icon { font-size: 48px; color: white; }
+        h1 { margin: 10px 0 0 0; }
+        ul, ol { margin: 10px 0; padding-left: 20px; }
     </style>
 </head>
 <body>
@@ -129,7 +156,7 @@ function getRejectedEmailTemplate($name, $registrationNumber) {
             <p>We have reviewed your payment submission for registration <strong>' . htmlspecialchars($registrationNumber) . '</strong>, and we need you to resubmit your payment receipt.</p>
             
             <div class="info-box">
-                <strong>Registration Number:</strong> ' . htmlspecialchars($registrationNumber) . '<br>
+                <strong>Registration Number:</strong> ' . htmlspecialchars($registrationNumber) . '<br><br>
                 <strong>Status:</strong> <span style="color: #e74c3c;">Payment Verification Required</span>
             </div>
             
@@ -161,7 +188,7 @@ function getRejectedEmailTemplate($name, $registrationNumber) {
         <div class="footer">
             <p>This is an automated message. Please do not reply to this email.</p>
             <p>For assistance, please contact us with your registration number: ' . htmlspecialchars($registrationNumber) . '</p>
-            <p>&copy; 2025 Wushu Sport Academy. All rights reserved.</p>
+            <p>&copy; ' . date('Y') . ' Wushu Sport Academy. All rights reserved.</p>
         </div>
     </div>
 </body>
