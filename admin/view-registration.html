@@ -270,7 +270,7 @@
                 </div>
             </div>
 
-            <!-- Invoice Preview (Collapsible) - NEW -->
+            <!-- Invoice Preview (Collapsible) -->
             <div class="pdf-collapsible">
                 <div class="pdf-header invoice-header" onclick="togglePdfPreview('invoice')">
                     <h2>🧾 Invoice Document</h2>
@@ -279,8 +279,8 @@
                 <div class="pdf-content" id="invoiceContent">
                     <div class="pdf-viewer" id="invoiceViewerContainer">
                         <iframe id="invoiceEmbed" class="invoice-embed"></iframe>
-                        <div id="noInvoice" class="pdf-no-preview" style="display: none;">
-                            <p>🧾 Loading invoice...</p>
+                        <div id="noInvoice" class="pdf-no-preview">
+                            <p>🧾 Generating invoice...</p>
                         </div>
                     </div>
                     <div class="pdf-actions">
@@ -403,8 +403,21 @@
 
         async function loadInvoice() {
             try {
+                console.log('Loading invoice for registration ID:', registrationId);
                 const response = await fetch(`../api/get_invoice.php?id=${registrationId}`);
+                
+                // Check if response is JSON
+                const contentType = response.headers.get('content-type');
+                console.log('Response content-type:', contentType);
+                
+                if (!contentType || !contentType.includes('application/json')) {
+                    const text = await response.text();
+                    console.error('Non-JSON response received:', text.substring(0, 500));
+                    throw new Error('Server returned invalid response format. Please check server logs.');
+                }
+                
                 const data = await response.json();
+                console.log('Invoice API response:', data);
 
                 if (data.success && data.invoice_html) {
                     invoiceHTML = data.invoice_html;
@@ -412,14 +425,14 @@
                     const blob = new Blob([invoiceHTML], { type: 'text/html' });
                     const url = window.URL.createObjectURL(blob);
                     invoiceEmbed.src = url;
+                    document.getElementById('noInvoice').style.display = 'none';
                     console.log('Invoice loaded successfully');
                 } else {
-                    document.getElementById('noInvoice').innerHTML = '<p>❌ Failed to load invoice</p>';
-                    console.error('Failed to load invoice:', data.error);
+                    throw new Error(data.error || 'Unknown error loading invoice');
                 }
             } catch (error) {
                 console.error('Error loading invoice:', error);
-                document.getElementById('noInvoice').innerHTML = '<p>❌ Error loading invoice</p>';
+                document.getElementById('noInvoice').innerHTML = '<p>❌ Failed to load invoice: ' + error.message + '</p>';
             }
         }
 
