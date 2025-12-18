@@ -1,6 +1,6 @@
 <?php
 // Registration Processing with Database Storage
-// Saves registration data to MySQL database
+// Saves registration data to MySQL database and sends confirmation email
 
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
@@ -14,6 +14,9 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 // Include database configuration
 require_once __DIR__ . '/../config.php';
+
+// Include email functions
+require_once __DIR__ . '/send_confirmation_email.php';
 
 // Set charset to UTF-8 to handle Chinese characters
 $conn->set_charset('utf8mb4');
@@ -107,7 +110,7 @@ try {
     
     // Use prepared statement with proper escaping
     // Escape all string values to prevent SQL injection and handle special characters
-    $registration_number = $conn->real_escape_string($registration_number);
+    $registration_number_escaped = $conn->real_escape_string($registration_number);
     $name_en = $conn->real_escape_string($data['name_en']);
     $name_cn = $conn->real_escape_string($name_cn);
     $ic = $conn->real_escape_string($data['ic']);
@@ -116,16 +119,16 @@ try {
     $phone = $conn->real_escape_string($data['phone']);
     $email = $conn->real_escape_string($data['email']);
     $level = $conn->real_escape_string($level);
-    $events = $conn->real_escape_string($events);
-    $schedule = $conn->real_escape_string($schedule);
+    $events_escaped = $conn->real_escape_string($events);
+    $schedule_escaped = $conn->real_escape_string($schedule);
     $parent_name = $conn->real_escape_string($data['parent_name']);
     $parent_ic = $conn->real_escape_string($data['parent_ic']);
-    $signature_base64 = $conn->real_escape_string($signature_base64);
+    $signature_base64_escaped = $conn->real_escape_string($signature_base64);
     $payment_date = $conn->real_escape_string($data['payment_date']);
     $payment_receipt_base64 = $conn->real_escape_string($data['payment_receipt_base64']);
     $signed_pdf_base64 = $conn->real_escape_string($data['signed_pdf_base64']);
     $form_date = $conn->real_escape_string($form_date);
-    $payment_status = $conn->real_escape_string($payment_status);
+    $payment_status_escaped = $conn->real_escape_string($payment_status);
     
     // Build SQL with escaped values
     $sql = "INSERT INTO registrations (
@@ -135,10 +138,10 @@ try {
         payment_amount, payment_date, payment_receipt_base64, payment_status,
         signed_pdf_base64, form_date
     ) VALUES (
-        '{$registration_number}', '{$name_en}', '{$name_cn}', '{$ic}', {$age}, '{$school}', '{$status}',
-        '{$phone}', '{$email}', '{$level}', '{$events}', '{$schedule}', {$class_count},
-        '{$parent_name}', '{$parent_ic}', '{$signature_base64}',
-        {$payment_amount}, '{$payment_date}', '{$payment_receipt_base64}', '{$payment_status}',
+        '{$registration_number_escaped}', '{$name_en}', '{$name_cn}', '{$ic}', {$age}, '{$school}', '{$status}',
+        '{$phone}', '{$email}', '{$level}', '{$events_escaped}', '{$schedule_escaped}', {$class_count},
+        '{$parent_name}', '{$parent_ic}', '{$signature_base64_escaped}',
+        {$payment_amount}, '{$payment_date}', '{$payment_receipt_base64}', '{$payment_status_escaped}',
         '{$signed_pdf_base64}', '{$form_date}'
     )";
     
@@ -159,11 +162,33 @@ try {
         error_log("  Schedule: '" . ($saved_data['schedule'] ?? 'NULL') . "'");
         error_log("  Signature length: " . (isset($saved_data['signature_base64']) ? strlen($saved_data['signature_base64']) : 0));
         
+        // Send confirmation email to user
+        $emailSent = false;
+        try {
+            $emailSent = sendRegistrationConfirmationEmail(
+                $data['email'],
+                $data['name_en'],
+                $registration_number,
+                $events,
+                $schedule,
+                $payment_amount
+            );
+            
+            if ($emailSent) {
+                error_log("✓ Confirmation email sent to {$data['email']}");
+            } else {
+                error_log("⚠ Failed to send confirmation email to {$data['email']}");
+            }
+        } catch (Exception $emailError) {
+            error_log("⚠ Email error: " . $emailError->getMessage());
+        }
+        
         echo json_encode([
             'success' => true,
             'registration_number' => $registration_number,
             'id' => $insert_id,
-            'message' => 'Registration submitted successfully. Admin will review your payment.',
+            'message' => 'Registration submitted successfully! Please check your email for confirmation. Admin will review your payment within 1-2 business days.',
+            'email_sent' => $emailSent,
             'debug' => [
                 'events_saved' => $saved_data['events'],
                 'schedule_saved' => $saved_data['schedule'],
