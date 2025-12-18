@@ -22,17 +22,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
             font-family: 'Inter', 'Noto Sans SC', sans-serif;
             background: radial-gradient(circle at top right, #1e293b, #0f172a);
             min-height: 100vh;
-            padding: 20px;
         }
         
         .glass-card {
@@ -40,10 +33,6 @@
             backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.2);
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            max-width: 800px;
-            margin: 0 auto;
-            border-radius: 24px;
-            overflow: hidden;
         }
 
         .step-content {
@@ -57,11 +46,6 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        .custom-scroll::-webkit-scrollbar { width: 6px; }
-        .custom-scroll::-webkit-scrollbar-track { background: #f1f5f9; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-
-        /* Signature Box */
         .sig-box {
             position: relative;
             width: 100%;
@@ -72,7 +56,7 @@
             overflow: hidden;
             touch-action: none;
         }
-
+        
         #sig-placeholder {
             position: absolute;
             inset: 0;
@@ -85,268 +69,284 @@
             pointer-events: none;
             user-select: none;
         }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
 
-        /* Status Radio Styling */
-        input[type="radio"][name="status"] {
-            display: none;
-        }
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: #f1f5f9; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
 
-        .status-option {
-            transition: all 0.2s ease;
-            cursor: pointer;
-        }
-
-        /* Custom Checkbox */
-        .custom-checkbox {
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            cursor: pointer;
-            padding: 12px;
-            border-radius: 8px;
-            transition: background-color 0.2s;
-        }
-
-        .custom-checkbox:hover {
-            background-color: #f8fafc;
-        }
-
-        .custom-checkbox input[type="checkbox"] {
-            appearance: none;
-            -webkit-appearance: none;
-            width: 20px;
-            height: 20px;
-            min-width: 20px;
-            border: 2px solid #cbd5e1;
-            border-radius: 4px;
-            cursor: pointer;
-            position: relative;
-            transition: all 0.2s;
-            margin-top: 2px;
-        }
-
-        .custom-checkbox input[type="checkbox"]:hover {
-            border-color: #fbbf24;
-        }
-
-        .custom-checkbox input[type="checkbox"]:checked {
-            background-color: #7c3aed;
-            border-color: #7c3aed;
-        }
-
-        .custom-checkbox input[type="checkbox"]:checked::after {
-            content: '';
-            position: absolute;
-            left: 5px;
-            top: 2px;
-            width: 5px;
-            height: 10px;
-            border: solid white;
-            border-width: 0 2px 2px 0;
-            transform: rotate(45deg);
-        }
-
-        .custom-checkbox-label {
-            flex: 1;
-            line-height: 1.5;
-        }
-
-        /* School Box Styles */
-        .school-box {
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            overflow: hidden;
-            transition: all 0.3s ease;
-            background: white;
-            margin-bottom: 16px;
-        }
-
-        .school-box:hover {
-            border-color: #fbbf24;
-            box-shadow: 0 4px 12px rgba(251, 191, 36, 0.15);
-        }
-
-        .school-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 16px 20px;
-            cursor: pointer;
-            background: #f8fafc;
-            transition: background 0.2s;
-        }
-
-        .school-header:hover {
-            background: #f1f5f9;
-        }
-
-        .school-info {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            flex: 1;
-        }
-
-        .school-logo {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid #e2e8f0;
-            flex-shrink: 0;
-        }
-
-        .school-text h3 {
-            font-size: 16px;
-            font-weight: 700;
-            color: #1e293b;
-            margin: 0 0 4px 0;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .school-text p {
-            font-size: 13px;
-            color: #64748b;
-            margin: 0;
-        }
-
-        .school-toggle {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background: #e2e8f0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s;
-            flex-shrink: 0;
-        }
-
-        .school-toggle i {
-            transition: transform 0.3s;
-            color: #475569;
-        }
-
-        .school-box.active .school-toggle {
-            background: #fbbf24;
-        }
-
-        .school-box.active .school-toggle i {
-            transform: rotate(180deg);
-            color: white;
-        }
-
-        .school-schedules {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease;
-        }
-
-        .school-schedules-inner {
-            padding: 0 20px 20px 20px;
-        }
-
-        .school-box.active .school-schedules {
-            max-height: 1000px;
-        }
-
-        /* PDF Templates */
-        #pdf-template-page1, #pdf-template-page2 {
-            position: fixed !important;
-            left: -99999px !important;
-            top: -99999px !important;
+        /* Hidden PDF template */
+        #pdf-template {
             width: 794px;
             padding: 40px;
             background: #ffffff;
+            position: fixed;
+            top: -10000px;
+            left: -10000px;
             visibility: hidden;
-            opacity: 0;
             pointer-events: none;
-            z-index: -9999;
+            color: #111827;
+            font-family: 'Noto Sans SC', sans-serif;
         }
+        
+        .pdf-header-img { width: 100%; margin-bottom: 12px; }
+        .pdf-title-main { text-align:center; font-size:24px; font-weight:800; margin-top:6px; }
+        .pdf-sub { text-align:center; font-size:13px; color:#6b7280; margin-bottom:24px; }
+        .pdf-section { margin-bottom:22px; }
+        .pdf-sec-title {
+            background:#e5e7eb;
+            padding:7px 12px;
+            font-weight:700;
+            font-size:13px;
+            text-transform:uppercase;
+        }
+        .pdf-sec-body {
+            border:1px solid #e5e7eb;
+            border-top:none;
+            padding:10px 12px;
+            font-size:13px;
+            line-height:1.5;
+        }
+        .pdf-row { margin-bottom:5px; }
+        .pdf-label { font-weight:600; color:#6b7280; display:inline-block; width:140px; }
+        .pdf-val { font-weight:500; color:#111827; }
+        @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+/* Custom Checkbox Styling */
+.custom-checkbox {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    cursor: pointer;
+    padding: 12px;
+    border-radius: 8px;
+    transition: background-color 0.2s;
+}
+
+.custom-checkbox:hover {
+    background-color: #f8fafc;
+}
+
+.custom-checkbox input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    min-width: 20px;
+    border: 2px solid #cbd5e1;
+    border-radius: 4px;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s;
+    margin-top: 2px;
+}
+
+.custom-checkbox input[type="checkbox"]:hover {
+    border-color: #7c3aed;
+}
+
+.custom-checkbox input[type="checkbox"]:checked {
+    background-color: #7c3aed;
+    border-color: #7c3aed;
+}
+
+.custom-checkbox input[type="checkbox"]:checked::after {
+    content: '';
+    position: absolute;
+    left: 5px;
+    top: 2px;
+    width: 5px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+.custom-checkbox-label {
+    flex: 1;
+    line-height: 1.5;
+}
+
+/* Dropdown/Collapsible School Box Styles */
+.school-box {
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    background: white;
+}
+
+.school-box:hover {
+    border-color: #fbbf24;
+    box-shadow: 0 4px 12px rgba(251, 191, 36, 0.15);
+}
+
+.school-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    cursor: pointer;
+    background: #f8fafc;
+    transition: background 0.2s;
+}
+
+.school-header:hover {
+    background: #f1f5f9;
+}
+
+.school-info {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex: 1;
+}
+
+.school-logo {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #e2e8f0;
+    flex-shrink: 0;
+}
+
+.school-text h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0 0 4px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.school-text p {
+    font-size: 13px;
+    color: #64748b;
+    margin: 0;
+}
+
+.school-toggle {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+    flex-shrink: 0;
+}
+
+.school-toggle i {
+    transition: transform 0.3s;
+    color: #475569;
+}
+
+.school-box.active .school-toggle {
+    background: #fbbf24;
+}
+
+.school-box.active .school-toggle i {
+    transform: rotate(180deg);
+    color: white;
+}
+
+.school-schedules {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+
+.school-schedules-inner {
+    padding: 0 20px 20px 20px;
+}
+
+.school-box.active .school-schedules {
+    max-height: 1000px;
+}
+
+
     </style>
 </head>
-<body>
+<body class="flex items-center justify-center p-4">
 
-<div class="glass-card">
+<div class="glass-card w-full max-w-3xl rounded-3xl overflow-hidden relative flex flex-col h-[90vh] md:h-auto md:min-h-[800px]">
     
     <!-- Header -->
-    <div style="background: #1e293b; color: white; padding: 24px; border-bottom: 4px solid #fbbf24;">
-        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 8px;">
+    <div class="bg-slate-900 text-white p-6 border-b-4 border-amber-400">
+        <div class="flex justify-between items-end mb-2">
             <div>
-                <h1 style="font-size: 24px; font-weight: bold; background: linear-gradient(to right, #fde68a, #fbbf24); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 4px;">
+                <h1 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-amber-200 to-amber-500">
                     2026 武术训练报名
                 </h1>
-                <p style="color: #94a3b8; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Official Registration Form</p>
+                <p class="text-slate-400 text-xs tracking-wider uppercase">Official Registration Form</p>
             </div>
-            <div style="color: #fbbf24; font-weight: bold; font-size: 20px;" id="step-counter">
-                01<span style="color: #475569; font-size: 14px;">/06</span>
+            <div class="text-amber-400 font-bold text-xl" id="step-counter">
+                01<span class="text-slate-600 text-sm">/06</span>
             </div>
         </div>
-        <div style="width: 100%; background: #475569; height: 6px; border-radius: 999px; overflow: hidden; margin-top: 8px;">
-            <div id="progress-bar" style="height: 100%; background: #fbbf24; transition: width 0.5s ease; width: 16.66%;"></div>
+        <div class="w-full bg-slate-700 h-1.5 rounded-full overflow-hidden mt-2">
+            <div id="progress-bar" class="h-full bg-amber-400 transition-all duration-500 ease-out w-1/6"></div>
         </div>
     </div>
 
-    <!-- Form Body -->
-    <div style="padding: 32px; background: #f8fafc; max-height: 70vh; overflow-y: auto;" class="custom-scroll">
+    <!-- Form body -->
+    <div class="flex-1 overflow-y-auto custom-scroll p-6 md:p-8 bg-slate-50">
         <form id="regForm" onsubmit="return false;">
-
+            
             <!-- STEP 1: Basic Info -->
-            <div id="step-1" class="step-content active">
-                <h2 class="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
-                    <i class="fa-solid fa-user-graduate text-amber-500"></i> 基本资料 Student Details
-                </h2>
-                <div class="space-y-6">
-                    <!-- Name Row -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="space-y-2">
-                            <label class="text-xs font-bold text-slate-500 uppercase">Chinese Name 中文名</label>
-                            <input type="text" id="name-cn" class="w-full p-3 rounded-xl border border-slate-300 focus:border-amber-500 outline-none" placeholder="张三">
-                        </div>
-                        <div class="space-y-2">
-                            <label class="text-xs font-bold text-slate-500 uppercase">English Name 英文名 *</label>
-                            <input type="text" id="name-en" class="w-full p-3 rounded-xl border border-slate-300 focus:border-amber-500 outline-none" placeholder="Tan Ah Meng" required>
-                        </div>
-                    </div>
-
-                    <!-- IC and Age Row -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="space-y-2">
-                            <label class="text-xs font-bold text-slate-500 uppercase">IC Number 身份证号码 *</label>
-                            <input type="text" id="ic" class="w-full p-3 rounded-xl border border-slate-300 focus:border-amber-500 outline-none" placeholder="000000-00-0000" maxlength="14" required>
-                            <p class="text-xs text-slate-400">Format: 000000-00-0000</p>
-                        </div>
-                        <div class="space-y-2">
-                            <label class="text-xs font-bold text-slate-500 uppercase">Age 年龄 (2026)</label>
-                            <input type="number" id="age" class="w-full p-3 rounded-xl border border-slate-300 bg-slate-100 text-slate-500 cursor-not-allowed outline-none" placeholder="Auto-calculated" readonly>
-                            <p class="text-xs text-slate-400">
-                                <i class="fas fa-info-circle mr-1"></i>Calculated from IC
-                            </p>
-                        </div>
-                    </div>
-
-                    <!-- School Row -->
-                    <div class="space-y-2">
-                        <label class="text-xs font-bold text-slate-500 uppercase">School 学校 *</label>
-                        <select id="school" class="w-full p-3 rounded-xl border border-slate-300 focus:border-amber-500 outline-none bg-white" required>
-                            <option value="">Select School...</option>
-                            <option value="SJK(C) PUAY CHAI 2">SJK(C) PUAY CHAI 2 (培才二校)</option>
-                            <option value="SJK(C) Chee Wen">SJK(C) Chee Wen</option>
-                            <option value="SJK(C) Subang">SJK(C) Subang</option>
-                            <option value="SJK(C) Sin Ming">SJK(C) Sin Ming</option>
-                            <option value="Others">Others (其他)</option>
-                        </select>
-                        <input type="text" id="school-other" class="hidden w-full mt-2 p-3 rounded-xl border border-slate-300 focus:border-amber-500 outline-none" placeholder="Please specify school name">
-                    </div>
-                </div>
+<div id="step-1" class="step-content active">
+    <h2 class="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+        <i class="fa-solid fa-user-graduate text-amber-500"></i> 基本资料 Student Details
+    </h2>
+    <div class="space-y-6">
+        <!-- Name Row -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="space-y-2">
+                <label class="text-xs font-bold text-slate-500 uppercase">Chinese Name 中文名</label>
+                <input type="text" id="name-cn" class="w-full p-3 rounded-xl border border-slate-300 focus:border-amber-500 outline-none" placeholder="张三">
             </div>
+            <div class="space-y-2">
+                <label class="text-xs font-bold text-slate-500 uppercase">English Name 英文名</label>
+                <input type="text" id="name-en" class="w-full p-3 rounded-xl border border-slate-300 focus:border-amber-500 outline-none" placeholder="Tan Ah Meng">
+            </div>
+        </div>
+
+        <!-- IC and Age Row -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="space-y-2">
+                <label class="text-xs font-bold text-slate-500 uppercase">IC Number 身份证号码</label>
+                <input type="text" id="ic" class="w-full p-3 rounded-xl border border-slate-300 focus:border-amber-500 outline-none" placeholder="000000-00-0000" maxlength="14" oninput="calculateAge()">
+                <p class="text-xs text-slate-400">Format: 000000-00-0000</p>
+            </div>
+            <div class="space-y-2">
+                <label class="text-xs font-bold text-slate-500 uppercase">Age 年龄 (2026)</label>
+                <input type="number" id="age" class="w-full p-3 rounded-xl border border-slate-300 bg-slate-100 text-slate-500 cursor-not-allowed outline-none" placeholder="Auto-calculated" readonly>
+                <p class="text-xs text-slate-400">
+                    <i class="fas fa-info-circle mr-1"></i>Calculated from IC
+                </p>
+            </div>
+        </div>
+
+        <!-- School Row -->
+        <div class="space-y-2">
+            <label class="text-xs font-bold text-slate-500 uppercase">School 学校</label>
+            <select id="school" onchange="toggleOtherSchool()" class="w-full p-3 rounded-xl border border-slate-300 focus:border-amber-500 outline-none bg-white">
+                <option value="">Select School...</option>
+                <option value="SJK(C) PUAY CHAI 2">SJK(C) PUAY CHAI 2 (培才二校)</option>
+                <option value="SJK(C) Chee Wen">SJK(C) Chee Wen</option>
+                <option value="SJK(C) Subang">SJK(C) Subang</option>
+                <option value="SJK(C) Sin Ming">SJK(C) Sin Ming</option>
+                <option value="Others">Others (其他)</option>
+            </select>
+            <input type="text" id="school-other" class="hidden w-full mt-2 p-3 rounded-xl border border-slate-300 focus:border-amber-500 outline-none" placeholder="Please specify school name">
+        </div>
+    </div>
+</div>
+
 
             <!-- STEP 2: Contact -->
             <div id="step-2" class="step-content">
@@ -355,744 +355,1617 @@
                 </h2>
                 <div class="space-y-5">
                     <div class="space-y-2">
-                        <label class="text-xs font-bold text-slate-500 uppercase">Phone Number 电话号码 *</label>
+                        <label class="text-xs font-bold text-slate-500 uppercase">Phone Number 电话号码</label>
                         <div class="relative">
                             <i class="fa-solid fa-phone absolute left-4 top-4 text-slate-400"></i>
-                            <input type="tel" id="phone" class="w-full pl-10 p-3 rounded-xl border border-slate-300 focus:border-amber-500 outline-none" placeholder="012-345 6789" maxlength="13" required>
+                            <input type="tel" id="phone" class="w-full pl-10 p-3 rounded-xl border border-slate-300 focus:border-amber-500 outline-none" placeholder="012-345 6789" maxlength="13">
                         </div>
                         <p class="text-xs text-slate-400">Format: 012-345 6789 or 011-2345 6789</p>
                     </div>
-
                     <div class="space-y-2">
-                        <label class="text-xs font-bold text-slate-500 uppercase">Parent's Email 家长邮箱 *</label>
+                        <label class="text-xs font-bold text-slate-500 uppercase">Parent's Email 家长邮箱</label>
                         <div class="relative">
                             <i class="fa-solid fa-envelope absolute left-4 top-4 text-slate-400"></i>
-                            <input type="email" id="email" class="w-full pl-10 p-3 rounded-xl border border-slate-300 focus:border-amber-500 outline-none" placeholder="parent@example.com" required>
+                            <input type="email" id="email" class="w-full pl-10 p-3 rounded-xl border border-slate-300 focus:border-amber-500 outline-none" placeholder="parent@example.com">
                         </div>
                     </div>
-
                     <div class="space-y-2">
-                        <label class="text-xs font-bold text-slate-500 uppercase">Student Status 身份 *</label>
-                        <div class="grid grid-cols-3 gap-3">
-                            <label class="cursor-pointer">
-                                <input type="radio" name="status" value="Student 学生" class="status-radio" checked>
-                                <div class="status-option p-3 text-center rounded-xl border border-slate-200 bg-white">
-                                    Student<br>学生
-                                </div>
-                            </label>
-                            <label class="cursor-pointer">
-                                <input type="radio" name="status" value="State Team 州队" class="status-radio">
-                                <div class="status-option p-3 text-center rounded-xl border border-slate-200 bg-white">
-                                    State Team<br>州队
-                                </div>
-                            </label>
-                            <label class="cursor-pointer">
-                                <input type="radio" name="status" value="Others 其他" class="status-radio">
-                                <div class="status-option p-3 text-center rounded-xl border border-slate-200 bg-white">
-                                    Others<br>其他
-                                </div>
-                            </label>
-                        </div>
-                        <input type="text" id="status-other" class="hidden w-full mt-2 p-3 rounded-xl border border-slate-300 focus:border-amber-500 outline-none" placeholder="Please specify status">
-                    </div>
-                </div>
+    <label class="text-xs font-bold text-slate-500 uppercase">Student Status 身份</label>
+    <div class="grid grid-cols-3 gap-3">
+        <label class="cursor-pointer">
+            <input type="radio" name="status" value="Student 学生" class="peer hidden" checked>
+            <div class="p-3 text-center rounded-xl border border-slate-200 bg-white peer-checked:bg-slate-800 peer-checked:text-white transition-all">
+                Student<br>学生
             </div>
-
-            <!-- STEP 3: Training Level -->
-            <div id="step-3" class="step-content">
-                <h2 class="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
-                    <i class="fa-solid fa-ranking-star text-amber-500"></i> 训练等级 Training Level
-                </h2>
-                <div class="space-y-6">
-                    <div class="space-y-2">
-                        <label class="text-xs font-bold text-slate-500 uppercase">Current Training Level 当前训练等级 *</label>
-                        <select id="level" class="w-full p-3 rounded-xl border border-slate-300 focus:border-amber-500 outline-none bg-white" required>
-                            <option value="">Select Level...</option>
-                            <option value="Beginner 初级">Beginner 初级</option>
-                            <option value="Intermediate 中级">Intermediate 中级</option>
-                            <option value="Advanced 高级">Advanced 高级</option>
-                            <option value="State Team 州队">State Team 州队</option>
-                            <option value="National Team 国队">National Team 国队</option>
-                        </select>
-                    </div>
-                </div>
+        </label>
+        <label class="cursor-pointer">
+            <input type="radio" name="status" value="State Team 州队" class="peer hidden">
+            <div class="p-3 text-center rounded-xl border border-slate-200 bg-white peer-checked:bg-amber-500 peer-checked:text-white transition-all">
+                State Team<br>州队
             </div>
-
-            <!-- STEP 4: Events -->
-            <div id="step-4" class="step-content">
-                <h2 class="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
-                    <i class="fa-solid fa-calendar-check text-amber-500"></i> 比赛项目 Event Selection
-                </h2>
-                <div class="space-y-4">
-                    <label class="text-xs font-bold text-slate-500 uppercase">Select Events 选择项目 *</label>
-                    <p class="text-sm text-slate-600">Choose at least one event</p>
-                    <div class="space-y-3">
-                        <label class="custom-checkbox">
-                            <input type="checkbox" name="events" value="Changquan 长拳">
-                            <span class="custom-checkbox-label">Changquan 长拳</span>
-                        </label>
-                        <label class="custom-checkbox">
-                            <input type="checkbox" name="events" value="Nanquan 南拳">
-                            <span class="custom-checkbox-label">Nanquan 南拳</span>
-                        </label>
-                        <label class="custom-checkbox">
-                            <input type="checkbox" name="events" value="Taijiquan 太极拳">
-                            <span class="custom-checkbox-label">Taijiquan 太极拳</span>
-                        </label>
-                        <label class="custom-checkbox">
-                            <input type="checkbox" name="events" value="Daoshu 刀术">
-                            <span class="custom-checkbox-label">Daoshu 刀术</span>
-                        </label>
-                        <label class="custom-checkbox">
-                            <input type="checkbox" name="events" value="Jianshu 剑术">
-                            <span class="custom-checkbox-label">Jianshu 剑术</span>
-                        </label>
-                        <label class="custom-checkbox">
-                            <input type="checkbox" name="events" value="Gunshu 棍术">
-                            <span class="custom-checkbox-label">Gunshu 棍术</span>
-                        </label>
-                        <label class="custom-checkbox">
-                            <input type="checkbox" name="events" value="Qiangshu 枪术">
-                            <span class="custom-checkbox-label">Qiangshu 枪术</span>
-                        </label>
-                        <label class="custom-checkbox">
-                            <input type="checkbox" name="events" value="Duilian 对练">
-                            <span class="custom-checkbox-label">Duilian 对练</span>
-                        </label>
-                        <label class="custom-checkbox">
-                            <input type="checkbox" name="events" value="Jiti 集体">
-                            <span class="custom-checkbox-label">Jiti 集体</span>
-                        </label>
-                    </div>
-                </div>
+        </label>
+        <label class="cursor-pointer">
+            <input type="radio" name="status" value="Backup Team 后备队" class="peer hidden">
+            <div class="p-3 text-center rounded-xl border border-slate-200 bg-white peer-checked:bg-blue-600 peer-checked:text-white transition-all">
+                Backup Team<br>后备队
             </div>
-
-            <!-- STEP 5: Schedule -->
-            <div id="step-5" class="step-content">
-                <h2 class="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
-                    <i class="fa-solid fa-school text-amber-500"></i> 训练时间 Training Schedule
-                </h2>
-                <div class="space-y-4">
-                    <label class="text-xs font-bold text-slate-500 uppercase">Select Training Schedule 选择训练时间 *</label>
-                    <p class="text-sm text-slate-600">Choose your preferred training location and time</p>
-                    
-                    <!-- School Box 1 -->
-                    <div class="school-box" onclick="toggleSchoolBox(this)">
-                        <div class="school-header">
-                            <div class="school-info">
-                                <img src="https://i.imgur.com/BG6ZsGJ.jpg" alt="Puay Chai 2" class="school-logo">
-                                <div class="school-text">
-                                    <h3>培才二校 SJK(C) Puay Chai 2</h3>
-                                    <p>Monday & Wednesday • 3:00 PM - 5:00 PM</p>
-                                </div>
-                            </div>
-                            <div class="school-toggle">
-                                <i class="fa-solid fa-chevron-down"></i>
-                            </div>
-                        </div>
-                        <div class="school-schedules">
-                            <div class="school-schedules-inner">
-                                <label class="custom-checkbox">
-                                    <input type="checkbox" name="schedule" value="Puay Chai 2 - Mon/Wed (3-5pm)">
-                                    <span class="custom-checkbox-label">
-                                        <strong>Regular Training</strong><br>
-                                        Monday & Wednesday • 3:00 PM - 5:00 PM
-                                    </span>
-                                </label>
-                                <label class="custom-checkbox">
-                                    <input type="checkbox" name="schedule" value="Puay Chai 2 - Sat (9-11am)">
-                                    <span class="custom-checkbox-label">
-                                        <strong>Weekend Training</strong><br>
-                                        Saturday • 9:00 AM - 11:00 AM
-                                    </span>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- School Box 2 -->
-                    <div class="school-box" onclick="toggleSchoolBox(this)">
-                        <div class="school-header">
-                            <div class="school-info">
-                                <img src="https://i.imgur.com/k0rjkKx.jpg" alt="Chee Wen" class="school-logo">
-                                <div class="school-text">
-                                    <h3>智文小学 SJK(C) Chee Wen</h3>
-                                    <p>Tuesday & Thursday • 3:00 PM - 5:00 PM</p>
-                                </div>
-                            </div>
-                            <div class="school-toggle">
-                                <i class="fa-solid fa-chevron-down"></i>
-                            </div>
-                        </div>
-                        <div class="school-schedules">
-                            <div class="school-schedules-inner">
-                                <label class="custom-checkbox">
-                                    <input type="checkbox" name="schedule" value="Chee Wen - Tue/Thu (3-5pm)">
-                                    <span class="custom-checkbox-label">
-                                        <strong>Regular Training</strong><br>
-                                        Tuesday & Thursday • 3:00 PM - 5:00 PM
-                                    </span>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- School Box 3 -->
-                    <div class="school-box" onclick="toggleSchoolBox(this)">
-                        <div class="school-header">
-                            <div class="school-info">
-                                <img src="https://i.imgur.com/7XG2i9J.jpg" alt="Subang" class="school-logo">
-                                <div class="school-text">
-                                    <h3>梳邦学校 SJK(C) Subang</h3>
-                                    <p>Wednesday & Friday • 3:00 PM - 5:00 PM</p>
-                                </div>
-                            </div>
-                            <div class="school-toggle">
-                                <i class="fa-solid fa-chevron-down"></i>
-                            </div>
-                        </div>
-                        <div class="school-schedules">
-                            <div class="school-schedules-inner">
-                                <label class="custom-checkbox">
-                                    <input type="checkbox" name="schedule" value="Subang - Wed/Fri (3-5pm)">
-                                    <span class="custom-checkbox-label">
-                                        <strong>Regular Training</strong><br>
-                                        Wednesday & Friday • 3:00 PM - 5:00 PM
-                                    </span>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- School Box 4 -->
-                    <div class="school-box" onclick="toggleSchoolBox(this)">
-                        <div class="school-header">
-                            <div class="school-info">
-                                <img src="https://i.imgur.com/XqDkqzm.jpg" alt="Sin Ming" class="school-logo">
-                                <div class="school-text">
-                                    <h3>新明小学 SJK(C) Sin Ming</h3>
-                                    <p>Monday • 3:00 PM - 5:00 PM</p>
-                                </div>
-                            </div>
-                            <div class="school-toggle">
-                                <i class="fa-solid fa-chevron-down"></i>
-                            </div>
-                        </div>
-                        <div class="school-schedules">
-                            <div class="school-schedules-inner">
-                                <label class="custom-checkbox">
-                                    <input type="checkbox" name="schedule" value="Sin Ming - Mon (3-5pm)">
-                                    <span class="custom-checkbox-label">
-                                        <strong>Regular Training</strong><br>
-                                        Monday • 3:00 PM - 5:00 PM
-                                    </span>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- School Box 5 -->
-                    <div class="school-box" onclick="toggleSchoolBox(this)">
-                        <div class="school-header">
-                            <div class="school-info">
-                                <div class="school-logo flex items-center justify-center bg-slate-100">
-                                    <i class="fa-solid fa-location-dot text-slate-400 text-xl"></i>
-                                </div>
-                                <div class="school-text">
-                                    <h3>Other Location 其他地点</h3>
-                                    <p>Specify your preferred training arrangement</p>
-                                </div>
-                            </div>
-                            <div class="school-toggle">
-                                <i class="fa-solid fa-chevron-down"></i>
-                            </div>
-                        </div>
-                        <div class="school-schedules">
-                            <div class="school-schedules-inner">
-                                <input type="text" id="schedule-other" class="w-full p-3 rounded-xl border border-slate-300 focus:border-amber-500 outline-none" placeholder="Please specify preferred schedule">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- STEP 6: Parent & Signature -->
-            <div id="step-6" class="step-content">
-                <h2 class="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
-                    <i class="fa-solid fa-file-signature text-amber-500"></i> 家长信息 Parent & Signature
-                </h2>
-                <div class="space-y-6">
-                    <!-- Parent Info -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="space-y-2">
-                            <label class="text-xs font-bold text-slate-500 uppercase">Parent Name 家长姓名 *</label>
-                            <input type="text" id="parent-name" class="w-full p-3 rounded-xl border border-slate-300 focus:border-amber-500 outline-none" placeholder="Parent Name" required>
-                        </div>
-                        <div class="space-y-2">
-                            <label class="text-xs font-bold text-slate-500 uppercase">Parent IC 家长身份证 *</label>
-                            <input type="text" id="parent-ic" class="w-full p-3 rounded-xl border border-slate-300 focus:border-amber-500 outline-none" placeholder="000000-00-0000" maxlength="14" required>
-                        </div>
-                    </div>
-
-                    <!-- Date -->
-                    <div class="space-y-2">
-                        <label class="text-xs font-bold text-slate-500 uppercase">Date 日期 *</label>
-                        <input type="text" id="today-date" class="w-full p-3 rounded-xl border border-slate-300 bg-slate-100 outline-none" readonly>
-                    </div>
-
-                    <!-- Signature -->
-                    <div class="space-y-2">
-                        <label class="text-xs font-bold text-slate-500 uppercase">Signature 签名 *</label>
-                        <div class="sig-box">
-                            <canvas id="sig-canvas"></canvas>
-                            <div id="sig-placeholder">SIGN HERE</div>
-                        </div>
-                        <button type="button" onclick="clearSig()" class="text-sm text-red-600 hover:underline mt-2">
-                            <i class="fa-solid fa-eraser"></i> Clear Signature
-                        </button>
-                        <input type="hidden" id="signature-data">
-                    </div>
-
-                    <!-- Agreement -->
-                    <div class="space-y-2">
-                        <label class="custom-checkbox">
-                            <input type="checkbox" id="agree" required>
-                            <span class="custom-checkbox-label">
-                                <strong>I agree to the terms and conditions</strong><br>
-                                By checking this, I confirm the information provided is accurate.
-                            </span>
-                        </label>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Navigation Buttons -->
-            <div class="flex justify-between mt-10">
-                <button type="button" id="btn-prev" onclick="prevStep()" class="bg-slate-200 text-slate-700 px-8 py-2.5 rounded-xl font-semibold hover:bg-slate-300 transition">
-                    <i class="fa-solid fa-arrow-left"></i> Previous
-                </button>
-                <button type="button" id="btn-next" onclick="nextStep()" class="bg-slate-900 text-white px-8 py-2.5 rounded-xl font-semibold shadow-lg shadow-slate-300 hover:bg-slate-800 transition">
-                    Next Step <i class="fa-solid fa-arrow-right"></i>
-                </button>
-            </div>
-
-        </form>
-
-        <!-- Success Screen -->
-        <div id="success-screen" class="hidden text-center py-16">
-            <div class="text-6xl text-green-500 mb-6">
-                <i class="fa-solid fa-circle-check"></i>
-            </div>
-            <h2 class="text-2xl font-bold text-slate-800 mb-3">Registration Submitted!</h2>
-            <p class="text-slate-600 mb-8">Thank you for registering. Your form has been successfully submitted.</p>
-            <button onclick="submitAnother()" class="bg-amber-500 text-white px-8 py-3 rounded-xl font-semibold hover:bg-amber-600 transition">
-                Submit Another Registration
-            </button>
-        </div>
-
+        </label>
     </div>
 </div>
 
-<!-- PDF Templates -->
-<div id="pdf-template-page1">
-    <!-- PDF content will be injected here -->
+                </div>
+            </div>
+
+            <!-- STEP 3: Events -->
+            <div id="step-3" class="step-content">
+                <h2 class="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+                    <i class="fa-solid fa-trophy text-amber-500"></i> 项目选择 Event Selection
+                </h2>
+                
+                <div class="mb-4">
+                    <p class="text-sm text-slate-600 mb-4">Select events for each level (You can select multiple events across different levels)</p>
+                </div>
+
+                <div class="space-y-4">
+                    <!-- Basic Level -->
+                    <div class="border-l-4 border-slate-700 bg-slate-50 rounded-r-xl p-4">
+                        <h3 class="font-bold text-slate-800 mb-3">基础 Basic</h3>
+                        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+                            <label class="cursor-pointer flex items-center gap-2">
+                                <input type="checkbox" name="evt" value="基础-长拳" class="w-4 h-4 text-amber-500 rounded">
+                                <span class="text-sm">长拳</span>
+                            </label>
+                            <label class="cursor-pointer flex items-center gap-2">
+                                <input type="checkbox" name="evt" value="基础-南拳" class="w-4 h-4 text-amber-500 rounded">
+                                <span class="text-sm">南拳</span>
+                            </label>
+                            <label class="cursor-pointer flex items-center gap-2">
+                                <input type="checkbox" name="evt" value="基础-太极拳" class="w-4 h-4 text-amber-500 rounded">
+                                <span class="text-sm">太极拳</span>
+                            </label>
+                            <label class="cursor-pointer flex items-center gap-2">
+                                <input type="checkbox" name="evt" value="基础-剑" class="w-4 h-4 text-amber-500 rounded">
+                                <span class="text-sm">剑</span>
+                            </label>
+                            <label class="cursor-pointer flex items-center gap-2">
+                                <input type="checkbox" name="evt" value="基础-枪" class="w-4 h-4 text-amber-500 rounded">
+                                <span class="text-sm">枪</span>
+                            </label>
+                            <label class="cursor-pointer flex items-center gap-2">
+                                <input type="checkbox" name="evt" value="基础-刀" class="w-4 h-4 text-amber-500 rounded">
+                                <span class="text-sm">刀</span>
+                            </label>
+                            <label class="cursor-pointer flex items-center gap-2">
+                                <input type="checkbox" name="evt" value="基础-棍" class="w-4 h-4 text-amber-500 rounded">
+                                <span class="text-sm">棍</span>
+                            </label>
+                            <label class="cursor-pointer flex items-center gap-2">
+                                <input type="checkbox" name="evt" value="基础-南刀" class="w-4 h-4 text-amber-500 rounded">
+                                <span class="text-sm">南刀</span>
+                            </label>
+                            <label class="cursor-pointer flex items-center gap-2">
+                                <input type="checkbox" name="evt" value="基础-南棍" class="w-4 h-4 text-amber-500 rounded">
+                                <span class="text-sm">南棍</span>
+                            </label>
+                            <label class="cursor-pointer flex items-center gap-2">
+                                <input type="checkbox" name="evt" value="基础-太极剑" class="w-4 h-4 text-amber-500 rounded">
+                                <span class="text-sm">太极剑</span>
+                            </label>
+                            <label class="cursor-pointer flex items-center gap-2">
+                                <input type="checkbox" name="evt" value="基础-太极扇" class="w-4 h-4 text-amber-500 rounded">
+                                <span class="text-sm">太极扇</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Junior Level -->
+                    <div class="border-l-4 border-blue-600 bg-blue-50 rounded-r-xl p-4">
+                        <h3 class="font-bold text-blue-800 mb-3">初级 Junior</h3>
+                        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+                            <label class="cursor-pointer flex items-center gap-2">
+                                <input type="checkbox" name="evt" value="初级-长拳" class="w-4 h-4 text-amber-500 rounded">
+                                <span class="text-sm">长拳</span>
+                            </label>
+                            <label class="cursor-pointer flex items-center gap-2">
+                                <input type="checkbox" name="evt" value="初级-南拳" class="w-4 h-4 text-amber-500 rounded">
+                                <span class="text-sm">南拳</span>
+                            </label>
+                            <label class="cursor-pointer flex items-center gap-2">
+                                <input type="checkbox" name="evt" value="初级-太极拳" class="w-4 h-4 text-amber-500 rounded">
+                                <span class="text-sm">太极拳</span>
+                            </label>
+                            <label class="cursor-pointer flex items-center gap-2">
+                                <input type="checkbox" name="evt" value="初级-剑" class="w-4 h-4 text-amber-500 rounded">
+                                <span class="text-sm">剑</span>
+                            </label>
+                            <label class="cursor-pointer flex items-center gap-2">
+                                <input type="checkbox" name="evt" value="初级-枪" class="w-4 h-4 text-amber-500 rounded">
+                                <span class="text-sm">枪</span>
+                            </label>
+                            <label class="cursor-pointer flex items-center gap-2">
+                                <input type="checkbox" name="evt" value="初级-刀" class="w-4 h-4 text-amber-500 rounded">
+                                <span class="text-sm">刀</span>
+                            </label>
+                            <label class="cursor-pointer flex items-center gap-2">
+                                <input type="checkbox" name="evt" value="初级-棍" class="w-4 h-4 text-amber-500 rounded">
+                                <span class="text-sm">棍</span>
+                            </label>
+                            <label class="cursor-pointer flex items-center gap-2">
+                                <input type="checkbox" name="evt" value="初级-南刀" class="w-4 h-4 text-amber-500 rounded">
+                                <span class="text-sm">南刀</span>
+                            </label>
+                            <label class="cursor-pointer flex items-center gap-2">
+                                <input type="checkbox" name="evt" value="初级-南棍" class="w-4 h-4 text-amber-500 rounded">
+                                <span class="text-sm">南棍</span>
+                            </label>
+                            <label class="cursor-pointer flex items-center gap-2">
+                                <input type="checkbox" name="evt" value="初级-太极剑" class="w-4 h-4 text-amber-500 rounded">
+                                <span class="text-sm">太极剑</span>
+                            </label>
+                            <label class="cursor-pointer flex items-center gap-2">
+                                <input type="checkbox" name="evt" value="初级-太极扇" class="w-4 h-4 text-amber-500 rounded">
+                                <span class="text-sm">太极扇</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Group B -->
+                    <div class="border-l-4 border-green-600 bg-green-50 rounded-r-xl p-4">
+                        <h3 class="font-bold text-green-800 mb-3">B组 Group B</h3>
+                        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+                            <label class="cursor-pointer flex items-center gap-2">
+                                <input type="checkbox" name="evt" value="B组-长拳" class="w-4 h-4 text-amber-500 rounded">
+                                <span class="text-sm">长拳</span>
+                            </label>
+                            <label class="cursor-pointer flex items-center gap-2">
+                                <input type="checkbox" name="evt" value="B组-南拳" class="w-4 h-4 text-amber-500 rounded">
+                                <span class="text-sm">南拳</span>
+                            </label>
+                            <label class="cursor-pointer flex items-center gap-2">
+                                <input type="checkbox" name="evt" value="B组-太极拳" class="w-4 h-4 text-amber-500 rounded">
+                                <span class="text-sm">太极拳</span>
+                            </label>
+                            <label class="cursor-pointer flex items-center gap-2">
+                                <input type="checkbox" name="evt" value="B组-剑" class="w-4 h-4 text-amber-500 rounded">
+                                <span class="text-sm">剑</span>
+                            </label>
+                            <label class="cursor-pointer flex items-center gap-2">
+                                <input type="checkbox" name="evt" value="B组-枪" class="w-4 h-4 text-amber-500 rounded">
+                                <span class="text-sm">枪</span>
+                            </label>
+                            <label class="cursor-pointer flex items-center gap-2">
+                                <input type="checkbox" name="evt" value="B组-刀" class="w-4 h-4 text-amber-500 rounded">
+                                <span class="text-sm">刀</span>
+                            </label>
+                            <label class="cursor-pointer flex items-center gap-2">
+                                <input type="checkbox" name="evt" value="B组-棍" class="w-4 h-4 text-amber-500 rounded">
+                                <span class="text-sm">棍</span>
+                            </label>
+                            <label class="cursor-pointer flex items-center gap-2">
+                                <input type="checkbox" name="evt" value="B组-南刀" class="w-4 h-4 text-amber-500 rounded">
+                                <span class="text-sm">南刀</span>
+                            </label>
+                            <label class="cursor-pointer flex items-center gap-2">
+                                <input type="checkbox" name="evt" value="B组-南棍" class="w-4 h-4 text-amber-500 rounded">
+                                <span class="text-sm">南棍</span>
+                            </label>
+                            <label class="cursor-pointer flex items-center gap-2">
+                                <input type="checkbox" name="evt" value="B组-太极剑" class="w-4 h-4 text-amber-500 rounded">
+                                <span class="text-sm">太极剑</span>
+                            </label>
+                            <label class="cursor-pointer flex items-center gap-2">
+                                <input type="checkbox" name="evt" value="B组-太极扇" class="w-4 h-4 text-amber-500 rounded">
+                                <span class="text-sm">太极扇</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Group A -->
+                    <div class="border-l-4 border-purple-600 bg-purple-50 rounded-r-xl p-4">
+                        <h3 class="font-bold text-purple-800 mb-3">A组 Group A</h3>
+                        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+                            <label class="cursor-pointer flex items-center gap-2">
+                                <input type="checkbox" name="evt" value="A组-长拳" class="w-4 h-4 text-amber-500 rounded">
+                                <span class="text-sm">长拳</span>
+                            </label>
+                            <label class="cursor-pointer flex items-center gap-2">
+                                <input type="checkbox" name="evt" value="A组-南拳" class="w-4 h-4 text-amber-500 rounded">
+                                <span class="text-sm">南拳</span>
+                            </label>
+                            <label class="cursor-pointer flex items-center gap-2">
+                                <input type="checkbox" name="evt" value="A组-太极拳" class="w-4 h-4 text-amber-500 rounded">
+                                <span class="text-sm">太极拳</span>
+                            </label>
+                            <label class="cursor-pointer flex items-center gap-2">
+                                <input type="checkbox" name="evt" value="A组-剑" class="w-4 h-4 text-amber-500 rounded">
+                                <span class="text-sm">剑</span>
+                            </label>
+                            <label class="cursor-pointer flex items-center gap-2">
+                                <input type="checkbox" name="evt" value="A组-枪" class="w-4 h-4 text-amber-500 rounded">
+                                <span class="text-sm">枪</span>
+                            </label>
+                            <label class="cursor-pointer flex items-center gap-2">
+                                <input type="checkbox" name="evt" value="A组-刀" class="w-4 h-4 text-amber-500 rounded">
+                                <span class="text-sm">刀</span>
+                            </label>
+                            <label class="cursor-pointer flex items-center gap-2">
+                                <input type="checkbox" name="evt" value="A组-棍" class="w-4 h-4 text-amber-500 rounded">
+                                <span class="text-sm">棍</span>
+                            </label>
+                            <label class="cursor-pointer flex items-center gap-2">
+                                <input type="checkbox" name="evt" value="A组-南刀" class="w-4 h-4 text-amber-500 rounded">
+                                <span class="text-sm">南刀</span>
+                            </label>
+                            <label class="cursor-pointer flex items-center gap-2">
+                                <input type="checkbox" name="evt" value="A组-南棍" class="w-4 h-4 text-amber-500 rounded">
+                                <span class="text-sm">南棍</span>
+                            </label>
+                            <label class="cursor-pointer flex items-center gap-2">
+                                <input type="checkbox" name="evt" value="A组-太极剑" class="w-4 h-4 text-amber-500 rounded">
+                                <span class="text-sm">太极剑</span>
+                            </label>
+                            <label class="cursor-pointer flex items-center gap-2">
+                                <input type="checkbox" name="evt" value="A组-太极扇" class="w-4 h-4 text-amber-500 rounded">
+                                <span class="text-sm">太极扇</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Optional Level -->
+                    <div class="border-l-4 border-amber-600 bg-amber-50 rounded-r-xl p-4">
+                        <h3 class="font-bold text-amber-800 mb-3">自选 Optional</h3>
+                        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+                            <label class="cursor-pointer flex items-center gap-2">
+                                <input type="checkbox" name="evt" value="自选-长拳" class="w-4 h-4 text-amber-500 rounded">
+                                <span class="text-sm">长拳</span>
+                            </label>
+                            <label class="cursor-pointer flex items-center gap-2">
+                                <input type="checkbox" name="evt" value="自选-南拳" class="w-4 h-4 text-amber-500 rounded">
+                                <span class="text-sm">南拳</span>
+                            </label>
+                            <label class="cursor-pointer flex items-center gap-2">
+                                <input type="checkbox" name="evt" value="自选-太极拳" class="w-4 h-4 text-amber-500 rounded">
+                                <span class="text-sm">太极拳</span>
+                            </label>
+                            <label class="cursor-pointer flex items-center gap-2">
+                                <input type="checkbox" name="evt" value="自选-剑" class="w-4 h-4 text-amber-500 rounded">
+                                <span class="text-sm">剑</span>
+                            </label>
+                            <label class="cursor-pointer flex items-center gap-2">
+                                <input type="checkbox" name="evt" value="自选-枪" class="w-4 h-4 text-amber-500 rounded">
+                                <span class="text-sm">枪</span>
+                            </label>
+                            <label class="cursor-pointer flex items-center gap-2">
+                                <input type="checkbox" name="evt" value="自选-刀" class="w-4 h-4 text-amber-500 rounded">
+                                <span class="text-sm">刀</span>
+                            </label>
+                            <label class="cursor-pointer flex items-center gap-2">
+                                <input type="checkbox" name="evt" value="自选-棍" class="w-4 h-4 text-amber-500 rounded">
+                                <span class="text-sm">棍</span>
+                            </label>
+                            <label class="cursor-pointer flex items-center gap-2">
+                                <input type="checkbox" name="evt" value="自选-南刀" class="w-4 h-4 text-amber-500 rounded">
+                                <span class="text-sm">南刀</span>
+                            </label>
+                            <label class="cursor-pointer flex items-center gap-2">
+                                <input type="checkbox" name="evt" value="自选-南棍" class="w-4 h-4 text-amber-500 rounded">
+                                <span class="text-sm">南棍</span>
+                            </label>
+                            <label class="cursor-pointer flex items-center gap-2">
+                                <input type="checkbox" name="evt" value="自选-太极剑" class="w-4 h-4 text-amber-500 rounded">
+                                <span class="text-sm">太极剑</span>
+                            </label>
+                            <label class="cursor-pointer flex items-center gap-2">
+                                <input type="checkbox" name="evt" value="自选-太极扇" class="w-4 h-4 text-amber-500 rounded">
+                                <span class="text-sm">太极扇</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEP 4: Schedule (Dropdown Box Design) -->
+<div id="step-4" class="step-content">
+    <h2 class="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+        <i class="fa-regular fa-calendar-check text-amber-500"></i> 训练时间 Training Schedule
+    </h2>
+
+    <!-- Fee Info -->
+    <div class="bg-amber-50 text-amber-900 p-4 rounded-xl text-xs mb-8 border border-amber-100">
+        <p class="font-bold mb-1"><i class="fas fa-info-circle"></i>注明 (Remark)：州队运动员需至少选择 两堂课。<br></p>
+        <p>• 选择 一堂课：收费 <strong>RM 120</strong></p>
+        <p>• 选择 二堂课：收费 <strong>RM 200</strong></p>
+        <p>• 选择 三堂课：收费 <strong>RM 280</strong></p>
+        <p>• 选择 四堂课：收费 <strong>RM 320</strong></p>
+        <p class="font-bold mb-1"><br>State team athletes must choose at least two classes.</p>
+        <p>• If only one class is chosen: <strong>RM 120</strong></p>
+        <p>• If a second class is chosen: <strong>RM 200</strong></p>
+        <p>• If a third class is chosen: <strong>RM 280</strong></p>
+        <p>• If a forth class is chosen: <strong>RM 320</strong></p>
+    </div>
+
+    <div class="space-y-4">
+        <!-- SCHOOL 2: Wushu Sport Academy -->
+        <div class="school-box" onclick="toggleSchoolBox(this)">
+            <div class="school-header">
+                <div class="school-info">
+                    <img src="https://wushu-assets.s3.ap-southeast-1.amazonaws.com/Wushu+Sport+Academy+Circle+Yellow.png" alt="WSA Logo" class="school-logo">
+                    <div class="school-text">
+                        <h3>
+                            <i class="fas fa-map-marker-alt text-amber-500"></i>
+                            Wushu Sport Academy 武术体育学院
+                        </h3>
+                        <p><i class="fas fa-location-dot text-slate-400 mr-1"></i>No. 2, Jalan BP 5/6, Bandar Bukit Puchong, 47120 Puchong, Selangor</p>
+                    </div>
+                </div>
+                <div class="school-toggle">
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+            </div>
+            <div class="school-schedules">
+                <div class="school-schedules-inner">
+                    <div class="space-y-3">
+                        <label class="custom-checkbox border-2 border-slate-200 rounded-xl hover:border-amber-400 hover:bg-amber-50/30 transition-all">
+                            <input type="checkbox" name="sch" value="Wushu Sport Academy: Sun 10am-12pm">
+                            <div class="custom-checkbox-label">
+                                <div class="text-sm font-bold text-slate-800 mb-1">
+                                    <i class="far fa-calendar mr-2 text-amber-500"></i>Sunday 星期日 · 10:00 AM - 12:00 PM
+                                </div>
+                                <div class="text-xs text-slate-600">
+                                    <span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-md font-semibold">只限于州队/后备队 Only for State/Backup Team</span>
+                                </div>
+                                <div class="text-[10px] text-red-500 font-bold hidden disabled-msg mt-1">
+                                    <i class="fas fa-ban mr-1"></i>Not available for Normal Students 普通学生不允许参加
+                                </div>
+                            </div>
+                        </label>
+
+                        <label class="custom-checkbox border-2 border-slate-200 rounded-xl hover:border-amber-400 hover:bg-amber-50/30 transition-all">
+                            <input type="checkbox" name="sch" value="Wushu Sport Academy: Sun 12pm-2pm">
+                            <div class="custom-checkbox-label">
+                                <div class="text-sm font-bold text-slate-800">
+                                    <i class="far fa-calendar mr-2 text-amber-500"></i>Sunday 星期日 · 12:00 PM - 2:00 PM
+                                </div>
+                            </div>
+                        </label>
+
+                        <label class="custom-checkbox border-2 border-slate-200 rounded-xl hover:border-amber-400 hover:bg-amber-50/30 transition-all">
+                            <input type="checkbox" name="sch" value="Wushu Sport Academy: Wed 8pm-10pm">
+                            <div class="custom-checkbox-label">
+                                <div class="text-sm font-bold text-slate-800 mb-1">
+                                    <i class="far fa-calendar mr-2 text-amber-500"></i>Wednesday 星期三 · 8:00 PM - 10:00 PM
+                                </div>
+                                <div class="text-xs text-slate-500">全部组别 All Groups (A/B/C/D, 太极 Tai Chi, 传统 Traditional)</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- SCHOOL 1: SJK(C) Puay Chai 2 -->
+        <div class="school-box" onclick="toggleSchoolBox(this)">
+            <div class="school-header">
+                <div class="school-info">
+                    <img src="https://wushu-assets.s3.ap-southeast-1.amazonaws.com/PC2+Logo.png" alt="PC2 Logo" class="school-logo">
+                    <div class="school-text">
+                        <h3>
+                            <i class="fas fa-map-marker-alt text-amber-500"></i>
+                            SJK(C) Puay Chai 2 培才二校
+                        </h3>
+                        <p><i class="fas fa-location-dot text-slate-400 mr-1"></i>Jln BU 3/1, Bandar Utama, 47800 Petaling Jaya, Selangor</p>
+                    </div>
+                </div>
+                <div class="school-toggle">
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+            </div>
+            <div class="school-schedules">
+                <div class="school-schedules-inner">
+                    <div class="space-y-3">
+                        <label class="custom-checkbox border-2 border-slate-200 rounded-xl hover:border-amber-400 hover:bg-amber-50/30 transition-all">
+                            <input type="checkbox" name="sch" value="SJK(C) Puay Chai 2: Tue 8pm-10pm">
+                            <div class="custom-checkbox-label">
+                                <div class="text-sm font-bold text-slate-800 mb-1">
+                                    <i class="far fa-calendar mr-2 text-amber-500"></i>Tuesday 星期二 · 8:00 PM - 10:00 PM
+                                </div>
+                                <div class="text-xs text-slate-600">
+                                    <span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-md font-semibold">只限于州队/后备队 Only for State/Backup Team</span>
+                                    <span class="text-slate-400 ml-1">(D/C/B/A 套路 Routine)</span>
+                                </div>
+                                <div class="text-[10px] text-red-500 font-bold hidden disabled-msg mt-1">
+                                    <i class="fas fa-ban mr-1"></i>Not available for Normal Students 普通学生不允许参加
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SCHOOL 3: Stadium Chinwoo -->
+        <div class="school-box" onclick="toggleSchoolBox(this)">
+            <div class="school-header">
+                <div class="school-info">
+                    <div class="school-logo" style="background: linear-gradient(135deg, #1e293b 0%, #475569 100%); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 18px;">精</div>
+                    <div class="school-text">
+                        <h3>
+                            <i class="fas fa-map-marker-alt text-amber-500"></i>
+                            Stadium Chinwoo 精武体育馆
+                        </h3>
+                        <p><i class="fas fa-location-dot text-slate-400 mr-1"></i>Jalan Hang Jebat, 50150 Kuala Lumpur</p>
+                    </div>
+                </div>
+                <div class="school-toggle">
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+            </div>
+            <div class="school-schedules">
+                <div class="school-schedules-inner">
+                    <div class="space-y-3">
+                        <label class="custom-checkbox border-2 border-slate-200 rounded-xl hover:border-amber-400 hover:bg-amber-50/30 transition-all">
+                            <input type="checkbox" name="sch" value="Stadium Chinwoo: Sun 2pm-4pm">
+                            <div class="custom-checkbox-label">
+                                <div class="text-sm font-bold text-slate-800 mb-1">
+                                    <i class="far fa-calendar mr-2 text-amber-500"></i>Sunday 星期日 · 2:00 PM - 4:00 PM
+                                </div>
+                                <div class="text-xs text-slate-600">
+                                    <span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-md font-semibold">只限于州队/后备队 Only for State/Backup Team</span>
+                                    <span class="bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-md font-semibold ml-1">学费交给精武 Fees paid to Chinwoo</span>
+                                    <span class="text-slate-400 ml-1">(C/B/A 套路 Routine)</span>
+                                </div>
+                                <div class="text-[10px] text-red-500 font-bold hidden disabled-msg mt-1">
+                                    <i class="fas fa-ban mr-1"></i>Not available for Normal Students 普通学生不允许参加
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAI CHI CLASSES -->
+        <div class="school-box" onclick="toggleSchoolBox(this)">
+            <div class="school-header">
+                <div class="school-info">
+                    <div class="school-logo" style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-yin-yang" style="color: white; font-size: 24px;"></i>
+                    </div>
+                    <div class="school-text">
+                        <h3>
+                            <i class="fas fa-yin-yang text-emerald-600"></i>
+                            Tai Chi Classes 太极班
+                        </h3>
+                        <p><i class="fas fa-info-circle text-slate-400 mr-1"></i>Multiple Locations Available</p>
+                    </div>
+                </div>
+                <div class="school-toggle">
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+            </div>
+            <div class="school-schedules">
+                <div class="school-schedules-inner">
+                    <div class="space-y-3">
+                        <label class="custom-checkbox border-2 border-emerald-200 rounded-xl hover:border-emerald-500 hover:bg-emerald-50/30 transition-all">
+                            <input type="checkbox" name="sch" value="Tai Chi: SJK(C) Puay Chai 2 Fri 8pm-10pm">
+                            <div class="custom-checkbox-label">
+                                <div class="text-sm font-bold text-slate-800">
+                                    <i class="far fa-calendar mr-2 text-emerald-600"></i>Friday 星期五 · 8:00 PM - 10:00 PM
+                                </div>
+                                <div class="text-xs text-slate-500 mt-1">
+                                    <i class="fas fa-location-dot text-emerald-500 mr-1"></i>SJK(C) Puay Chai 2, Bandar Utama
+                                </div>
+                            </div>
+                        </label>
+                        <label class="custom-checkbox border-2 border-emerald-200 rounded-xl hover:border-emerald-500 hover:bg-emerald-50/30 transition-all">
+                            <input type="checkbox" name="sch" value="Tai Chi: Wushu Sport Academy Sun 10am-12pm">
+                            <div class="custom-checkbox-label">
+                                <div class="text-sm font-bold text-slate-800">
+                                    <i class="far fa-calendar mr-2 text-emerald-600"></i>Sunday 星期日 · 10:00 AM - 12:00 PM
+                                </div>
+                                <div class="text-xs text-slate-500 mt-1">
+                                    <i class="fas fa-location-dot text-emerald-500 mr-1"></i>Wushu Sport Academy, Bukit Puchong
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
-<div id="pdf-template-page2">
-    <!-- PDF content will be injected here -->
+
+
+
+            <!-- STEP 5: Terms & Signature -->
+            <div id="step-5" class="step-content">
+                <h2 class="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+                    <i class="fa-solid fa-file-signature text-amber-500"></i> 条款与协议 Agreement
+                </h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-lg">
+                        <h4 class="font-bold text-blue-700 text-sm mb-1">学费缴付 · Fee Payment</h4>
+                        <p class="text-xs text-blue-800 leading-relaxed">
+                            学费需在每月10号之前缴付，并且把收据 (Receipt) 更新给教练以及 Admin。
+                        </p>
+                        <p class="text-xs text-blue-700 leading-relaxed mt-1">
+                            Fees must be paid before the 10th of every month, and the receipt must be sent to the coach and admin.
+                        </p>
+                    </div>
+                    <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg">
+                        <h4 class="font-bold text-red-700 text-sm mb-1">运动员守则 · Code of Conduct</h4>
+                        <p class="text-xs text-red-800 leading-relaxed">
+                            严守纪律，必须守时，禁止玩耍。违反纪律将被废除州队资格。
+                        </p>
+                        <p class="text-xs text-red-700 leading-relaxed mt-1">
+                            Athletes must be disciplined and punctual and are not allowed to play during training; violations may result in disqualification.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="bg-white border border-slate-200 rounded-xl p-4 md:p-5 h-64 md:h-56 overflow-y-auto custom-scroll mb-6 text-xs leading-relaxed">
+    <div class="flex items-center justify-center mb-4">
+        <h4 class="font-bold text-slate-800 text-sm">
+            📋 TERMS & CONDITIONS 条款与条件
+        </h4>
+    </div>
+
+    <ol class="space-y-4">
+        <li class="flex items-start gap-2 md:gap-3">
+            <div class="mt-0.5 h-5 w-5 md:h-6 md:w-6 rounded-full bg-slate-900 text-white flex items-center justify-center text-[10px] md:text-[11px] font-bold flex-shrink-0">1</div>
+            <div class="space-y-1">
+                <p class="text-[11px] md:text-[12px] text-slate-800 leading-relaxed">
+                    本人（学员/家长/监护人）确认上述资料属实。
+                </p>
+                <p class="text-[11px] md:text-[12px] text-slate-600 leading-relaxed">
+                    I, the student/parent/guardian, confirm that all information provided above is true and correct.
+                </p>
+            </div>
+        </li>
+
+        <li class="flex items-start gap-2 md:gap-3">
+            <div class="mt-0.5 h-5 w-5 md:h-6 md:w-6 rounded-full bg-slate-900 text-white flex items-center justify-center text-[10px] md:text-[11px] font-bold flex-shrink-0">2</div>
+            <div class="space-y-1">
+                <p class="text-[11px] md:text-[12px] text-slate-800 leading-relaxed">
+                    本人明白武术是一项剧烈运动，并愿意自行承担训练期间可能发生的意外风险。
+                </p>
+                <p class="text-[11px] md:text-[12px] text-slate-600 leading-relaxed">
+                    I understand that Wushu is a high‑intensity sport and agree to bear any risk of injury during training.
+                </p>
+            </div>
+        </li>
+
+        <li class="flex items-start gap-2 md:gap-3">
+            <div class="mt-0.5 h-5 w-5 md:h-6 md:w-6 rounded-full bg-slate-900 text-white flex items-center justify-center text-[10px] md:text-[11px] font-bold flex-shrink-0">3</div>
+            <div class="space-y-1">
+                <p class="text-[11px] md:text-[12px] text-slate-800 leading-relaxed">
+                    学院有权在必要时调整训练时间或地点，并将提前通知。
+                </p>
+                <p class="text-[11px] md:text-[12px] text-slate-600 leading-relaxed">
+                    The Academy reserves the right to adjust training times or venues when necessary and will notify in advance.
+                </p>
+            </div>
+        </li>
+
+        <li class="flex items-start gap-2 md:gap-3">
+            <div class="mt-0.5 h-5 w-5 md:h-6 md:w-6 rounded-full bg-slate-900 text-white flex items-center justify-center text-[10px] md:text-[11px] font-bold flex-shrink-0">4</div>
+            <div class="space-y-1">
+                <p class="text-[11px] md:text-[12px] text-slate-800 leading-relaxed">
+                    学费一经缴付，概不退还（Non‑refundable）。
+                </p>
+                <p class="text-[11px] md:text-[12px] text-slate-600 leading-relaxed">
+                    Fees paid are strictly non‑refundable under all circumstances.
+                </p>
+            </div>
+        </li>
+
+        <li class="flex items-start gap-2 md:gap-3">
+            <div class="mt-0.5 h-5 w-5 md:h-6 md:w-6 rounded-full bg-slate-900 text-white flex items-center justify-center text-[10px] md:text-[11px] font-bold flex-shrink-0">5</div>
+            <div class="space-y-1">
+                <p class="text-[11px] md:text-[12px] text-slate-800 leading-relaxed">
+                    本人同意遵守学院及教练的所有指示与安排。
+                </p>
+                <p class="text-[11px] md:text-[12px] text-slate-600 leading-relaxed">
+                    I agree to follow all instructions, rules, and arrangements set by the Academy and coaches.
+                </p>
+            </div>
+        </li>
+
+        <li class="flex items-start gap-2 md:gap-3">
+            <div class="mt-0.5 h-5 w-5 md:h-6 md:w-6 rounded-full bg-slate-900 text-white flex items-center justify-center text-[10px] md:text-[11px] font-bold flex-shrink-0">6</div>
+            <div class="space-y-1">
+                <p class="text-[11px] md:text-[12px] text-slate-800 leading-relaxed">
+                    只限于本院通知取消课程，将会另行安排补课，家长不允许自行取消课程。
+                </p>
+                <p class="text-[11px] md:text-[12px] text-slate-600 leading-relaxed">
+                    Replacement classes are only provided when the Academy cancels a session; parents may not cancel classes on their own.
+                </p>
+            </div>
+        </li>
+
+        <li class="flex items-start gap-2 md:gap-3">
+            <div class="mt-0.5 h-5 w-5 md:h-6 md:w-6 rounded-full bg-slate-900 text-white flex items-center justify-center text-[10px] md:text-[11px] font-bold flex-shrink-0">7</div>
+            <div class="space-y-1">
+                <p class="text-[11px] md:text-[12px] text-slate-800 leading-relaxed">
+                    如学员因病或其他原因无法出席训练，必须向行政与教练申请请假；未经许可的缺席将被记录。
+                </p>
+                <p class="text-[11px] md:text-[12px] text-slate-600 leading-relaxed">
+                    If the student cannot attend due to sickness or other reasons, leave must be applied for with admin and coach; unapproved absences will be recorded.
+                </p>
+            </div>
+        </li>
+
+        <li class="flex items-start gap-2 md:gap-3">
+            <div class="mt-0.5 h-5 w-5 md:h-6 md:w-6 rounded-full bg-slate-900 text-white flex items-center justify-center text-[10px] md:text-[11px] font-bold flex-shrink-0">8</div>
+            <div class="space-y-1">
+                <p class="text-[11px] md:text-[12px] text-slate-800 leading-relaxed">
+                    州队及后备队必须出席所有训练，保持良好态度，接受严格训练与训导。
+                </p>
+                <p class="text-[11px] md:text-[12px] text-slate-600 leading-relaxed">
+                    State‑team and reserve athletes must attend all training, maintain good attitude, and accept strict training and discipline.
+                </p>
+            </div>
+        </li>
+
+        <li class="flex items-start gap-2 md:gap-3">
+            <div class="mt-0.5 h-5 w-5 md:h-6 md:w-6 rounded-full bg-slate-900 text-white flex items-center justify-center text-[10px] md:text-[11px] font-bold flex-shrink-0">9</div>
+            <div class="space-y-1">
+                <p class="text-[11px] md:text-[12px] text-slate-800 leading-relaxed">
+                    如因脚受伤、扭伤或生病，请勿勉强出席训练，后果自负。
+                </p>
+                <p class="text-[11px] md:text-[12px] text-slate-600 leading-relaxed">
+                    Students with injuries or illness should not attend training; any consequences are at their own risk.
+                </p>
+            </div>
+        </li>
+
+        <li class="flex items-start gap-2 md:gap-3">
+            <div class="mt-0.5 h-5 w-5 md:h-6 md:w-6 rounded-full bg-slate-900 text-white flex items-center justify-center text-[10px] md:text-[11px] font-bold flex-shrink-0">10</div>
+            <div class="space-y-1">
+                <p class="text-[11px] md:text-[12px] text-slate-800 leading-relaxed">
+                    本院不负责学员及家长的任何贵重财物。
+                </p>
+                <p class="text-[11px] md:text-[12px] text-slate-600 leading-relaxed">
+                    The Academy is not responsible for any valuables belonging to students or parents.
+                </p>
+            </div>
+        </li>
+
+        <li class="flex items-start gap-2 md:gap-3">
+            <div class="mt-0.5 h-5 w-5 md:h-6 md:w-6 rounded-full bg-slate-900 text-white flex items-center justify-center text-[10px] md:text-[11px] font-bold flex-shrink-0">11</div>
+            <div class="space-y-1">
+                <p class="text-[11px] md:text-[12px] text-slate-800 leading-relaxed">
+                    不允许打架、吵架、态度恶劣或不配合训练，否则将被取消州队及学员资格。
+                </p>
+                <p class="text-[11px] md:text-[12px] text-slate-600 leading-relaxed">
+                    Fighting, quarrelling, poor attitude, or refusing to cooperate with training may result in removal from the state team and the Academy.
+                </p>
+            </div>
+        </li>
+
+        <li class="flex items-start gap-2 md:gap-3">
+            <div class="mt-0.5 h-5 w-5 md:h-6 md:w-6 rounded-full bg-slate-900 text-white flex items-center justify-center text-[10px] md:text-[11px] font-bold flex-shrink-0">12</div>
+            <div class="space-y-1">
+                <p class="text-[11px] md:text-[12px] text-slate-800 leading-relaxed">
+                    训练期间不允许吃食物，只能在休息时间喝水。
+                </p>
+                <p class="text-[11px] md:text-[12px] text-slate-600 leading-relaxed">
+                    Eating is not allowed during training; only drinking water during breaks is permitted.
+                </p>
+            </div>
+        </li>
+
+        <li class="flex items-start gap-2 md:gap-3">
+            <div class="mt-0.5 h-5 w-5 md:h-6 md:w-6 rounded-full bg-slate-900 text-white flex items-center justify-center text-[10px] md:text-[11px] font-bold flex-shrink-0">13</div>
+            <div class="space-y-1">
+                <p class="text-[11px] md:text-[12px] text-slate-800 leading-relaxed">
+                    家长不允许干涉教练所安排的专业训练计划及纪律管理。
+                </p>
+                <p class="text-[11px] md:text-[12px] text-slate-600 leading-relaxed">
+                    Parents are not allowed to interfere with professional training plans or discipline set by the coaches.
+                </p>
+            </div>
+        </li>
+
+        <li class="flex items-start gap-2 md:gap-3">
+            <div class="mt-0.5 h-5 w-5 md:h-6 md:w-6 rounded-full bg-slate-900 text-white flex items-center justify-center text-[10px] md:text-[11px] font-bold flex-shrink-0">14</div>
+            <div class="space-y-1">
+                <p class="text-[11px] md:text-[12px] text-slate-800 leading-relaxed">
+                    家长必须准时载送孩子往返训练地点，并自行负责交通安全。
+                </p>
+                <p class="text-[11px] md:text-[12px] text-slate-600 leading-relaxed">
+                    Parents must send and pick up their children on time and are fully responsible for transport safety.
+                </p>
+            </div>
+        </li>
+
+        <li class="flex items-start gap-2 md:gap-3">
+            <div class="mt-0.5 h-5 w-5 md:h-6 md:w-6 rounded-full bg-slate-900 text-white flex items-center justify-center text-[10px] md:text-[11px] font-bold flex-shrink-0">15</div>
+            <div class="space-y-1">
+                <p class="text-[11px] md:text-[12px] text-slate-800 leading-relaxed">
+                    训练过程中，学员可能被录影或拍照作为宣传用途，如家长不允许，须以书面通知本院。
+                </p>
+                <p class="text-[11px] md:text-[12px] text-slate-600 leading-relaxed">
+                    Training sessions may be recorded or photographed for publicity; parents who do not consent must inform the Academy in writing.
+                </p>
+            </div>
+        </li>
+    </ol>
 </div>
+
+
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-5 mt-6">
+                    <h4 class="font-bold text-slate-700 mb-4 text-sm uppercase">Legal Declaration</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="text-xs font-bold text-slate-500">Parent Name</label>
+                            <input type="text" id="parent-name" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white">
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-slate-500">Parent IC No.</label>
+                            <input type="text" id="parent-ic" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white" placeholder="000000-00-0000" maxlength="14">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="text-xs font-bold text-slate-500">Effective Date</label>
+                            <input type="text" id="today-date" class="w-full p-2 border border-slate-200 bg-slate-100 text-slate-500 rounded-lg text-sm" readonly>
+                        </div>
+                    </div>
+
+                    <label class="text-xs font-bold text-slate-500 mb-2 block">Parent's Signature (Sign Below)</label>
+                    <div id="sig-wrapper" class="sig-box">
+                        <div id="sig-placeholder">SIGN HERE</div>
+                        <div class="absolute top-2 right-2 z-10">
+                            <button type="button" onclick="clearSig()" class="bg-red-100 text-red-600 px-3 py-1 rounded text-xs font-bold hover:bg-red-200 cursor-pointer border-none">
+                                <i class="fa-solid fa-eraser"></i> Clear
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEP 6: Success Page -->
+<div id="step-6" class="step-content">
+    <div class="text-center py-12">
+        <div class="mb-6">
+            <div class="mx-auto w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                <i class="fas fa-check-circle text-green-600 text-5xl"></i>
+            </div>
+            <h2 class="text-3xl font-bold text-slate-800 mb-2">Registration Successful!</h2>
+            <p class="text-slate-600 text-lg mb-1">报名成功！</p>
+        </div>
+        
+        <div class="bg-blue-50 border-l-4 border-blue-500 p-6 rounded-r-xl mb-8 max-w-2xl mx-auto text-left">
+            <h3 class="font-bold text-blue-800 mb-3 flex items-center gap-2">
+                <i class="fas fa-info-circle"></i>
+                What's Next? 接下来做什么？
+            </h3>
+            <ul class="space-y-2 text-sm text-blue-900">
+                <li class="flex items-start gap-2">
+                    <i class="fas fa-check text-blue-600 mt-1"></i>
+                    <span>Your registration form has been submitted and signed agreement downloaded. 您的报名表已提交，签署协议已下载。</span>
+                </li>
+                <li class="flex items-start gap-2">
+                    <i class="fas fa-check text-blue-600 mt-1"></i>
+                    <span>Please pay the fees before the 10th of every month. 请在每月10号前缴费。</span>
+                </li>
+                <li class="flex items-start gap-2">
+                    <i class="fas fa-check text-blue-600 mt-1"></i>
+                    <span>Send your payment receipt to the coach and admin. 将收据发给教练和行政人员。</span>
+                </li>
+                <li class="flex items-start gap-2">
+                    <i class="fas fa-check text-blue-600 mt-1"></i>
+                    <span>Check your email for confirmation and training schedule details. 查看电子邮件以确认训练时间安排。</span>
+                </li>
+            </ul>
+        </div>
+
+        <div class="flex justify-center">
+            <button type="button" onclick="submitAnother()" class="bg-gradient-to-r from-purple-600 to-purple-700 text-white px-10 py-5 rounded-xl font-bold text-lg shadow-lg hover:from-purple-700 hover:to-purple-800 transition-all transform hover:scale-105 flex items-center gap-3">
+                <i class="fas fa-plus-circle text-2xl"></i>
+                <div class="text-left">
+                    <div>Submit Another Registration</div>
+                    <div class="text-sm font-normal">提交另一份报名表</div>
+                </div>
+            </button>
+        </div>
+    </div>
+</div>
+
+
+        </form>
+    </div>
+
+    <!-- Footer buttons -->
+    <div class="p-6 bg-white border-t border-slate-100 flex justify-between items-center">
+        <button id="btn-prev" onclick="changeStep(-1)" class="px-6 py-2.5 rounded-xl font-semibold text-slate-500 hover:bg-slate-100 transition disabled:opacity-0" disabled>Back</button>
+        <button id="btn-next" onclick="changeStep(1)" class="bg-slate-900 text-white px-8 py-2.5 rounded-xl font-semibold shadow-lg shadow-slate-300 hover:bg-slate-800 transition">
+            Next Step <i class="fa-solid fa-arrow-right"></i>
+        </button>
+    </div>
+</div>
+
+<!-- HIDDEN PDF TEMPLATE - PAGE 1 -->
+<div id="pdf-template-page1" style="width: 794px; padding: 40px; background: #ffffff; position: fixed; top: -10000px; left: -10000px; visibility: hidden; pointer-events: none; color: #111827; font-family: 'Noto Sans SC', sans-serif;">
+    <img src="/assets/WSP Letter.png" style="width: 100%; margin-bottom: 12px;" alt="Letterhead">
+    <h1 style="text-align:center; font-size:24px; font-weight:800; margin-top:6px;">OFFICIAL WUSHU REGISTRATION 2026</h1>
+    <p style="text-align:center; font-size:13px; color:#6b7280; margin-bottom:24px;">Legal Binding Document · This form confirms participation in Wushu Sports Academy programmes.</p>
+
+    <div style="margin-bottom:22px;">
+        <div style="background:#e5e7eb; padding:7px 12px; font-weight:700; font-size:13px; text-transform:uppercase;">STUDENT DETAILS / 学员资料</div>
+        <div style="border:1px solid #e5e7eb; border-top:none; padding:10px 12px; font-size:13px; line-height:1.5;">
+            <div style="margin-bottom:5px;"><span style="font-weight:600; color:#6b7280; display:inline-block; width:140px;">Name 姓名:</span> <span style="font-weight:500; color:#111827;" id="pdf-name"></span></div>
+            <div style="margin-bottom:5px;"><span style="font-weight:600; color:#6b7280; display:inline-block; width:140px;">IC No 身份证:</span> <span style="font-weight:500; color:#111827;" id="pdf-ic"></span></div>
+            <div style="margin-bottom:5px;"><span style="font-weight:600; color:#6b7280; display:inline-block; width:140px;">Age 年龄:</span> <span style="font-weight:500; color:#111827;" id="pdf-age"></span></div>
+            <div style="margin-bottom:5px;"><span style="font-weight:600; color:#6b7280; display:inline-block; width:140px;">School 学校:</span> <span style="font-weight:500; color:#111827;" id="pdf-school"></span></div>
+            <div style="margin-bottom:5px;"><span style="font-weight:600; color:#6b7280; display:inline-block; width:140px;">Status 身份:</span> <span style="font-weight:500; color:#111827;" id="pdf-status"></span></div>
+        </div>
+    </div>
+
+    <div style="margin-bottom:22px;">
+        <div style="background:#e5e7eb; padding:7px 12px; font-weight:700; font-size:13px; text-transform:uppercase;">CONTACT & EVENTS / 联系与项目</div>
+        <div style="border:1px solid #e5e7eb; border-top:none; padding:10px 12px; font-size:13px; line-height:1.5;">
+            <div style="margin-bottom:5px;"><span style="font-weight:600; color:#6b7280; display:inline-block; width:140px;">Phone 电话:</span> <span style="font-weight:500; color:#111827;" id="pdf-phone"></span></div>
+            <div style="margin-bottom:5px;"><span style="font-weight:600; color:#6b7280; display:inline-block; width:140px;">Email 邮箱:</span> <span style="font-weight:500; color:#111827;" id="pdf-email"></span></div>
+            <div style="margin-bottom:5px;"><span style="font-weight:600; color:#6b7280; display:inline-block; width:140px;">Level 等级:</span> <span style="font-weight:500; color:#111827;" id="pdf-level"></span></div>
+            <div style="margin-bottom:5px;"><span style="font-weight:600; color:#6b7280; display:inline-block; width:140px;">Events 项目:</span> <span style="font-weight:500; color:#111827;" id="pdf-events"></span></div>
+            <div style="margin-bottom:5px;"><span style="font-weight:600; color:#6b7280; display:inline-block; width:140px;">Schedule 时间:</span> <span style="font-weight:500; color:#111827;" id="pdf-schedule"></span></div>
+        </div>
+    </div>
+
+    <div style="margin-bottom:22px;">
+        <div style="background:#e5e7eb; padding:7px 12px; font-weight:700; font-size:13px; text-transform:uppercase;">DECLARATION & SIGNATURE / 声明与签名</div>
+        <div style="border:1px solid #e5e7eb; border-top:none; padding:10px 12px; font-size:13px; line-height:1.5;">
+            <p style="font-size:13px; margin-bottom:12px;">
+                I hereby confirm that all information provided is accurate. I have read and agreed to the
+                Terms & Conditions, Fee Policy, and Athlete Code of Conduct. I understand that Wushu is a
+                high-intensity sport and agree to bear the risks involved.
+            </p>
+            <div style="border:1px solid #d1d5db; padding:8px; width:340px; height:130px; position:relative; margin-bottom:10px;">
+                <img id="pdf-sig-img" style="max-width:100%; max-height:100%; object-fit:contain;">
+            </div>
+            <p style="font-size:13px; font-weight:600; margin-bottom:4px;">
+                Parent / Guardian Name: <span id="pdf-parent-name"></span>
+            </p>
+            <p style="font-size:13px; font-weight:600; margin-bottom:4px;">
+                Parent / Guardian IC No.: <span id="pdf-parent-ic"></span>
+            </p>
+            <p style="font-size:12px; margin-top:2px;">
+                Date: <span id="pdf-date"></span>
+            </p>
+        </div>
+    </div>
+
+    <p style="font-size:12px; color:#4b5563; margin-top:14px; text-align:justify; line-height:1.6;">
+        <strong>NOTES / 备注：</strong>
+        Fees are non-refundable and must be paid by the 10th of every month. Strict discipline and punctuality
+        are required at all times. The Academy reserves the right to adjust training schedules and venues when
+        necessary. 学费概不退还，并须在每月10号前缴清。学员必须严守纪律与守时；学院保留在有需要时调整训练时间及地点的权利。
+    </p>
+</div>
+
+
+<!-- HIDDEN PDF TEMPLATE - PAGE 2 -->
+<div id="pdf-template-page2" style="width: 794px; padding: 40px; background: #ffffff; position: fixed; top: -10000px; left: -10000px; visibility: hidden; pointer-events: none; color: #111827; font-family: Arial, sans-serif;">
+    <img src="/assets/WSP Letter.png" style="width: 100%; margin-bottom: 12px;" alt="Letterhead">
+    <h1 style="text-align:center; font-size:24px; font-weight:800; margin-top:6px; font-family: 'Noto Sans SC', sans-serif;">TERMS & CONDITIONS</h1>
+    <p style="text-align:center; font-size:13px; color:#6b7280; margin-bottom:16px; font-family: 'Noto Sans SC', sans-serif;">条款与条件 · Agreed and Signed by Parent/Guardian</p>
+
+    <div style="font-size: 11px; line-height: 1.5; color: #111827; font-family: 'Noto Sans SC', sans-serif;">
+        <p style="margin-bottom: 10px; font-weight: 600; color: #1e293b; font-size: 12px;">
+            The parent/guardian has read, understood, and agreed to the following terms:
+        </p>
+
+        <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+                <td style="width: 30px; padding: 0 8px 8px 0;">
+                    <div style="width: 24px; height: 24px; background: #1e293b; border-radius: 50%; color: white; font-weight: 700; font-size: 12px; text-align: center; font-family: Arial, sans-serif; box-sizing: border-box; line-height: 10px;">1</div>
+                </td>
+                <td style="padding: 0 0 8px 0;">
+                    <p style="margin: 0 0 2px 0; font-weight: 600; font-size: 11px; line-height: 1.4;">本人（学员/家长/监护人）确认上述资料属实。</p>
+                    <p style="margin: 0; color: #4b5563; font-size: 10px; line-height: 1.4;">I, the student/parent/guardian, confirm that all information provided above is true and correct.</p>
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 30px; padding: 0 8px 8px 0;">
+                    <div style="width: 24px; height: 24px; background: #1e293b; border-radius: 50%; color: white; font-weight: 700; font-size: 12px; text-align: center; font-family: Arial, sans-serif; box-sizing: border-box; line-height: 10px;">2</div>
+                </td>
+                <td style="padding: 0 0 8px 0;">
+                    <p style="margin: 0 0 2px 0; font-weight: 600; font-size: 11px; line-height: 1.4;">本人明白武术是一项剧烈运动，并愿意自行承担训练期间可能发生的意外风险。</p>
+                    <p style="margin: 0; color: #4b5563; font-size: 10px; line-height: 1.4;">I understand that Wushu is a high‑intensity sport and agree to bear any risk of injury during training.</p>
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 30px; padding: 0 8px 8px 0;">
+                    <div style="width: 24px; height: 24px; background: #1e293b; border-radius: 50%; color: white; font-weight: 700; font-size: 12px; text-align: center; font-family: Arial, sans-serif; box-sizing: border-box; line-height: 10px;">3</div>
+                </td>
+                <td style="padding: 0 0 8px 0;">
+                    <p style="margin: 0 0 2px 0; font-weight: 600; font-size: 11px; line-height: 1.4;">学院有权在必要时调整训练时间或地点，并将提前通知。</p>
+                    <p style="margin: 0; color: #4b5563; font-size: 10px; line-height: 1.4;">The Academy reserves the right to adjust training times or venues when necessary and will notify in advance.</p>
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 30px; padding: 0 8px 8px 0;">
+                    <div style="width: 24px; height: 24px; background: #1e293b; border-radius: 50%; color: white; font-weight: 700; font-size: 12px; text-align: center; font-family: Arial, sans-serif; box-sizing: border-box; line-height: 10px;">4</div>
+                </td>
+                <td style="padding: 0 0 8px 0;">
+                    <p style="margin: 0 0 2px 0; font-weight: 600; font-size: 11px; line-height: 1.4;">学费一经缴付，概不退还（Non‑refundable）。</p>
+                    <p style="margin: 0; color: #4b5563; font-size: 10px; line-height: 1.4;">Fees paid are strictly non‑refundable under all circumstances.</p>
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 30px; padding: 0 8px 8px 0;">
+                    <div style="width: 24px; height: 24px; background: #1e293b; border-radius: 50%; color: white; font-weight: 700; font-size: 12px; text-align: center; font-family: Arial, sans-serif; box-sizing: border-box; line-height: 10px;">5</div>
+                </td>
+                <td style="padding: 0 0 8px 0;">
+                    <p style="margin: 0 0 2px 0; font-weight: 600; font-size: 11px; line-height: 1.4;">本人同意遵守学院及教练的所有指示与安排。</p>
+                    <p style="margin: 0; color: #4b5563; font-size: 10px; line-height: 1.4;">I agree to follow all instructions, rules, and arrangements set by the Academy and coaches.</p>
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 30px; padding: 0 8px 8px 0;">
+                    <div style="width: 24px; height: 24px; background: #1e293b; border-radius: 50%; color: white; font-weight: 700; font-size: 12px; text-align: center; font-family: Arial, sans-serif; box-sizing: border-box; line-height: 10px;">6</div>
+                </td>
+                <td style="padding: 0 0 8px 0;">
+                    <p style="margin: 0 0 2px 0; font-weight: 600; font-size: 11px; line-height: 1.4;">只限于本院通知取消课程，将会另行安排补课，家长不允许自行取消课程。</p>
+                    <p style="margin: 0; color: #4b5563; font-size: 10px; line-height: 1.4;">Replacement classes are only provided when the Academy cancels a session; parents may not cancel classes on their own.</p>
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 30px; padding: 0 8px 8px 0;">
+                    <div style="width: 24px; height: 24px; background: #1e293b; border-radius: 50%; color: white; font-weight: 700; font-size: 12px; text-align: center; font-family: Arial, sans-serif; box-sizing: border-box; line-height: 10px;">7</div>
+                </td>
+                <td style="padding: 0 0 8px 0;">
+                    <p style="margin: 0 0 2px 0; font-weight: 600; font-size: 11px; line-height: 1.4;">如学员因病或其他原因无法出席训练，必须向行政与教练申请请假；未经许可的缺席将被记录。</p>
+                    <p style="margin: 0; color: #4b5563; font-size: 10px; line-height: 1.4;">If the student cannot attend due to sickness or other reasons, leave must be applied for with admin and coach; unapproved absences will be recorded.</p>
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 30px; padding: 0 8px 8px 0;">
+                    <div style="width: 24px; height: 24px; background: #1e293b; border-radius: 50%; color: white; font-weight: 700; font-size: 12px; text-align: center; font-family: Arial, sans-serif; box-sizing: border-box; line-height: 10px;">8</div>
+                </td>
+                <td style="padding: 0 0 8px 0;">
+                    <p style="margin: 0 0 2px 0; font-weight: 600; font-size: 11px; line-height: 1.4;">州队及后备队必须出席所有训练，保持良好态度，接受严格训练与训导。</p>
+                    <p style="margin: 0; color: #4b5563; font-size: 10px; line-height: 1.4;">State‑team and reserve athletes must attend all training, maintain good attitude, and accept strict training and discipline.</p>
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 30px; padding: 0 8px 8px 0;">
+                    <div style="width: 24px; height: 24px; background: #1e293b; border-radius: 50%; color: white; font-weight: 700; font-size: 12px; text-align: center; font-family: Arial, sans-serif; box-sizing: border-box; line-height: 10px;">9</div>
+                </td>
+                <td style="padding: 0 0 8px 0;">
+                    <p style="margin: 0 0 2px 0; font-weight: 600; font-size: 11px; line-height: 1.4;">如因脚受伤、扭伤或生病，请勿勉强出席训练，后果自负。</p>
+                    <p style="margin: 0; color: #4b5563; font-size: 10px; line-height: 1.4;">Students with injuries or illness should not attend training; any consequences are at their own risk.</p>
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 30px; padding: 0 8px 8px 0;">
+                    <div style="width: 24px; height: 24px; background: #1e293b; border-radius: 50%; color: white; font-weight: 700; font-size: 12px; text-align: center; font-family: Arial, sans-serif; box-sizing: border-box; line-height: 10px;">10</div>
+                </td>
+                <td style="padding: 0 0 8px 0;">
+                    <p style="margin: 0 0 2px 0; font-weight: 600; font-size: 11px; line-height: 1.4;">本院不负责学员及家长的任何贵重财物。</p>
+                    <p style="margin: 0; color: #4b5563; font-size: 10px; line-height: 1.4;">The Academy is not responsible for any valuables belonging to students or parents.</p>
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 30px; padding: 0 8px 8px 0;">
+                    <div style="width: 24px; height: 24px; background: #1e293b; border-radius: 50%; color: white; font-weight: 700; font-size: 12px; text-align: center; font-family: Arial, sans-serif; box-sizing: border-box; line-height: 10px;">11</div>
+                </td>
+                <td style="padding: 0 0 8px 0;">
+                    <p style="margin: 0 0 2px 0; font-weight: 600; font-size: 11px; line-height: 1.4;">不允许打架、吵架、态度恶劣或不配合训练，否则将被取消州队及学员资格。</p>
+                    <p style="margin: 0; color: #4b5563; font-size: 10px; line-height: 1.4;">Fighting, quarrelling, poor attitude, or refusing to cooperate with training may result in removal from the state team and the Academy.</p>
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 30px; padding: 0 8px 8px 0;">
+                    <div style="width: 24px; height: 24px; background: #1e293b; border-radius: 50%; color: white; font-weight: 700; font-size: 12px; text-align: center; font-family: Arial, sans-serif; box-sizing: border-box; line-height: 10px;">12</div>
+                </td>
+                <td style="padding: 0 0 8px 0;">
+                    <p style="margin: 0 0 2px 0; font-weight: 600; font-size: 11px; line-height: 1.4;">训练期间不允许吃食物，只能在休息时间喝水。</p>
+                    <p style="margin: 0; color: #4b5563; font-size: 10px; line-height: 1.4;">Eating is not allowed during training; only drinking water during breaks is permitted.</p>
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 30px; padding: 0 8px 8px 0;">
+                    <div style="width: 24px; height: 24px; background: #1e293b; border-radius: 50%; color: white; font-weight: 700; font-size: 12px; text-align: center; font-family: Arial, sans-serif; box-sizing: border-box; line-height: 10px;">13</div>
+                </td>
+                <td style="padding: 0 0 8px 0;">
+                    <p style="margin: 0 0 2px 0; font-weight: 600; font-size: 11px; line-height: 1.4;">家长不允许干涉教练所安排的专业训练计划及纪律管理。</p>
+                    <p style="margin: 0; color: #4b5563; font-size: 10px; line-height: 1.4;">Parents are not allowed to interfere with professional training plans or discipline set by the coaches.</p>
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 30px; padding: 0 8px 8px 0;">
+                    <div style="width: 24px; height: 24px; background: #1e293b; border-radius: 50%; color: white; font-weight: 700; font-size: 12px; text-align: center; font-family: Arial, sans-serif; box-sizing: border-box; line-height: 10px;">14</div>
+                </td>
+                <td style="padding: 0 0 8px 0;">
+                    <p style="margin: 0 0 2px 0; font-weight: 600; font-size: 11px; line-height: 1.4;">家长必须准时载送孩子往返训练地点，并自行负责交通安全。</p>
+                    <p style="margin: 0; color: #4b5563; font-size: 10px; line-height: 1.4;">Parents must send and pick up their children on time and are fully responsible for transport safety.</p>
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 30px; padding: 0 8px 8px 0;">
+                    <div style="width: 24px; height: 24px; background: #1e293b; border-radius: 50%; color: white; font-weight: 700; font-size: 12px; text-align: center; font-family: Arial, sans-serif; box-sizing: border-box; line-height: 10px;">15</div>
+                </td>
+                <td style="padding: 0 0 8px 0;">
+                    <p style="margin: 0 0 2px 0; font-weight: 600; font-size: 11px; line-height: 1.4;">训练过程中，学员可能被录影或拍照作为宣传用途，如家长不允许，须以书面通知本院。</p>
+                    <p style="margin: 0; color: #4b5563; font-size: 10px; line-height: 1.4;">Training sessions may be recorded or photographed for publicity; parents who do not consent must inform the Academy in writing.</p>
+                </td>
+            </tr>
+        </table>
+
+        <div style="margin-top: 18px; padding: 14px 16px; background: #f8fafc; border: 2px solid #1e293b; border-radius: 6px;">
+            <p style="font-weight: 700; margin: 0 0 8px 0; color: #1e293b; font-size: 12px;">LEGAL ACKNOWLEDGEMENT / 法律声明</p>
+            <p style="margin: 0 0 6px 0; font-size: 10.5px; line-height: 1.5;">
+                By signing this document, the parent/guardian acknowledges that they have read, understood, and agreed to all 15 terms and conditions listed above.
+            </p>
+            <p style="color: #4b5563; font-size: 10px; margin: 0 0 10px 0; line-height: 1.5;">
+                家长/监护人签署此文件，即表示已阅读、理解并同意上述所有15项条款与条件。
+            </p>
+            <p style="margin: 0; font-weight: 600; font-size: 11px; line-height: 1.6;">
+                Signed by: <span id="pdf-parent-name-2" style="font-weight: 500;"></span> (<span id="pdf-parent-ic-2" style="font-weight: 500;"></span>)<br>
+                Date: <span id="pdf-date-2" style="font-weight: 500;"></span>
+            </p>
+        </div>
+    </div>
+</div>
+
+
+
+
+<!-- LOADING OVERLAY -->
+<div id="pdf-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; justify-content: center; align-items: center;">
+    <div style="text-align: center; color: white;">
+        <div style="width: 60px; height: 60px; border: 5px solid rgba(255,255,255,0.3); border-top: 5px solid white; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px;"></div>
+        <h3 style="font-size: 20px; margin: 0;">Generating Signed Agreement...</h3>
+        <p style="margin-top: 10px; font-size: 14px; opacity: 0.8;">Please wait</p>
+    </div>
+</div>
+
 
 <script>
     let currentStep = 1;
     const totalSteps = 6;
+
+    let canvas, ctx;
+    let isDrawing = false;
+    let lastX = 0, lastY = 0;
+    let hasSigned = false;
+
+    const pdfOverlay = document.getElementById('pdf-overlay');
+
+    // Store registration data for re-downloading
     let registrationData = null;
 
-    // Initialize date
-    document.addEventListener('DOMContentLoaded', function() {
-        document.getElementById('today-date').value = new Date().toLocaleDateString('en-GB');
-        setupSignature();
-        setupFormLogic();
+    document.addEventListener("DOMContentLoaded", function() {
+    document.getElementById('today-date').value = new Date().toLocaleDateString('en-GB');
+    document.getElementById('ic').addEventListener('input', formatIC);
+    document.getElementById('ic').addEventListener('input', calculateAge);  // ADD THIS LINE
+    document.getElementById('parent-ic').addEventListener('input', formatIC);
+    document.getElementById('phone').addEventListener('input', formatPhone);
+    document.getElementById('today-date').value = new Date().toLocaleDateString('en-GB');
+    document.getElementById('ic').addEventListener('input', formatIC);
+    document.getElementById('ic').addEventListener('input', calculateAge);
+    document.getElementById('phone').addEventListener('input', formatPhone);
+    initSignaturePad();
+    window.addEventListener('resize', resizeCanvas);
+
+    // --- NEW: Add Listeners for Status Change ---
+    const statusRadios = document.getElementsByName('status');
+    statusRadios.forEach(radio => {
+        radio.addEventListener('change', updateScheduleAvailability);
     });
 
-    function setupFormLogic() {
-        // School other toggle
-        document.getElementById('school').addEventListener('change', function() {
-            const otherInput = document.getElementById('school-other');
-            if (this.value === 'Others') {
-                otherInput.classList.remove('hidden');
-                otherInput.required = true;
-            } else {
-                otherInput.classList.add('hidden');
-                otherInput.required = false;
-                otherInput.value = '';
-            }
-        });
+    // Run once on load to set initial state
+    updateScheduleAvailability();
+    window.addEventListener('resize', resizeCanvas);
+});
 
-        // Status other toggle
-        document.querySelectorAll('input[name="status"]').forEach(radio => {
-            radio.addEventListener('change', function() {
-                const otherInput = document.getElementById('status-other');
-                if (this.value === 'Others 其他') {
-                    otherInput.classList.remove('hidden');
-                    otherInput.required = true;
-                } else {
-                    otherInput.classList.add('hidden');
-                    otherInput.required = false;
-                    otherInput.value = '';
-                }
-            });
-        });
-
-        // IC formatting + age calc
-        document.getElementById('ic').addEventListener('input', function(e) {
-            let value = e.target.value.replace(/\D/g, '');
-            if (value.length > 6) value = value.slice(0,6) + '-' + value.slice(6);
-            if (value.length > 9) value = value.slice(0,9) + '-' + value.slice(9,13);
-            e.target.value = value;
-            calculateAge(value);
-        });
-
-        // Phone formatting
-        document.getElementById('phone').addEventListener('input', function(e) {
-            let value = e.target.value.replace(/\D/g, '');
-            if (value.startsWith('011')) {
-                if (value.length > 3) value = value.slice(0,3) + '-' + value.slice(3);
-                if (value.length > 8) value = value.slice(0,8) + ' ' + value.slice(8,12);
-            } else {
-                if (value.length > 3) value = value.slice(0,3) + '-' + value.slice(3);
-                if (value.length > 7) value = value.slice(0,7) + ' ' + value.slice(7,11);
-            }
-            e.target.value = value;
-        });
-
-        // Parent IC formatting
-        document.getElementById('parent-ic').addEventListener('input', function(e) {
-            let value = e.target.value.replace(/\D/g, '');
-            if (value.length > 6) value = value.slice(0,6) + '-' + value.slice(6);
-            if (value.length > 9) value = value.slice(0,9) + '-' + value.slice(9,13);
-            e.target.value = value;
-        });
-    }
-
-    function calculateAge(icValue) {
-        const ic = icValue.replace(/-/g, '');
-        if (ic.length >= 6) {
-            const year = parseInt(ic.substring(0,2));
-            const month = parseInt(ic.substring(2,4));
-            const day = parseInt(ic.substring(4,6));
-            const fullYear = year > 25 ? 1900 + year : 2000 + year;
-            const birthDate = new Date(fullYear, month - 1, day);
-            const age = 2026 - birthDate.getFullYear();
-            document.getElementById('age').value = age;
+    // Function to handle class restrictions based on Student Status
+function updateScheduleAvailability() {
+    // 1. Get current status
+    const statusRadios = document.getElementsByName('status');
+    let selectedStatus = 'Student 学生'; // Default
+    for (const radio of statusRadios) {
+        if (radio.checked) {
+            selectedStatus = radio.value;
+            break;
         }
     }
 
-    function nextStep() {
-        if (!validateStep(currentStep)) return;
+    // Check if user is JUST a "Student" (not State or Backup)
+    const isRegularStudent = selectedStatus === 'Student 学生';
 
-        if (currentStep < totalSteps) {
-            document.getElementById(`step-${currentStep}`).classList.remove('active');
-            currentStep++;
-            document.getElementById(`step-${currentStep}`).classList.add('active');
-            updateUI();
+    // 2. Define the restricted values
+    const restrictedClasses = [
+        "SJK(C) Puay Chai 2: Tue 8pm-10pm",     // Tuesday Class
+        "Wushu Sport Academy: Sun 10am-12pm",   // Sunday 10am Class
+        "Stadium Chinwoo: Sun 2pm-4pm"          // Chinwoo Class
+    ];
+
+    // 3. Loop through restricted classes and disable/enable them
+    restrictedClasses.forEach(val => {
+        // Find the checkbox by value
+        const checkbox = document.querySelector(`input[name="sch"][value="${val}"]`);
+        
+        if (checkbox) {
+            const container = checkbox.closest('label');
+            const errorMsg = container.querySelector('.disabled-msg');
+
+            if (isRegularStudent) {
+                // DISABLE logic
+                checkbox.checked = false; // Uncheck if previously selected
+                checkbox.disabled = true;
+                
+                // Visual updates
+                container.classList.add('opacity-50', 'cursor-not-allowed', 'bg-slate-100');
+                container.classList.remove('hover:bg-slate-50', 'cursor-pointer');
+                if(errorMsg) errorMsg.classList.remove('hidden');
+            } else {
+                // ENABLE logic
+                checkbox.disabled = false;
+                
+                // Visual updates
+                container.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-slate-100');
+                container.classList.add('hover:bg-slate-50', 'cursor-pointer');
+                if(errorMsg) errorMsg.classList.add('hidden');
+            }
+        }
+    });
+}
+
+
+
+    function formatIC(e) {
+        let val = e.target.value.replace(/\D/g, '');
+        if (val.length > 12) val = val.substring(0, 12);
+        if (val.length > 8) {
+            e.target.value = val.substring(0, 6) + '-' + val.substring(6, 8) + '-' + val.substring(8, 12);
+        } else if (val.length > 6) {
+            e.target.value = val.substring(0, 6) + '-' + val.substring(6, 8);
         } else {
-            submitForm();
+            e.target.value = val;
         }
     }
 
-    function prevStep() {
-        if (currentStep > 1) {
-            document.getElementById(`step-${currentStep}`).classList.remove('active');
-            currentStep--;
-            document.getElementById(`step-${currentStep}`).classList.add('active');
-            updateUI();
+    function formatPhone(e) {
+        let val = e.target.value.replace(/\D/g, '');
+        if (val.length > 11) val = val.substring(0, 11);
+        if (val.length >= 11) {
+            e.target.value = val.substring(0, 3) + '-' + val.substring(3, 7) + ' ' + val.substring(7, 11);
+        } else if (val.length >= 10) {
+            e.target.value = val.substring(0, 3) + '-' + val.substring(3, 6) + ' ' + val.substring(6, 10);
+        } else if (val.length > 3) {
+            e.target.value = val.substring(0, 3) + '-' + val.substring(3);
+        } else {
+            e.target.value = val;
+        }
+    }
+    
+    function calculateAge() {
+    const ic = document.getElementById('ic').value;
+    const ageInput = document.getElementById('age');
+    
+    if (ic.length >= 6) {
+        const year = ic.substring(0, 2);
+        const month = ic.substring(2, 4);
+        const day = ic.substring(4, 6);
+        
+        let fullYear = parseInt(year);
+        fullYear = fullYear > 25 ? 1900 + fullYear : 2000 + fullYear;
+        
+        const birthDate = new Date(fullYear, parseInt(month) - 1, parseInt(day));
+        const today = new Date();
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const monthDiff = today.getMonth() - birthDate.getMonth();
+        
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
+        }
+        
+        // Validate logical age range
+        if (age < 4) {
+            ageInput.value = '';
+            showError('Age must be at least 4 years old to register.');
+            return;
+        }
+        
+        if (age > 100) {
+            ageInput.value = '';
+            showError('Please check your IC number. The calculated age seems incorrect.');
+            return;
+        }
+        
+        ageInput.value = age;
+    }
+}
+
+function showError(message) {
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm mt-2';
+    errorDiv.innerHTML = `<i class="fas fa-exclamation-circle mr-2"></i>${message}`;
+    
+    const ageInput = document.getElementById('age');
+    const existingError = ageInput.parentElement.querySelector('.bg-red-50');
+    if (existingError) existingError.remove();
+    
+    ageInput.parentElement.appendChild(errorDiv);
+    setTimeout(() => errorDiv.remove(), 4000);
+}
+
+
+    function initSignaturePad() {
+        const wrapper = document.getElementById('sig-wrapper');
+        canvas = document.createElement('canvas');
+        canvas.id = 'sigCanvas';
+        canvas.style.display = 'block';
+        canvas.style.cursor = 'crosshair';
+        wrapper.appendChild(canvas);
+        ctx = canvas.getContext('2d');
+
+        canvas.addEventListener('mousedown', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            startDraw(e.clientX - rect.left, e.clientY - rect.top);
+        });
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            moveDraw(e.clientX - rect.left, e.clientY - rect.top);
+        });
+        canvas.addEventListener('mouseup', stopDraw);
+        canvas.addEventListener('mouseleave', stopDraw);
+
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const t = e.touches[0];
+            const rect = canvas.getBoundingClientRect();
+            startDraw(t.clientX - rect.left, t.clientY - rect.top);
+        }, { passive: false });
+
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            const t = e.touches[0];
+            const rect = canvas.getBoundingClientRect();
+            moveDraw(t.clientX - rect.left, t.clientY - rect.top);
+        }, { passive: false });
+
+        canvas.addEventListener('touchend', stopDraw);
+        resizeCanvas();
+    }
+
+    function resizeCanvas() {
+        if (!canvas) return;
+        const wrapper = document.getElementById('sig-wrapper');
+        const rect = wrapper.getBoundingClientRect();
+        if (rect.width > 0 && rect.height > 0 && (canvas.width !== rect.width || canvas.height !== rect.height)) {
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+            ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = '#000';
         }
     }
 
-    function updateUI() {
-        const progress = (currentStep / totalSteps) * 100;
-        document.getElementById('progress-bar').style.width = `${progress}%`;
-        document.getElementById('step-counter').innerHTML = `0${currentStep}<span style="color: #475569; font-size: 14px;">/06</span>`;
+    function startDraw(x, y) {
+        isDrawing = true;
+        hasSigned = true;
+        document.getElementById('sig-placeholder').style.display = 'none';
+        lastX = x;
+        lastY = y;
+    }
 
-        // Update buttons
+    function moveDraw(x, y) {
+        if (!isDrawing) return;
+        ctx.beginPath();
+        ctx.moveTo(lastX, lastY);
+        ctx.lineTo(x, y);
+        ctx.stroke();
+        lastX = x;
+        lastY = y;
+    }
+
+    function stopDraw() { isDrawing = false; }
+
+    function clearSig() {
+        if (!ctx) return;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        hasSigned = false;
+        document.getElementById('sig-placeholder').style.display = 'flex';
+    }
+
+    function toggleOtherSchool() {
+        const val = document.getElementById('school').value;
+        document.getElementById('school-other').classList.toggle('hidden', val !== 'Others');
+    }
+
+    function changeStep(dir) {
+        if (dir === 1 && !validateStep(currentStep)) return;
+        
+        // Handle Step 5 submit - generate PDF and go to Step 6
+        if (currentStep === 5 && dir === 1) {
+            submitAndGeneratePDF();
+            return;
+        }
+
+        // Handle Download PDF button on Step 6
+        if (currentStep === 6 && dir === 1) {
+            downloadPDF();
+            return;
+        }
+        
+        document.getElementById(`step-${currentStep}`).classList.remove('active');
+        currentStep += dir;
+        document.getElementById(`step-${currentStep}`).classList.add('active');
+
+        if (currentStep === 5) setTimeout(resizeCanvas, 50);
+
+        const stepNum = currentStep < 10 ? `0${currentStep}` : currentStep;
+        document.getElementById('step-counter').innerHTML = `${stepNum}<span class="text-slate-600 text-sm">/06</span>`;
+        document.getElementById('progress-bar').style.width = `${(currentStep/totalSteps)*100}%`;
+
         const prevBtn = document.getElementById('btn-prev');
         prevBtn.disabled = currentStep === 1;
         prevBtn.style.opacity = currentStep === 1 ? '0' : '1';
 
         const nextBtn = document.getElementById('btn-next');
-        if (currentStep === totalSteps) {
-            nextBtn.innerHTML = 'Submit <i class="fa-solid fa-paper-plane"></i>';
-            nextBtn.className = "bg-amber-500 text-white px-8 py-2.5 rounded-xl font-semibold shadow-lg shadow-amber-200 hover:bg-amber-600 transition";
-        } else {
-            nextBtn.innerHTML = 'Next Step <i class="fa-solid fa-arrow-right"></i>';
-            nextBtn.className = "bg-slate-900 text-white px-8 py-2.5 rounded-xl font-semibold shadow-lg shadow-slate-300 hover:bg-slate-800 transition";
-        }
-
-        // Scroll to top of form
-        document.querySelector('.custom-scroll').scrollTop = 0;
+        nextBtn.innerHTML = 'Next Step <i class="fa-solid fa-arrow-right"></i>';
+        nextBtn.className = "bg-slate-900 text-white px-8 py-2.5 rounded-xl font-semibold shadow-lg shadow-slate-300 hover:bg-slate-800 transition";
     }
 
     function validateStep(step) {
-        const currentStepEl = document.getElementById(`step-${step}`);
-        const inputs = currentStepEl.querySelectorAll('input[required], select[required]');
-        for (let input of inputs) {
-            if (!input.value.trim()) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Missing Required Fields',
-                    text: 'Please fill in all required fields before continuing.'
-                });
-                return false;
+        const stepDiv = document.getElementById(`step-${step}`);
+        const inputs = stepDiv.querySelectorAll('input:not(.hidden), select');
+        let isValid = true;
+        let errMsg = '';
+
+        inputs.forEach(input => {
+            if (input.type !== 'checkbox' && input.type !== 'radio' && !input.value.trim()) {
+                input.classList.add('border-red-500');
+                isValid = false;
+            } else {
+                input.classList.remove('border-red-500');
+            }
+        });
+
+        if (step === 1) {
+            const ic = document.getElementById('ic').value;
+            if (ic.length !== 14) {
+                isValid = false;
+                errMsg = 'IC Number must be in 000000-00-0000 format.';
+                document.getElementById('ic').classList.add('border-red-500');
             }
         }
 
-        // Special validation for events
-        if (step === 4) {
-            const checkedEvents = document.querySelectorAll('input[name="events"]:checked');
+        if (step === 2) {
+            const phone = document.getElementById('phone').value;
+            const email = document.getElementById('email').value;
+            if (phone.length < 12) {
+                isValid = false;
+                errMsg = 'Invalid Phone Number format.';
+                document.getElementById('phone').classList.add('border-red-500');
+            }
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                isValid = false;
+                errMsg = 'Invalid Email Address.';
+                document.getElementById('email').classList.add('border-red-500');
+            }
+        }
+
+        if (step === 3) {
+            const checkedEvents = document.querySelectorAll('input[name="evt"]:checked');
             if (checkedEvents.length === 0) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Select at least one event',
-                    text: 'Please choose at least one competition event.'
-                });
-                return false;
+                isValid = false;
+                errMsg = 'Please select at least one event.';
             }
         }
 
-        // Special validation for schedule
         if (step === 5) {
-            const checkedSchedule = document.querySelectorAll('input[name="schedule"]:checked');
-            const scheduleOther = document.getElementById('schedule-other').value.trim();
-            if (checkedSchedule.length === 0 && !scheduleOther) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Select a schedule',
-                    text: 'Please select at least one training schedule or specify another option.'
-                });
-                return false;
+            const pic = document.getElementById('parent-ic').value;
+            if (pic.length !== 14) {
+                isValid = false;
+                errMsg = 'Parent IC Number must be in 000000-00-0000 format.';
+                document.getElementById('parent-ic').classList.add('border-red-500');
+            }
+            if (!hasSigned) {
+                isValid = false;
+                errMsg = 'Please sign in the box.';
             }
         }
 
-        // Signature validation
-        if (step === 6) {
-            const signature = document.getElementById('signature-data').value;
-            if (!signature) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Signature required',
-                    text: 'Please provide a signature before submitting.'
-                });
-                return false;
-            }
+        if (!isValid) {
+            Swal.fire({ icon: 'error', title: 'Check Details', text: errMsg || 'Please fill in all required fields correctly.' });
         }
 
-        return true;
+        return isValid;
     }
 
-    function setupSignature() {
-        const canvas = document.getElementById('sig-canvas');
-        const box = canvas.parentElement;
-        const ctx = canvas.getContext('2d');
-        let drawing = false;
-        let lastX = 0;
-        let lastY = 0;
+    async function submitAndGeneratePDF() {
+        pdfOverlay.style.display = 'flex';
 
-        function resizeCanvas() {
-            const rect = box.getBoundingClientRect();
-            canvas.width = rect.width;
-            canvas.height = rect.height;
-            ctx.lineWidth = 2;
-            ctx.lineCap = 'round';
-            ctx.strokeStyle = '#111827';
-        }
+        const namePlain = document.getElementById('name-en').value.trim();
+        const nameCn    = document.getElementById('name-cn').value.trim();
+        const displayName = nameCn ? `${namePlain} (${nameCn})` : namePlain;
 
-        resizeCanvas();
-        window.addEventListener('resize', resizeCanvas);
-
-        function startDraw(e) {
-            drawing = true;
-            const pos = getPos(e);
-            lastX = pos.x;
-            lastY = pos.y;
-            document.getElementById('sig-placeholder').style.display = 'none';
-        }
-
-        function draw(e) {
-            if (!drawing) return;
-            e.preventDefault();
-            const pos = getPos(e);
-            ctx.beginPath();
-            ctx.moveTo(lastX, lastY);
-            ctx.lineTo(pos.x, pos.y);
-            ctx.stroke();
-            lastX = pos.x;
-            lastY = pos.y;
-            document.getElementById('signature-data').value = canvas.toDataURL('image/png');
-        }
-
-        function endDraw() {
-            drawing = false;
-        }
-
-        function getPos(e) {
-            const rect = canvas.getBoundingClientRect();
-            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-            return { x: clientX - rect.left, y: clientY - rect.top };
-        }
-
-        canvas.addEventListener('mousedown', startDraw);
-        canvas.addEventListener('mousemove', draw);
-        canvas.addEventListener('mouseup', endDraw);
-        canvas.addEventListener('mouseout', endDraw);
-
-        canvas.addEventListener('touchstart', startDraw);
-        canvas.addEventListener('touchmove', draw);
-        canvas.addEventListener('touchend', endDraw);
-    }
-
-    function clearSig() {
-        const canvas = document.getElementById('sig-canvas');
-        const ctx = canvas.getContext('2d');
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        document.getElementById('signature-data').value = '';
-        document.getElementById('sig-placeholder').style.display = 'flex';
-    }
-
-    function gatherFormData() {
-        const events = Array.from(document.querySelectorAll('input[name="events"]:checked'))
-            .map(cb => cb.value);
-        const scheduleChecked = Array.from(document.querySelectorAll('input[name="schedule"]:checked'))
-            .map(cb => cb.value);
-        const scheduleOther = document.getElementById('schedule-other').value.trim();
-        const schedule = scheduleOther ? scheduleChecked.concat([scheduleOther]) : scheduleChecked;
-
-        const statusRadio = document.querySelector('input[name="status"]:checked');
-        let status = statusRadio ? statusRadio.value : '';
-        if (status === 'Others 其他') {
-            status = document.getElementById('status-other').value.trim();
-        }
-
+        const ic = document.getElementById('ic').value;
+        const age = document.getElementById('age').value;
         const school = document.getElementById('school').value === 'Others'
-            ? document.getElementById('school-other').value.trim()
+            ? document.getElementById('school-other').value
             : document.getElementById('school').value;
+        const status = document.querySelector('input[name="status"]:checked').value;
+        const phone = document.getElementById('phone').value;
+        const email = document.getElementById('email').value;
+        
+        const selectedEvents = Array.from(document.querySelectorAll('input[name="evt"]:checked')).map(cb => cb.value);
+        const events = selectedEvents.join(', ');
+        
+        const levels = [...new Set(selectedEvents.map(evt => evt.split('-')[0]))].join(', ');
+        const level = levels || 'Not specified';
+        
+        const schedule = Array.from(document.querySelectorAll('input[name="sch"]:checked')).map(cb => cb.value).join(', ');
+        const parent = document.getElementById('parent-name').value;
+        const parentIC = document.getElementById('parent-ic').value;
+        const date = document.getElementById('today-date').value;
 
-        return {
-            name_cn: document.getElementById('name-cn').value.trim(),
-            name_en: document.getElementById('name-en').value.trim(),
-            ic: document.getElementById('ic').value.trim(),
-            age: document.getElementById('age').value.trim(),
-            school: school,
-            phone: document.getElementById('phone').value.trim(),
-            email: document.getElementById('email').value.trim(),
-            status: status,
-            level: document.getElementById('level').value.trim(),
-            events: events,
-            schedule: schedule,
-            parent_name: document.getElementById('parent-name').value.trim(),
-            parent_ic: document.getElementById('parent-ic').value.trim(),
-            date: document.getElementById('today-date').value.trim(),
-            signature: document.getElementById('signature-data').value
+        // Store data for re-downloading
+        registrationData = {
+            displayName,
+            namePlain,
+            ic,
+            age,
+            school,
+            status,
+            phone,
+            email,
+            level,
+            events,
+            schedule,
+            parent,
+            parentIC,
+            date,
+            signature: canvas.toDataURL('image/png')
         };
+
+        try {
+            // Generate and download PDF automatically
+            await generatePDFFile();
+
+            // Save to database
+            await saveRegistration({
+                name_en: namePlain,
+                name_cn: nameCn,
+                ic,
+                age,
+                school,
+                status,
+                phone,
+                email,
+                level,
+                events,
+                schedule,
+                parent_name: parent,
+                parent_ic: parentIC,
+                form_date: date,
+                signature_base64: canvas.toDataURL('image/png')
+            });
+
+            pdfOverlay.style.display = 'none';
+            
+            // Go to success page (Step 6)
+            document.getElementById('step-5').classList.remove('active');
+            currentStep = 6;
+            document.getElementById('step-6').classList.add('active');
+            
+            document.getElementById('step-counter').innerHTML = `06<span class="text-slate-600 text-sm">/06</span>`;
+            document.getElementById('progress-bar').style.width = '100%';
+            
+            // Update buttons for Step 6
+            document.getElementById('btn-prev').style.display = 'none';
+            
+            const nextBtn = document.getElementById('btn-next');
+            nextBtn.style.display = 'block';
+            nextBtn.innerHTML = '<i class="fa-solid fa-download mr-2"></i> Download Signed Agreement';
+            nextBtn.className = "bg-green-600 text-white px-8 py-2.5 rounded-xl font-semibold shadow-lg shadow-green-200 hover:bg-green-700 transition";
+            
+        } catch (e) {
+            console.error(e);
+            pdfOverlay.style.display = 'none';
+            Swal.fire({ 
+                icon: 'error', 
+                title: 'Error', 
+                text: 'Failed to generate or save signed agreement. Please try again.' 
+            });
+        }
     }
 
-    async function submitForm() {
-        if (!validateStep(6)) return;
-
-        const data = gatherFormData();
-        registrationData = data;
-
-        // Save registration data
-        await saveRegistration(data);
-
-        // Generate PDF
-        await generatePDF(data);
-
-        // Show success
-        document.getElementById('regForm').style.display = 'none';
-        document.getElementById('success-screen').classList.remove('hidden');
-
-        // Optional: send email/notification here
-        Swal.fire({
-            icon: 'success',
-            title: 'Registration Complete!',
-            text: 'Your registration has been saved and PDF downloaded.'
-        });
+    async function downloadPDF() {
+        if (!registrationData) {
+            Swal.fire({ icon: 'error', title: 'Error', text: 'No registration data found.' });
+            return;
+        }
+        
+        pdfOverlay.style.display = 'flex';
+        
+        try {
+            await generatePDFFile();
+            pdfOverlay.style.display = 'none';
+        } catch (e) {
+            console.error(e);
+            pdfOverlay.style.display = 'none';
+            Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to download signed agreement.' });
+        }
     }
 
-    async function generatePDF(data) {
-        // Create PDF templates
-        document.getElementById('pdf-template-page1').innerHTML = createPDFPage1(data);
-        document.getElementById('pdf-template-page2').innerHTML = createPDFPage2(data);
+    async function generatePDFFile() {
+    if (!registrationData) return;
 
-        // Wait for images to load
-        await new Promise(resolve => setTimeout(resolve, 500));
+    const { displayName, namePlain, ic, age, school, status, phone, email, level, events, schedule, parent, parentIC, date, signature } = registrationData;
 
-        // Fill Page 1 data
-        const namePlain = data.name_en;
-        document.getElementById('pdf-name').innerText = data.name_en;
-        document.getElementById('pdf-name-cn').innerText = data.name_cn;
-        document.getElementById('pdf-ic').innerText = data.ic;
-        document.getElementById('pdf-age').innerText = data.age;
-        document.getElementById('pdf-school').innerText = data.school;
-        document.getElementById('pdf-status').innerText = data.status;
-        document.getElementById('pdf-phone').innerText = data.phone;
-        document.getElementById('pdf-email').innerText = data.email;
-        document.getElementById('pdf-level').innerText = data.level;
-        document.getElementById('pdf-events').innerText = data.events.join(', ');
-        document.getElementById('pdf-schedule').innerText = data.schedule.join(', ');
-        document.getElementById('pdf-parent-name').innerText = data.parent_name;
-        document.getElementById('pdf-parent-ic').innerText = data.parent_ic;
-        document.getElementById('pdf-date').innerText = data.date;
-        document.getElementById('pdf-sig-img').src = data.signature;
+    // Fill Page 1 data
+    document.getElementById('pdf-name').innerText = displayName;
+    document.getElementById('pdf-ic').innerText = ic;
+    document.getElementById('pdf-age').innerText = age;
+    document.getElementById('pdf-school').innerText = school;
+    document.getElementById('pdf-status').innerText = status;
+    document.getElementById('pdf-phone').innerText = phone;
+    document.getElementById('pdf-email').innerText = email;
+    document.getElementById('pdf-level').innerText = level;
+    document.getElementById('pdf-events').innerText = events;
+    document.getElementById('pdf-schedule').innerText = schedule;
+    document.getElementById('pdf-parent-name').innerText = parent;
+    document.getElementById('pdf-parent-ic').innerText = parentIC;
+    document.getElementById('pdf-date').innerText = date;
+    document.getElementById('pdf-sig-img').src = signature;
 
-        // Fill Page 2 data
-        document.getElementById('pdf-parent-name-2').innerText = data.parent_name;
-        document.getElementById('pdf-parent-ic-2').innerText = data.parent_ic;
-        document.getElementById('pdf-date-2').innerText = data.date;
+    // Fill Page 2 data
+    document.getElementById('pdf-parent-name-2').innerText = parent;
+    document.getElementById('pdf-parent-ic-2').innerText = parentIC;
+    document.getElementById('pdf-date-2').innerText = date;
 
-        const { jsPDF } = window.jspdf;
-        const pdf = new jsPDF('p', 'mm', 'a4');
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF('p', 'mm', 'a4');
 
-        // Capture Page 1
-        const page1 = document.getElementById('pdf-template-page1');
-        page1.style.visibility = 'visible';
+    // Capture Page 1
+    const page1 = document.getElementById('pdf-template-page1');
+    page1.style.visibility = 'visible';
 
-        const canvas1 = await html2canvas(page1, {
-            scale: 2,
-            useCORS: true,
-            width: 794,
-            height: 1123,
-            logging: false
-        });
+    const canvas1 = await html2canvas(page1, {
+        scale: 2,
+        useCORS: true,
+        width: 794,
+        height: 1123,
+        logging: false
+    });
 
-        const imgData1 = canvas1.toDataURL('image/jpeg', 0.95);
-        const pdfWidth = 210;
-        const pdfHeight = 297;
-        pdf.addImage(imgData1, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+    const imgData1 = canvas1.toDataURL('image/jpeg', 0.95);
+    const pdfWidth = 210;
+    const pdfHeight = 297;
+    pdf.addImage(imgData1, 'JPEG', 0, 0, pdfWidth, pdfHeight);
 
-        page1.style.visibility = 'hidden';
+    page1.style.visibility = 'hidden';
 
-        // Capture Page 2
-        const page2 = document.getElementById('pdf-template-page2');
-        page2.style.visibility = 'visible';
+    // Capture Page 2
+    const page2 = document.getElementById('pdf-template-page2');
+    page2.style.visibility = 'visible';
 
-        const canvas2 = await html2canvas(page2, {
-            scale: 2,
-            useCORS: true,
-            width: 794,
-            height: 1123,
-            logging: false
-        });
+    const canvas2 = await html2canvas(page2, {
+        scale: 2,
+        useCORS: true,
+        width: 794,
+        height: 1123,
+        logging: false
+    });
 
-        const imgData2 = canvas2.toDataURL('image/jpeg', 0.95);
-        pdf.addPage();
-        pdf.addImage(imgData2, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+    const imgData2 = canvas2.toDataURL('image/jpeg', 0.95);
+    pdf.addPage();
+    pdf.addImage(imgData2, 'JPEG', 0, 0, pdfWidth, pdfHeight);
 
-        page2.style.visibility = 'hidden';
+    page2.style.visibility = 'hidden';
 
-        // Save PDF
-        pdf.save(`${namePlain || 'Registration'}_Signed_Agreement.pdf`);
-    }
+    // Save PDF
+    pdf.save(`${namePlain || 'Registration'}_Signed_Agreement.pdf`);
+}
+
+
 
     async function saveRegistration(payload) {
         try {
