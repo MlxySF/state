@@ -1,6 +1,8 @@
 <?php
-// download_invoice.php - Generate and download invoice PDF using FPDF
-// Fixed: Use text header instead of remote image to avoid crashes
+/**
+ * Professional Invoice PDF Generator
+ * Adapted from student repo with letterhead caching
+ */
 
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
@@ -10,22 +12,17 @@ ini_set('error_log', __DIR__ . '/../error_invoice.log');
 function logError($message) {
     $logFile = __DIR__ . '/../error_invoice.log';
     $timestamp = date('Y-m-d H:i:s');
-    $logMessage = "[$timestamp] $message\n";
-    file_put_contents($logFile, $logMessage, FILE_APPEND);
+    file_put_contents($logFile, "[$timestamp] $message\n", FILE_APPEND);
 }
 
 logError('=== Invoice Generation Started ===');
-logError('Request Method: ' . $_SERVER['REQUEST_METHOD']);
-logError('Request URI: ' . $_SERVER['REQUEST_URI']);
 
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
-    logError('ERROR: Invalid request method');
     http_response_code(405);
     die('Method not allowed');
 }
 
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
-    logError('ERROR: Invalid or missing ID parameter');
     http_response_code(400);
     die('Registration ID is required');
 }
@@ -34,54 +31,18 @@ $registration_id = (int)$_GET['id'];
 logError("Processing registration ID: $registration_id");
 
 try {
-    // Load database config
-    $config_path = __DIR__ . '/../config.php';
-    logError("Checking config.php at: $config_path");
-    
-    if (!file_exists($config_path)) {
-        throw new Exception("config.php not found");
-    }
-    require_once $config_path;
-    logError('config.php loaded successfully');
-    
-    if (!isset($conn)) {
-        throw new Exception('Database connection not established');
-    }
-    logError('Database connection verified');
-    
-    // Load FPDF
-    $fpdf_path = __DIR__ . '/../fpdf.php';
-    logError("Checking fpdf.php at: $fpdf_path");
-    
-    if (!file_exists($fpdf_path)) {
-        throw new Exception("fpdf.php not found");
-    }
-    require_once $fpdf_path;
-    logError('fpdf.php loaded successfully');
-    
-    if (!class_exists('FPDF')) {
-        throw new Exception('FPDF class not found');
-    }
-    logError('FPDF class verified');
+    // Load config and FPDF
+    require_once __DIR__ . '/../config.php';
+    require_once __DIR__ . '/../fpdf.php';
+    logError('Config and FPDF loaded');
     
     // Fetch registration
-    logError('Preparing database query...');
     $stmt = $conn->prepare("SELECT * FROM registrations WHERE id = ?");
-    if (!$stmt) {
-        throw new Exception('Database prepare failed: ' . $conn->error);
-    }
-    
     $stmt->bind_param('i', $registration_id);
-    if (!$stmt->execute()) {
-        throw new Exception('Query execution failed: ' . $stmt->error);
-    }
-    
+    $stmt->execute();
     $result = $stmt->get_result();
-    logError('Result fetched, rows: ' . $result->num_rows);
     
     if ($result->num_rows === 0) {
-        logError('ERROR: Registration not found');
-        http_response_code(404);
         throw new Exception('Registration not found');
     }
     
@@ -89,156 +50,308 @@ try {
     $stmt->close();
     logError('Registration data loaded: ' . $reg['registration_number']);
     
-    // Create PDF with simple text header (no remote images)
-    logError('Creating PDF class...');
+    // Function to download and cache letterhead
+    function getLetterheadImage() {
+        $imageUrl = 'https://wushu-assets.s3.ap-southeast-1.amazonaws.com/WSP+Letter.png';
+        $tempDir = sys_get_temp_dir();
+        $cacheFile = $tempDir . '/wushu_letterhead.jpg';
+        
+        // Use cached image if exists and less than 24 hours old
+        if (file_exists($cacheFile) && (time() - filemtime($cacheFile) < 86400)) {
+            return $cacheFile;
+        }
+        
+        // Download the image
+        $imageData = @file_get_contents($imageUrl);
+        if ($imageData === false) {
+            return false;
+        }
+        
+        // Create image from downloaded data
+        $image = @imagecreatefromstring($imageData);
+        if ($image === false) {
+            return false;
+        }
+        
+        // Convert to JPG for better FPDF compatibility
+        $jpgImage = imagecreatetruecolor(imagesx($image), imagesy($image));
+        $white = imagecolorallocate($jpgImage, 255, 255, 255);
+        imagefill($jpgImage, 0, 0, $white);
+        imagecopy($jpgImage, $image, 0, 0, 0, 0, imagesx($image), imagesy($image));
+        
+        // Save as JPG
+        imagejpeg($jpgImage, $cacheFile, 95);
+        imagedestroy($image);
+        imagedestroy($jpgImage);
+        
+        return $cacheFile;
+    }
     
+    // Get letterhead
+    $letterheadPath = getLetterheadImage();
+    logError('Letterhead: ' . ($letterheadPath ? 'cached successfully' : 'using fallback'));
+    
+    // Create PDF class
     class InvoicePDF extends FPDF {
+        private $letterheadPath = '';
+        private $invoice;
+        
+        public function setLetterhead($path) {
+            $this->letterheadPath = $path;
+        }
+        
+        public function setInvoiceData($data) {
+            $this->invoice = $data;
+        }
+        
         function Header() {
-            // Simple text header - no remote images to avoid crashes
-            $this->SetFont('Arial', 'B', 20);
-            $this->SetTextColor(15, 52, 96);
-            $this->Cell(0, 12, 'WUSHU SPORT ACADEMY', 0, 1, 'C');
-            $this->SetFont('Arial', '', 11);
+            // Try to load letterhead
+            if (!empty($this->letterheadPath) && file_exists($this->letterheadPath)) {
+                try {
+                    $this->Image($this->letterheadPath, 10, 8, 140, 25, 'JPG');
+                } catch (Exception $e) {
+                    $this->createTextHeader();
+                }
+            } else {
+                $this->createTextHeader();
+            }
+            
+            // Status badge - top right
+            $is_paid = ($this->invoice['payment_status'] === 'approved');
+            $this->SetXY(165, 10);
+            
+            if ($is_paid) {
+                $this->SetFillColor(34, 197, 94);
+                $this->SetDrawColor(34, 197, 94);
+                $badgeText = 'PAID';
+            } else {
+                $this->SetFillColor(245, 158, 11);
+                $this->SetDrawColor(245, 158, 11);
+                $badgeText = 'PENDING';
+            }
+            
+            $this->SetLineWidth(0.5);
+            $this->Rect(165, 10, 30, 12, 'FD');
+            $this->SetFont('Helvetica', 'B', 14);
+            $this->SetTextColor(255, 255, 255);
+            $this->Cell(30, 12, $badgeText, 0, 0, 'C');
+            
+            // Invoice number in top right
+            $invoice_number = !empty($this->invoice['invoice_number']) ? $this->invoice['invoice_number'] : 'INV-' . $this->invoice['registration_number'];
+            $this->SetXY(155, 25);
+            $this->SetFont('Helvetica', '', 8);
             $this->SetTextColor(100, 100, 100);
-            $this->Cell(0, 6, 'Registration & Payment Invoice', 0, 1, 'C');
-            $this->SetTextColor(0, 0, 0);
-            $this->Ln(8);
+            $this->Cell(40, 4, $invoice_number, 0, 0, 'R');
+            
+            // Horizontal line separator
+            $this->SetY(36);
+            $this->SetDrawColor(15, 52, 96);
+            $this->SetLineWidth(0.5);
+            $this->Line(10, 36, 200, 36);
+            $this->SetY(40);
+        }
+        
+        function createTextHeader() {
+            // Fallback: Clean professional header
+            $this->SetFillColor(15, 52, 96);
+            $this->Rect(0, 0, 210, 35, 'F');
+            $this->SetXY(15, 12);
+            $this->SetFont('Helvetica', 'B', 22);
+            $this->SetTextColor(255, 255, 255);
+            $this->Cell(0, 10, 'WUSHU SPORT ACADEMY', 0, 1, 'L');
         }
         
         function Footer() {
             $this->SetY(-15);
-            $this->SetFont('Arial', 'I', 8);
-            $this->SetTextColor(150, 150, 150);
-            $this->Cell(0, 10, 'Page ' . $this->PageNo(), 0, 0, 'C');
-            $this->SetTextColor(0, 0, 0);
+            $this->SetFont('Helvetica', '', 8);
+            $this->SetTextColor(120, 120, 120);
+            $this->Cell(0, 4, 'This is a computer-generated invoice. No signature required.', 0, 1, 'C');
+            $this->Cell(0, 4, 'Generated: ' . date('d M Y, g:i A'), 0, 1, 'C');
         }
     }
     
-    logError('Instantiating InvoicePDF...');
+    // Create PDF
     $pdf = new InvoicePDF('P', 'mm', 'A4');
-    logError('PDF object created');
-    
-    logError('Adding page...');
+    $pdf->setInvoiceData($reg);
+    if ($letterheadPath) {
+        $pdf->setLetterhead($letterheadPath);
+    }
+    $pdf->SetMargins(15, 43, 15);
+    $pdf->SetAutoPageBreak(true, 25);
     $pdf->AddPage();
-    logError('Page added successfully');
-    
-    $pdf->SetAutoPageBreak(true, 20);
+    logError('PDF page added');
     
     // Invoice details
     $invoice_number = !empty($reg['invoice_number']) ? $reg['invoice_number'] : 'INV-' . $reg['registration_number'];
     $is_paid = ($reg['payment_status'] === 'approved');
-    $status_text = $is_paid ? 'PAID' : 'PENDING';
     
-    logError('Building PDF content...');
+    // Left Column - Invoice Details
+    $pdf->SetFont('Helvetica', 'B', 11);
+    $pdf->SetTextColor(15, 52, 96);
+    $pdf->SetX(15);
+    $pdf->Cell(90, 6, 'INVOICE DETAILS', 0, 1, 'L');
+    $pdf->Ln(1);
     
-    // Title and status
-    $pdf->SetFont('Arial', 'B', 18);
-    $pdf->Cell(0, 10, 'INVOICE', 0, 1, 'R');
-    $pdf->SetFont('Arial', 'B', 12);
-    if ($is_paid) {
-        $pdf->SetTextColor(34, 197, 94);
-    } else {
-        $pdf->SetTextColor(245, 158, 11);
+    $pdf->SetFont('Helvetica', '', 10);
+    $details = [
+        ['Invoice Number:', $invoice_number],
+        ['Date Issued:', date('d M Y', strtotime($reg['created_at']))],
+        ['Registration ID:', $reg['registration_number']],
+        ['Payment Date:', $reg['payment_date'] ?: 'Pending'],
+    ];
+    
+    foreach ($details as $row) {
+        $pdf->SetX(15);
+        $pdf->SetTextColor(100, 100, 100);
+        $pdf->Cell(35, 5.5, $row[0], 0, 0, 'L');
+        $pdf->SetTextColor(0, 0, 0);
+        $pdf->SetFont('Helvetica', 'B', 10);
+        $pdf->Cell(0, 5.5, $row[1], 0, 1, 'L');
+        $pdf->SetFont('Helvetica', '', 10);
     }
-    $pdf->Cell(0, 8, $status_text, 0, 1, 'R');
+    
+    // Right Column - Billed To
+    $pdf->SetXY(115, 43);
+    $pdf->SetFont('Helvetica', 'B', 11);
+    $pdf->SetTextColor(15, 52, 96);
+    $pdf->Cell(80, 6, 'BILLED TO', 0, 1, 'L');
+    $pdf->Ln(1);
+    
+    $pdf->SetX(115);
+    $pdf->SetFont('Helvetica', 'B', 11);
     $pdf->SetTextColor(0, 0, 0);
+    $pdf->Cell(0, 5.5, $reg['name_en'], 0, 1, 'L');
+    
+    $billedDetails = [
+        ['IC Number:', $reg['ic']],
+        ['Email:', $reg['email']],
+        ['Phone:', $reg['phone']],
+    ];
+    
+    foreach ($billedDetails as $row) {
+        $pdf->SetX(115);
+        $pdf->SetFont('Helvetica', '', 9);
+        $pdf->SetTextColor(100, 100, 100);
+        $pdf->Cell(22, 5, $row[0], 0, 0, 'L');
+        $pdf->SetTextColor(0, 0, 0);
+        $pdf->Cell(0, 5, $row[1], 0, 1, 'L');
+    }
+    
+    $pdf->Ln(7);
+    
+    // LINE ITEMS TABLE
+    $pdf->SetX(15);
+    $pdf->SetFillColor(15, 52, 96);
+    $pdf->SetDrawColor(15, 52, 96);
+    $pdf->SetLineWidth(0.3);
+    $pdf->SetFont('Helvetica', 'B', 10);
+    $pdf->SetTextColor(255, 255, 255);
+    
+    $pdf->Cell(100, 8, 'DESCRIPTION', 1, 0, 'L', true);
+    $pdf->Cell(30, 8, 'LEVEL', 1, 0, 'C', true);
+    $pdf->Cell(20, 8, 'QTY', 1, 0, 'C', true);
+    $pdf->Cell(35, 8, 'AMOUNT (RM)', 1, 1, 'R', true);
+    
+    // Item row
+    $pdf->SetFont('Helvetica', '', 10);
+    $pdf->SetTextColor(0, 0, 0);
+    $pdf->SetDrawColor(220, 220, 220);
+    $pdf->SetLineWidth(0.2);
+    
+    $pdf->SetX(15);
+    $pdf->Cell(100, 8, 'Class Registration & Training', 1, 0, 'L');
+    $pdf->Cell(30, 8, $reg['level'], 1, 0, 'C');
+    $pdf->Cell(20, 8, $reg['class_count'], 1, 0, 'C');
+    $pdf->SetFont('Helvetica', 'B', 10);
+    $pdf->Cell(35, 8, number_format((float)$reg['payment_amount'], 2), 1, 1, 'R');
+    
     $pdf->Ln(5);
     
-    // Invoice info
-    $pdf->SetFont('Arial', '', 11);
-    $pdf->Cell(50, 7, 'Invoice Number:', 0, 0);
-    $pdf->SetFont('Arial', 'B', 11);
-    $pdf->Cell(0, 7, $invoice_number, 0, 1);
-    
-    $pdf->SetFont('Arial', '', 11);
-    $pdf->Cell(50, 7, 'Date Issued:', 0, 0);
-    $pdf->SetFont('Arial', 'B', 11);
-    $pdf->Cell(0, 7, date('d M Y', strtotime($reg['created_at'])), 0, 1);
-    
-    $pdf->SetFont('Arial', '', 11);
-    $pdf->Cell(50, 7, 'Registration ID:', 0, 0);
-    $pdf->SetFont('Arial', 'B', 11);
-    $pdf->Cell(0, 7, $reg['registration_number'], 0, 1);
-    $pdf->Ln(5);
-    
-    // Billed to section
-    $pdf->SetFont('Arial', 'B', 12);
-    $pdf->SetFillColor(240, 240, 240);
-    $pdf->Cell(0, 10, 'BILLED TO', 0, 1, 'L', true);
-    $pdf->SetFont('Arial', '', 11);
-    
-    $pdf->Cell(50, 7, 'Name:', 0, 0);
-    $pdf->Cell(0, 7, $reg['name_en'], 0, 1);
-    $pdf->Cell(50, 7, 'IC Number:', 0, 0);
-    $pdf->Cell(0, 7, $reg['ic'], 0, 1);
-    $pdf->Cell(50, 7, 'Email:', 0, 0);
-    $pdf->Cell(0, 7, $reg['email'], 0, 1);
-    $pdf->Cell(50, 7, 'Phone:', 0, 0);
-    $pdf->Cell(0, 7, $reg['phone'], 0, 1);
-    $pdf->Ln(5);
-    
-    // Class details
-    $pdf->SetFont('Arial', 'B', 12);
-    $pdf->Cell(0, 10, 'CLASS DETAILS', 0, 1, 'L', true);
-    $pdf->SetFont('Arial', '', 11);
-    
-    $pdf->Cell(50, 7, 'Level:', 0, 0);
-    $pdf->Cell(0, 7, $reg['level'], 0, 1);
-    $pdf->Cell(50, 7, 'Class Count:', 0, 0);
-    $pdf->Cell(0, 7, $reg['class_count'] . ' classes', 0, 1);
-    $pdf->Ln(5);
-    
-    // Payment details
-    $pdf->SetFont('Arial', 'B', 12);
-    $pdf->Cell(0, 10, 'PAYMENT DETAILS', 0, 1, 'L', true);
-    $pdf->SetFont('Arial', '', 11);
-    
+    // TOTALS
     $amount = (float)$reg['payment_amount'];
-    $pdf->Cell(50, 7, 'Payment Date:', 0, 0);
-    $pdf->Cell(0, 7, $reg['payment_date'] ?: 'Pending', 0, 1);
-    $pdf->Ln(3);
     
-    // Total amount
-    $pdf->SetFont('Arial', 'B', 14);
-    $pdf->Cell(50, 10, 'Total Amount:', 0, 0);
-    $pdf->SetTextColor(0, 128, 0);
-    $pdf->Cell(0, 10, 'RM ' . number_format($amount, 2), 0, 1);
+    $pdf->SetX(105);
+    $pdf->SetFont('Helvetica', '', 10);
+    $pdf->SetTextColor(80, 80, 80);
+    $pdf->Cell(60, 6, 'Subtotal:', 0, 0, 'R');
     $pdf->SetTextColor(0, 0, 0);
-    $pdf->Ln(10);
+    $pdf->SetFont('Helvetica', 'B', 10);
+    $pdf->Cell(0, 6, 'RM ' . number_format($amount, 2), 0, 1, 'R');
     
-    // Footer notes
-    $pdf->SetFont('Arial', 'I', 9);
-    $pdf->MultiCell(0, 5, 'Thank you for your payment. This invoice confirms your class registration. Please keep this document for your records. For any inquiries, please contact Wushu Sport Academy.');
+    $pdf->SetX(105);
+    $pdf->SetFont('Helvetica', '', 10);
+    $pdf->SetTextColor(80, 80, 80);
+    $pdf->Cell(60, 6, 'Tax (0%):', 0, 0, 'R');
+    $pdf->SetTextColor(0, 0, 0);
+    $pdf->SetFont('Helvetica', 'B', 10);
+    $pdf->Cell(0, 6, 'RM 0.00', 0, 1, 'R');
     
-    logError('PDF content built successfully');
+    $pdf->SetX(105);
+    $pdf->SetDrawColor(15, 52, 96);
+    $pdf->SetLineWidth(0.4);
+    $pdf->Line(105, $pdf->GetY(), 195, $pdf->GetY());
+    $pdf->Ln(2);
     
-    // Generate filename and download
+    $pdf->SetX(105);
+    $pdf->SetFont('Helvetica', 'B', 11);
+    $pdf->SetFillColor(15, 52, 96);
+    $pdf->SetTextColor(255, 255, 255);
+    $pdf->Cell(60, 9, 'TOTAL AMOUNT:', 0, 0, 'R', true);
+    $pdf->SetFont('Helvetica', 'B', 12);
+    $pdf->Cell(0, 9, 'RM ' . number_format($amount, 2), 0, 1, 'R', true);
+    
+    $pdf->Ln(8);
+    
+    // PAYMENT STATUS BOX (if paid)
+    if ($is_paid) {
+        $current_y = $pdf->GetY();
+        $pdf->SetFillColor(220, 252, 231);
+        $pdf->SetDrawColor(34, 197, 94);
+        $pdf->SetLineWidth(0.4);
+        $pdf->Rect(15, $current_y, 180, 14, 'FD');
+        
+        $pdf->SetXY(20, $current_y + 2);
+        $pdf->SetFont('Helvetica', 'B', 11);
+        $pdf->SetTextColor(34, 197, 94);
+        $pdf->Cell(0, 5, 'PAYMENT COMPLETED AND VERIFIED', 0, 1, 'L');
+        
+        $pdf->SetX(20);
+        $pdf->SetFont('Helvetica', '', 9);
+        $pdf->SetTextColor(22, 163, 74);
+        $pdf->Cell(0, 4, 'Payment received on ' . date('d M Y, g:i A', strtotime($reg['payment_date'])), 0, 1, 'L');
+        
+        $pdf->SetY($current_y + 16);
+        $pdf->Ln(4);
+    }
+    
+    // NOTES
+    $pdf->SetFont('Helvetica', 'B', 10);
+    $pdf->SetTextColor(15, 52, 96);
+    $pdf->SetX(15);
+    $pdf->Cell(0, 6, 'IMPORTANT NOTES', 0, 1, 'L');
+    
+    $pdf->SetFont('Helvetica', '', 9);
+    $pdf->SetTextColor(60, 60, 60);
+    $pdf->SetX(15);
+    $pdf->MultiCell(180, 4.5, 'Thank you for your payment. This invoice confirms your class enrollment and payment. Please keep this document for your records.', 0, 'L');
+    
+    logError('PDF content built');
+    
+    // Output
     $filename = 'Invoice_' . $reg['registration_number'] . '.pdf';
-    logError("Outputting PDF: $filename");
     
-    // Clear any output buffers
     while (ob_get_level()) {
         ob_end_clean();
     }
     
-    // Output as download
-    logError('Calling PDF Output...');
     $pdf->Output('D', $filename);
-    logError('PDF output completed successfully');
-    logError('=== Invoice Generation Completed Successfully ===');
+    logError('=== Invoice Generated Successfully ===');
     exit;
     
 } catch (Exception $e) {
-    logError('EXCEPTION CAUGHT: ' . $e->getMessage());
-    logError('Stack trace: ' . $e->getTraceAsString());
-    logError('=== Invoice Generation Failed ===');
-    
+    logError('ERROR: ' . $e->getMessage());
     http_response_code(500);
-    echo '<!DOCTYPE html><html><head><title>Error</title></head><body style="font-family:Arial;padding:40px;">';
-    echo '<h1 style="color:#e74c3c;">❌ Error Generating Invoice</h1>';
-    echo '<p><strong>Error:</strong> ' . htmlspecialchars($e->getMessage()) . '</p>';
-    echo '<p>Check the error log at: <code>error_invoice.log</code></p>';
-    echo '</body></html>';
+    echo 'Error: ' . $e->getMessage();
     exit;
 }
 ?>
