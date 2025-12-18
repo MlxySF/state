@@ -29,14 +29,26 @@
 <div id="registration-container"></div>
 
 <script>
-// Load the registration body content
+// Load the registration body content FIRST
 fetch('./register-parts/body.html')
     .then(response => response.text())
     .then(html => {
         document.getElementById('registration-container').innerHTML = html;
+        
+        // THEN load the JavaScript after HTML is inserted
+        const script = document.createElement('script');
+        script.src = './register-parts/register.js';
+        document.body.appendChild(script);
+    })
+    .catch(error => {
+        console.error('Error loading registration form:', error);
+        document.getElementById('registration-container').innerHTML = 
+            '<div style="padding: 40px; text-align: center;">'
+            + '<h2 style="color: #dc2626;">Error Loading Form</h2>'
+            + '<p>Please refresh the page or contact support.</p>'
+            + '</div>';
     });
 </script>
 
-<script src="./register-parts/register.js"></script>
 </body>
 </html>
