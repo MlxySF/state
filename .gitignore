@@ -1,5 +1,6 @@
 # Sensitive Configuration Files
 config.php
+email_config.php
 
 # Database Backups
 *.sql
@@ -44,6 +45,7 @@ node_modules/
 
 # Composer (if using PHP dependencies)
 vendor/
+composer.lock
 
 # OS Generated
 .Spotlight-V100
