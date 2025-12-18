@@ -1,1 +1,0 @@
-[07-Dec-2025 15:10:31 UTC] PHP Warning:  mysqli_stmt::bind_param(): Number of elements in type definition string doesn't match number of bind variables in /home/mlxysf/wushusportacademy.app.tc/timetable/register.php on line 40
