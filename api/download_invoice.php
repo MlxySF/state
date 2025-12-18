@@ -1,26 +1,63 @@
 <?php
-// download_invoice.php - generates and downloads invoice PDF without Composer
-// Uses FPDF in the same way as MlxySF/student/generate_registration_invoice.php
+// download_invoice.php - Debug version to check file existence first
 
-// Enable error reporting for debugging
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
+ini_set('log_errors', 0);
+
+// Check file paths FIRST before requiring
+$config_path = __DIR__ . '/../config.php';
+$fpdf_path = __DIR__ . '/../fpdf.php';
+
+$config_exists = file_exists($config_path);
+$fpdf_exists = file_exists($fpdf_path);
+
+// If either file is missing, show debug page immediately
+if (!$config_exists || !$fpdf_exists) {
+    header('Content-Type: text/html; charset=utf-8');
+    echo '<!DOCTYPE html><html><head><title>Missing Files</title></head><body style="font-family: Arial; padding: 20px;">';
+    echo '<h1 style="color: #e74c3c;">❌ Missing Required Files</h1>';
+    echo '<p>Cannot generate PDF because required files are missing:</p>';
+    echo '<ul style="font-size: 14px;">';
+    echo '<li><strong>config.php:</strong> ' . ($config_exists ? '<span style="color: green;">✅ Found</span>' : '<span style="color: red;">❌ NOT FOUND</span>') . '<br><code>' . $config_path . '</code></li>';
+    echo '<li><strong>fpdf.php:</strong> ' . ($fpdf_exists ? '<span style="color: green;">✅ Found</span>' : '<span style="color: red;">❌ NOT FOUND</span>') . '<br><code>' . $fpdf_path . '</code></li>';
+    echo '</ul>';
+    
+    if (!$fpdf_exists) {
+        echo '<hr><h2 style="color: #3498db;">How to Fix:</h2>';
+        echo '<ol>';
+        echo '<li>Go to: <a href="https://github.com/MlxySF/student" target="_blank">https://github.com/MlxySF/student</a></li>';
+        echo '<li>Download <strong>fpdf.php</strong> from the root folder</li>';
+        echo '<li>Upload it to your <strong>state</strong> project root (same folder where config.php is)</li>';
+        echo '<li>Also copy the <strong>font</strong> folder from student project to state project</li>';
+        echo '<li>Refresh this page</li>';
+        echo '</ol>';
+        echo '<p style="background: #fff3cd; padding: 10px; border-left: 4px solid #856404;"><strong>Note:</strong> fpdf.php should be at: <code>' . $fpdf_path . '</code></p>';
+    }
+    
+    echo '<hr><p><strong>Current Script Location:</strong> <code>' . __FILE__ . '</code></p>';
+    echo '<p><strong>Parent Directory:</strong> <code>' . dirname(__DIR__) . '</code></p>';
+    echo '<p><strong>Files in Parent Directory:</strong></p><ul>';
+    
+    $parent_files = @scandir(dirname(__DIR__));
+    if ($parent_files) {
+        foreach ($parent_files as $file) {
+            if ($file !== '.' && $file !== '..') {
+                $is_dir = is_dir(dirname(__DIR__) . '/' . $file);
+                echo '<li>' . ($is_dir ? '📁' : '📄') . ' ' . htmlspecialchars($file) . '</li>';
+            }
+        }
+    }
+    echo '</ul>';
+    echo '</body></html>';
+    exit;
+}
+
+// If we get here, both files exist - now require them
+require_once $config_path;
+require_once $fpdf_path;
 
 try {
-    // Check if config.php exists
-    $config_path = __DIR__ . '/../config.php';
-    if (!file_exists($config_path)) {
-        throw new Exception('config.php not found at: ' . $config_path);
-    }
-    require_once $config_path;
-
-    // Check if fpdf.php exists
-    $fpdf_path = __DIR__ . '/../fpdf.php';
-    if (!file_exists($fpdf_path)) {
-        throw new Exception('fpdf.php not found at: ' . $fpdf_path . '. Please copy fpdf.php from MlxySF/student project to the state project root.');
-    }
-    require_once $fpdf_path;
-
     if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
         http_response_code(405);
         throw new Exception('Method not allowed');
@@ -61,10 +98,10 @@ try {
             try {
                 // Letterhead from S3
                 $letterhead = 'https://wushu-assets.s3.ap-southeast-1.amazonaws.com/WSP+Letter.png';
-                $this->Image($letterhead, 10, 5, 190); // full-width banner
-                $this->Ln(35); // space after letterhead
+                $this->Image($letterhead, 10, 5, 190);
+                $this->Ln(35);
             } catch (Exception $e) {
-                // If image fails, just skip it and continue
+                // If image fails, show text header
                 $this->SetFont('Arial', 'B', 12);
                 $this->Cell(0, 10, 'WUSHU SPORT ACADEMY', 0, 1, 'C');
                 $this->Ln(10);
@@ -169,18 +206,12 @@ try {
 } catch (Exception $e) {
     http_response_code(500);
     header('Content-Type: text/html; charset=utf-8');
-    echo '<html><body style="font-family: Arial; padding: 20px;">';
+    echo '<!DOCTYPE html><html><head><title>Error</title></head><body style="font-family: Arial; padding: 20px;">';
     echo '<h1 style="color: #e74c3c;">❌ Error Generating Invoice</h1>';
     echo '<p><strong>Error Message:</strong></p>';
     echo '<pre style="background: #f8d7da; padding: 15px; border-radius: 5px; color: #721c24;">' . htmlspecialchars($e->getMessage()) . '</pre>';
-    echo '<p><strong>Error Details:</strong></p>';
-    echo '<pre style="background: #f1f1f1; padding: 15px; border-radius: 5px;">' . htmlspecialchars($e->getTraceAsString()) . '</pre>';
-    echo '<hr>';
-    echo '<p><strong>File Paths Being Checked:</strong></p>';
-    echo '<ul>';
-    echo '<li>config.php: ' . __DIR__ . '/../config.php' . ' (Exists: ' . (file_exists(__DIR__ . '/../config.php') ? 'YES ✅' : 'NO ❌') . ')</li>';
-    echo '<li>fpdf.php: ' . __DIR__ . '/../fpdf.php' . ' (Exists: ' . (file_exists(__DIR__ . '/../fpdf.php') ? 'YES ✅' : 'NO ❌') . ')</li>';
-    echo '</ul>';
+    echo '<p><strong>Stack Trace:</strong></p>';
+    echo '<pre style="background: #f1f1f1; padding: 15px; border-radius: 5px; font-size: 12px;">' . htmlspecialchars($e->getTraceAsString()) . '</pre>';
     echo '</body></html>';
     exit;
 }
