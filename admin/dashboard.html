@@ -203,16 +203,15 @@
             displayRegistrations(filtered);
         }
 
-        async function viewRegistration(id) {
-            // Open registration details in new window
-            window.open(`view-registration.html?id=${id}`, '_blank');
+        function viewRegistration(id) {
+            // Open in same tab instead of new window
+            window.location.href = `view-registration.html?id=${id}`;
         }
 
         async function approveRegistration(id) {
             if (!confirm('Are you sure you want to approve this registration and payment?')) return;
             
             try {
-                // You'll need to create an update endpoint
                 const response = await fetch('../api/update_registration.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },

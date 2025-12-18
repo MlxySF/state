@@ -29,12 +29,15 @@
         .btn-reject:hover { background: #c0392b; }
         .btn-download { background: #3498db; color: white; }
         .btn-download:hover { background: #2980b9; }
+        .btn-secondary { background: #9b59b6; color: white; }
+        .btn-secondary:hover { background: #8e44ad; }
         .btn-delete { background: #95a5a6; color: white; }
         .btn-delete:hover { background: #7f8c8d; }
-        .image-preview { max-width: 100%; border: 1px solid #ddd; border-radius: 5px; margin-top: 10px; }
-        .signature-preview { max-width: 300px; border: 2px solid #3498db; border-radius: 5px; padding: 10px; background: white; }
+        .image-preview { max-width: 100%; height: auto; border: 1px solid #ddd; border-radius: 5px; margin-top: 10px; }
+        .signature-preview { max-width: 400px; max-height: 200px; border: 2px solid #3498db; border-radius: 5px; padding: 10px; background: white; display: block; margin-top: 10px; }
         .loading { text-align: center; padding: 60px; color: #7f8c8d; }
         .error { background: #f8d7da; color: #721c24; padding: 20px; border-radius: 5px; margin: 20px 0; }
+        .no-image { color: #95a5a6; font-style: italic; }
     </style>
 </head>
 <body>
@@ -155,7 +158,10 @@
                 </div>
                 <div class="info-item" style="margin-top: 20px;">
                     <label>Payment Receipt</label>
-                    <div><img id="paymentReceipt" class="image-preview" style="display: none;" /></div>
+                    <div id="paymentReceiptContainer">
+                        <img id="paymentReceipt" class="image-preview" style="display: none;" />
+                        <span id="noReceipt" class="no-image" style="display: none;">No receipt uploaded</span>
+                    </div>
                 </div>
             </div>
 
@@ -164,7 +170,10 @@
                 <h2>✍️ Signature</h2>
                 <div class="info-item">
                     <label>Applicant Signature</label>
-                    <div><img id="signature" class="signature-preview" style="display: none;" /></div>
+                    <div id="signatureContainer">
+                        <img id="signature" class="signature-preview" style="display: none;" alt="Signature" />
+                        <span id="noSignature" class="no-image" style="display: none;">No signature available</span>
+                    </div>
                 </div>
             </div>
 
@@ -172,7 +181,8 @@
             <div class="card">
                 <h2>🔧 Actions</h2>
                 <div class="action-buttons">
-                    <button class="btn btn-download" onclick="downloadPDF()">💾 Download Registration PDF</button>
+                    <button class="btn btn-download" onclick="downloadSignedAgreement()">📝 Download Signed Agreement</button>
+                    <button class="btn btn-secondary" onclick="downloadPDF()">💾 Download Registration PDF</button>
                     <button class="btn btn-approve" id="approveBtn" onclick="updateStatus('approved')">✅ Approve Payment</button>
                     <button class="btn btn-reject" id="rejectBtn" onclick="updateStatus('rejected')">❌ Reject Payment</button>
                     <button class="btn btn-delete" onclick="deleteRegistration()">🗑️ Delete Registration</button>
@@ -248,18 +258,48 @@
             statusEl.textContent = reg.payment_status.toUpperCase();
             statusEl.className = 'status ' + reg.payment_status;
 
-            // Payment Receipt
-            if (reg.payment_receipt_base64) {
+            // Payment Receipt - with error handling
+            if (reg.payment_receipt_base64 && reg.payment_receipt_base64.trim() !== '') {
                 const receiptImg = document.getElementById('paymentReceipt');
+                receiptImg.onerror = function() {
+                    console.error('Failed to load payment receipt image');
+                    this.style.display = 'none';
+                    document.getElementById('noReceipt').style.display = 'block';
+                };
+                receiptImg.onload = function() {
+                    console.log('Payment receipt loaded successfully');
+                };
                 receiptImg.src = reg.payment_receipt_base64;
                 receiptImg.style.display = 'block';
+            } else {
+                document.getElementById('noReceipt').style.display = 'block';
             }
 
-            // Signature
-            if (reg.signature_base64) {
+            // Signature - with proper base64 handling and error checking
+            if (reg.signature_base64 && reg.signature_base64.trim() !== '') {
                 const signatureImg = document.getElementById('signature');
+                
+                // Add error handler
+                signatureImg.onerror = function() {
+                    console.error('Failed to load signature image');
+                    console.log('Signature data length:', reg.signature_base64.length);
+                    console.log('Signature starts with:', reg.signature_base64.substring(0, 50));
+                    this.style.display = 'none';
+                    document.getElementById('noSignature').style.display = 'block';
+                };
+                
+                // Add load handler for debugging
+                signatureImg.onload = function() {
+                    console.log('Signature loaded successfully');
+                };
+                
+                // Set the image source
                 signatureImg.src = reg.signature_base64;
                 signatureImg.style.display = 'block';
+                document.getElementById('noSignature').style.display = 'none';
+            } else {
+                console.log('No signature data available');
+                document.getElementById('noSignature').style.display = 'block';
             }
 
             // Show/hide action buttons based on status
@@ -325,14 +365,39 @@
             }
         }
 
-        function downloadPDF() {
-            if (registrationData && registrationData.signed_pdf_base64) {
-                const link = document.createElement('a');
-                link.href = registrationData.signed_pdf_base64;
-                link.download = `Registration_${registrationData.registration_number}.pdf`;
-                link.click();
+        function downloadSignedAgreement() {
+            if (registrationData && registrationData.signed_pdf_base64 && registrationData.signed_pdf_base64.trim() !== '') {
+                try {
+                    const link = document.createElement('a');
+                    link.href = registrationData.signed_pdf_base64;
+                    link.download = `Signed_Agreement_${registrationData.registration_number}.pdf`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                } catch (error) {
+                    console.error('Error downloading signed agreement:', error);
+                    alert('❌ Error downloading signed agreement');
+                }
             } else {
-                alert('PDF not available for this registration');
+                alert('⚠️ Signed agreement PDF not available for this registration');
+            }
+        }
+
+        function downloadPDF() {
+            if (registrationData && registrationData.signed_pdf_base64 && registrationData.signed_pdf_base64.trim() !== '') {
+                try {
+                    const link = document.createElement('a');
+                    link.href = registrationData.signed_pdf_base64;
+                    link.download = `Registration_${registrationData.registration_number}.pdf`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                } catch (error) {
+                    console.error('Error downloading PDF:', error);
+                    alert('❌ Error downloading PDF');
+                }
+            } else {
+                alert('⚠️ Registration PDF not available');
             }
         }
     </script>
