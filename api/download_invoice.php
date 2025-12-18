@@ -1,13 +1,9 @@
 <?php
-// Download Invoice as PDF
-// Generates and downloads invoice as a PDF file using mPDF
+// Download Invoice as HTML for Browser PDF Generation
+// No mPDF required - uses browser's built-in print-to-PDF
 
 error_reporting(0);
 ini_set('display_errors', 0);
-
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET');
-header('Access-Control-Allow-Headers: Content-Type');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     http_response_code(405);
@@ -58,36 +54,13 @@ try {
     // Generate invoice HTML
     $invoiceHTML = generateInvoiceHTML($registration);
     
-    // Check if mPDF is installed
-    $mpdfPath = __DIR__ . '/../vendor/autoload.php';
-    if (!file_exists($mpdfPath)) {
-        throw new Exception('mPDF library not found. Please install: composer require mpdf/mpdf');
-    }
-    
-    require_once $mpdfPath;
-    
-    try {
-        $mpdf = new \Mpdf\Mpdf([
-            'format' => 'A4',
-            'margin_left' => 0,
-            'margin_right' => 0,
-            'margin_top' => 0,
-            'margin_bottom' => 0,
-            'tempDir' => __DIR__ . '/../tmp',
-        ]);
-        
-        $mpdf->WriteHTML($invoiceHTML);
-        
-        $filename = 'Invoice_' . str_replace('/', '-', $registration['registration_number']) . '_' . date('YmdHis') . '.pdf';
-        $mpdf->Output($filename, 'D');
-    } catch (Exception $e) {
-        throw new Exception('PDF generation failed: ' . $e->getMessage());
-    }
+    // Output HTML for browser to convert to PDF
+    header('Content-Type: text/html; charset=utf-8');
+    echo $invoiceHTML;
     
 } catch (Exception $e) {
     http_response_code(500);
-    header('Content-Type: text/plain');
-    exit('Error: ' . $e->getMessage());
+    echo '<h1>Error</h1><p>' . htmlspecialchars($e->getMessage()) . '</p>';
 }
 
 exit;
@@ -124,7 +97,7 @@ function generateInvoiceHTML($reg) {
     $safe_level = htmlspecialchars($reg['level'], ENT_QUOTES, 'UTF-8');
     $safe_class_count = htmlspecialchars($reg['class_count'], ENT_QUOTES, 'UTF-8');
     
-    // Use a local embedded SVG logo instead of external URL
+    // Use embedded SVG logo
     $logoSvg = '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" width="80" height="80">
         <rect x="20" y="20" width="60" height="60" fill="#DC143C" stroke="#DC143C" stroke-width="2" rx="4"/>
         <text x="50" y="65" font-size="48" font-weight="bold" fill="white" text-anchor="middle" font-family="Arial">武术</text>
@@ -139,19 +112,24 @@ function generateInvoiceHTML($reg) {
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
+        @page { size: A4; margin: 0; }
+        
         body { 
             font-family: Arial, sans-serif; 
             background: white;
             color: #333;
+            margin: 0;
+            padding: 0;
         }
         
         .invoice-container { 
             width: 210mm;
-            height: 297mm;
+            min-height: 297mm;
             background: white; 
             padding: 20mm;
             color: #333;
             line-height: 1.6;
+            margin: 0 auto;
         }
         
         .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; border-bottom: 3px solid #0f3460; padding-bottom: 15px; }
@@ -196,13 +174,38 @@ function generateInvoiceHTML($reg) {
         
         .footer { margin-top: 15px; padding-top: 10px; border-top: 1px solid #e0e0e0; text-align: center; font-size: 9px; color: #999; line-height: 1.6; }
         
+        .print-button { 
+            position: fixed; 
+            top: 20px; 
+            right: 20px; 
+            padding: 15px 30px; 
+            background: #3498db; 
+            color: white; 
+            border: none; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            font-size: 16px; 
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+        }
+        
+        .print-button:hover { background: #2980b9; }
+        
         @media print { 
-            body { background: white; } 
-            .invoice-container { box-shadow: none; width: 210mm; height: 297mm; }
+            body { background: white; }
+            .invoice-container { width: 210mm; min-height: 297mm; margin: 0; }
+            .print-button { display: none; }
+        }
+        
+        @media screen {
+            body { background: #525659; padding: 20px; }
         }
     </style>
 </head>
 <body>
+    <button class="print-button" onclick="window.print()">🖨️ Print / Save as PDF</button>
+    
     <div class="invoice-container">
         <div class="header">
             <div class="company-info">
