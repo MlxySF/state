@@ -1,56 +1,45 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: POST, OPTIONS');
+header('Access-Control-Allow-Methods: POST, DELETE');
 header('Access-Control-Allow-Headers: Content-Type');
 
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    exit(0);
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    echo json_encode(['success' => false, 'error' => 'Invalid request method']);
+    exit;
 }
 
-$input = @file_get_contents('php://input');
-$data = @json_decode($input, true);
+$input = file_get_contents('php://input');
+$data = json_decode($input, true);
 
-if (!$data || !isset($data['id'])) {
-    die(json_encode(['success' => false, 'error' => 'No ID provided', 'input' => $input]));
+if (!isset($data['id'])) {
+    echo json_encode(['success' => false, 'error' => 'Missing ID parameter']);
+    exit;
 }
 
 $id = intval($data['id']);
+$registrations_file = __DIR__ . '/data/registrations.json';
 
-// Database connection - REPLACE THESE VALUES
-$host = 'localhost';
-$user = 'mlxysf_state';     // ← CHANGE THIS
-$pass = 'BIrh57MoXE6dZ';     // ← CHANGE THIS
-$db   = 'mlxysf_state';   // ← CHANGE THIS
-
-$conn = @new mysqli($host, $user, $pass, $db);
-
-if ($conn->connect_error) {
-    die(json_encode(['success' => false, 'error' => 'Connection failed: ' . $conn->connect_error]));
+if (!file_exists($registrations_file)) {
+    echo json_encode(['success' => false, 'error' => 'No registrations found']);
+    exit;
 }
 
-$stmt = $conn->prepare("DELETE FROM registrations WHERE id = ?");
+$content = file_get_contents($registrations_file);
+$registrations = json_decode($content, true) ?? [];
 
-if (!$stmt) {
-    die(json_encode(['success' => false, 'error' => 'Prepare failed: ' . $conn->error]));
+if (!isset($registrations[$id])) {
+    echo json_encode(['success' => false, 'error' => 'Registration not found']);
+    exit;
 }
 
-$stmt->bind_param('i', $id);
+// Remove the registration
+array_splice($registrations, $id, 1);
 
-if (!$stmt->execute()) {
-    die(json_encode(['success' => false, 'error' => 'Execute failed: ' . $stmt->error]));
-}
-
-$affected = $stmt->affected_rows;
-$stmt->close();
-$conn->close();
-
-if ($affected > 0) {
-    echo json_encode(['success' => true, 'message' => 'Deleted', 'id' => $id]);
+// Save back to file
+if (file_put_contents($registrations_file, json_encode($registrations, JSON_PRETTY_PRINT))) {
+    echo json_encode(['success' => true, 'message' => 'Registration deleted successfully']);
 } else {
-    echo json_encode(['success' => false, 'error' => 'ID not found']);
+    echo json_encode(['success' => false, 'error' => 'Failed to save changes']);
 }
 ?>
