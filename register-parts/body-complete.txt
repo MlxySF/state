@@ -1,1 +1,0 @@
-This is a placeholder to get the SHA. The actual complete body.html will be pushed in the next commit with all steps 1-7 including PDF templates, payment section, and success page.
