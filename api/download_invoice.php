@@ -1,7 +1,7 @@
 <?php
 /**
  * Professional Invoice PDF Generator
- * Adapted from student repo with letterhead caching
+ * Shows actual registered class names in description
  */
 
 error_reporting(E_ALL);
@@ -252,14 +252,21 @@ try {
     $pdf->Cell(20, 8, 'QTY', 1, 0, 'C', true);
     $pdf->Cell(35, 8, 'AMOUNT (RM)', 1, 1, 'R', true);
     
-    // Item row
-    $pdf->SetFont('Helvetica', '', 10);
+    // Item row - Use actual class names from events field
+    $pdf->SetFont('Helvetica', '', 9);
     $pdf->SetTextColor(0, 0, 0);
     $pdf->SetDrawColor(220, 220, 220);
     $pdf->SetLineWidth(0.2);
     
+    // Format the description: Show class names
+    $description = 'Class Registration: ' . $reg['events'];
+    // Truncate if too long
+    if (strlen($description) > 85) {
+        $description = substr($description, 0, 82) . '...';
+    }
+    
     $pdf->SetX(15);
-    $pdf->Cell(100, 8, 'Class Registration & Training', 1, 0, 'L');
+    $pdf->Cell(100, 8, $description, 1, 0, 'L');
     $pdf->Cell(30, 8, $reg['level'], 1, 0, 'C');
     $pdf->Cell(20, 8, $reg['class_count'], 1, 0, 'C');
     $pdf->SetFont('Helvetica', 'B', 10);
@@ -323,6 +330,22 @@ try {
         $pdf->SetY($current_y + 16);
         $pdf->Ln(4);
     }
+    
+    // CLASS DETAILS SECTION
+    $pdf->SetFont('Helvetica', 'B', 10);
+    $pdf->SetTextColor(15, 52, 96);
+    $pdf->SetX(15);
+    $pdf->Cell(0, 6, 'CLASS DETAILS', 0, 1, 'L');
+    
+    $pdf->SetFont('Helvetica', '', 9);
+    $pdf->SetTextColor(60, 60, 60);
+    $pdf->SetX(15);
+    $pdf->MultiCell(180, 4.5, 'Classes: ' . $reg['events'], 0, 'L');
+    
+    $pdf->SetX(15);
+    $pdf->MultiCell(180, 4.5, 'Schedule: ' . $reg['schedule'], 0, 'L');
+    
+    $pdf->Ln(2);
     
     // NOTES
     $pdf->SetFont('Helvetica', 'B', 10);
