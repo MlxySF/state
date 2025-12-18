@@ -1,1 +1,3 @@
-<!-- Not needed for static HTML version -->
+<script src="./register-parts/register.js"></script>
+</body>
+</html>

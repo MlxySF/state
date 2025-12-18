@@ -858,6 +858,8 @@
             <ul style="font-size: 14px; color: #1e40af; line-height: 1.8; padding-left: 20px;">
                 <li>Your registration and payment have been submitted 您的报名及付款已提交</li>
                 <li>Admin will review your payment receipt 管理员将审核您的付款收据</li>
+                <li>You will receive account credentials via email 您将通过电子邮件收到账户凭证</li>
+                <li>Login to student portal to track your progress 登录学生门户跟踪您的进度</li>
             </ul>
         </div>
 
@@ -877,6 +879,43 @@
                 </div>
             </button>
         </div>
+
+        <!-- Login Button - Compact Dark Sleek Design -->
+<div style="position: fixed; bottom: 24px; right: 24px; z-index: 1000;">
+    <a href="../index.php" style="
+        background: #1e293b;
+        color: white;
+        padding: 12px 20px;
+        border-radius: 16px;
+        font-weight: 600;
+        box-shadow: 0 6px 20px rgba(30, 41, 59, 0.5);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 2px solid #fbbf24;
+        font-size: 14px;
+    " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 10px 30px rgba(30, 41, 59, 0.6)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 6px 20px rgba(30, 41, 59, 0.5)';">
+        <div style="
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        ">
+            <i class="fas fa-arrow-right" style="font-size: 14px; color: #1e293b;"></i>
+        </div>
+        <div style="text-align: left;">
+            <div style="font-size: 13px; font-weight: 700; line-height: 1.3;">Student Login</div>
+            <div style="font-size: 10px; color: #fbbf24; font-weight: 500;">学生登录 →</div>
+        </div>
+    </a>
+</div>
+
     </div>
 </div>
 
