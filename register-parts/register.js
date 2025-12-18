@@ -13,17 +13,46 @@ let savedPdfBlob = null;
 let receiptBase64 = null;
 
 // ========================================
-// DOM CONTENT LOADED
+// DOM CONTENT LOADED - WITH DELAY
 // ========================================
 document.addEventListener("DOMContentLoaded", function() {
-    document.getElementById('today-date').value = new Date().toLocaleDateString('en-GB');
-    document.getElementById('ic').addEventListener('input', formatIC);
-    document.getElementById('ic').addEventListener('input', calculateAge);
-    document.getElementById('parent-ic').addEventListener('input', formatIC);
-    document.getElementById('phone').addEventListener('input', formatPhone);
+    // Add small delay to ensure all DOM elements are fully loaded
+    setTimeout(initializeForm, 100);
+});
+
+function initializeForm() {
+    // Set today's date
+    const todayDateEl = document.getElementById('today-date');
+    if (todayDateEl) {
+        todayDateEl.value = new Date().toLocaleDateString('en-GB');
+    }
     
-    document.getElementById('school').addEventListener('change', toggleOtherSchool);
+    // IC field listeners
+    const icEl = document.getElementById('ic');
+    if (icEl) {
+        icEl.addEventListener('input', formatIC);
+        icEl.addEventListener('input', calculateAge);
+    }
     
+    // Parent IC field
+    const parentIcEl = document.getElementById('parent-ic');
+    if (parentIcEl) {
+        parentIcEl.addEventListener('input', formatIC);
+    }
+    
+    // Phone field
+    const phoneEl = document.getElementById('phone');
+    if (phoneEl) {
+        phoneEl.addEventListener('input', formatPhone);
+    }
+    
+    // School dropdown
+    const schoolEl = document.getElementById('school');
+    if (schoolEl) {
+        schoolEl.addEventListener('change', toggleOtherSchool);
+    }
+    
+    // Status radios
     const statusRadios = document.querySelectorAll('.status-radio');
     statusRadios.forEach(radio => {
         radio.addEventListener('change', function() {
@@ -32,9 +61,10 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     });
     
+    // Initialize status and schedule
     updateStatusRadioStyle();
     updateScheduleAvailability();
-});
+}
 
 // ========================================
 // STATUS RADIO STYLING
@@ -84,7 +114,7 @@ function updateScheduleAvailability() {
                 allScheduleLabels.forEach(label => {
                     const scheduleKey = label.getAttribute('data-schedule');
                     const checkbox = label.querySelector('input[type="checkbox"]');
-                    if (scheduleKey === 'wsa-sun-10am' || scheduleKey === 'wsa-sun-12pm') {
+                    if (scheduleKey === 'wsa-sun-10am' || scheduleKey === 'wsa-sun-12pm' || scheduleKey === 'wsa-wed-8pm') {
                         label.style.display = 'flex';
                         if (checkbox) checkbox.disabled = false;
                     } else {
