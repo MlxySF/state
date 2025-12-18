@@ -36,7 +36,7 @@
         .error { background: #f8d7da; color: #721c24; padding: 20px; border-radius: 5px; margin: 20px 0; }
         .no-image { color: #95a5a6; font-style: italic; margin-top: 10px; }
         
-        /* Collapsible PDF Preview Styles */
+        /* Collapsible PDF/Invoice Preview Styles */
         .pdf-collapsible {
             background: white;
             border-radius: 10px;
@@ -58,6 +58,14 @@
         
         .pdf-header:hover {
             background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        }
+        
+        .invoice-header {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        
+        .invoice-header:hover {
+            background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%);
         }
         
         .pdf-header h2 {
@@ -93,7 +101,7 @@
             padding: 20px;
         }
         
-        .pdf-embed {
+        .pdf-embed, .invoice-embed {
             width: 100%;
             height: 800px;
             border: 2px solid #ddd;
@@ -244,7 +252,7 @@
 
             <!-- Signed Agreement PDF Preview (Collapsible) -->
             <div class="pdf-collapsible">
-                <div class="pdf-header" onclick="togglePdfPreview()">
+                <div class="pdf-header" onclick="togglePdfPreview('pdf')">
                     <h2>📝 Signed Agreement Document</h2>
                     <span class="pdf-toggle-icon" id="pdfToggleIcon">▼</span>
                 </div>
@@ -258,6 +266,27 @@
                     <div class="pdf-actions">
                         <button class="btn btn-download" onclick="downloadSignedAgreement()">💾 Download Signed Agreement</button>
                         <button class="btn btn-download" onclick="openPdfNewTab()">↗ Open in New Tab</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Invoice Preview (Collapsible) - NEW -->
+            <div class="pdf-collapsible">
+                <div class="pdf-header invoice-header" onclick="togglePdfPreview('invoice')">
+                    <h2>🧾 Invoice Document</h2>
+                    <span class="pdf-toggle-icon" id="invoiceToggleIcon">▼</span>
+                </div>
+                <div class="pdf-content" id="invoiceContent">
+                    <div class="pdf-viewer" id="invoiceViewerContainer">
+                        <iframe id="invoiceEmbed" class="invoice-embed"></iframe>
+                        <div id="noInvoice" class="pdf-no-preview" style="display: none;">
+                            <p>🧾 Loading invoice...</p>
+                        </div>
+                    </div>
+                    <div class="pdf-actions">
+                        <button class="btn btn-download" onclick="downloadInvoice()">💾 Download Invoice</button>
+                        <button class="btn btn-download" onclick="openInvoiceNewTab()">↗ Open in New Tab</button>
+                        <button class="btn btn-download" onclick="printInvoice()">🖨️ Print Invoice</button>
                     </div>
                 </div>
             </div>
@@ -279,6 +308,7 @@
         let registrationId = null;
         let registrationData = null;
         let pdfUrl = null;
+        let invoiceHTML = null;
 
         // Get registration ID from URL
         const urlParams = new URLSearchParams(window.location.search);
@@ -290,6 +320,7 @@
             document.getElementById('errorMessage').textContent = 'Error: No registration ID provided';
         } else {
             loadRegistration();
+            loadInvoice();
         }
 
         // Helper function to ensure proper base64 data URI format
@@ -298,19 +329,17 @@
                 return null;
             }
             
-            // If already has data URI prefix, return as is
             if (base64String.startsWith('data:')) {
                 return base64String;
             }
             
-            // Add the proper data URI prefix
             return `data:${mimeType};base64,${base64String}`;
         }
 
-        // Toggle PDF preview section
-        function togglePdfPreview() {
-            const content = document.getElementById('pdfContent');
-            const icon = document.getElementById('pdfToggleIcon');
+        // Toggle PDF/Invoice preview section
+        function togglePdfPreview(type) {
+            const content = document.getElementById(type === 'pdf' ? 'pdfContent' : 'invoiceContent');
+            const icon = document.getElementById(type === 'pdf' ? 'pdfToggleIcon' : 'invoiceToggleIcon');
             
             if (content.classList.contains('open')) {
                 content.classList.remove('open');
@@ -327,6 +356,70 @@
                 window.open(pdfUrl, '_blank');
             } else {
                 alert('⚠️ PDF not available');
+            }
+        }
+
+        // Open Invoice in new tab
+        function openInvoiceNewTab() {
+            if (invoiceHTML) {
+                const newWindow = window.open();
+                newWindow.document.write(invoiceHTML);
+                newWindow.document.close();
+            } else {
+                alert('⚠️ Invoice not available');
+            }
+        }
+
+        // Print Invoice
+        function printInvoice() {
+            if (invoiceHTML) {
+                const printWindow = window.open('', '', 'height=600,width=800');
+                printWindow.document.write(invoiceHTML);
+                printWindow.document.close();
+                printWindow.focus();
+                printWindow.print();
+            } else {
+                alert('⚠️ Invoice not available');
+            }
+        }
+
+        // Download Invoice
+        function downloadInvoice() {
+            if (!invoiceHTML || !registrationData) {
+                alert('⚠️ Invoice not available');
+                return;
+            }
+
+            const blob = new Blob([invoiceHTML], { type: 'text/html' });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `Invoice_${registrationData.registration_number}.html`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+        }
+
+        async function loadInvoice() {
+            try {
+                const response = await fetch(`../api/get_invoice.php?id=${registrationId}`);
+                const data = await response.json();
+
+                if (data.success && data.invoice_html) {
+                    invoiceHTML = data.invoice_html;
+                    const invoiceEmbed = document.getElementById('invoiceEmbed');
+                    const blob = new Blob([invoiceHTML], { type: 'text/html' });
+                    const url = window.URL.createObjectURL(blob);
+                    invoiceEmbed.src = url;
+                    console.log('Invoice loaded successfully');
+                } else {
+                    document.getElementById('noInvoice').innerHTML = '<p>❌ Failed to load invoice</p>';
+                    console.error('Failed to load invoice:', data.error);
+                }
+            } catch (error) {
+                console.error('Error loading invoice:', error);
+                document.getElementById('noInvoice').innerHTML = '<p>❌ Error loading invoice</p>';
             }
         }
 
@@ -386,7 +479,7 @@
             statusEl.textContent = reg.payment_status.toUpperCase();
             statusEl.className = 'status ' + reg.payment_status;
 
-            // Payment Receipt - with proper base64 handling
+            // Payment Receipt
             const receiptData = ensureDataUri(reg.payment_receipt_base64, 'image/png');
             if (receiptData) {
                 const receiptImg = document.getElementById('paymentReceipt');
@@ -487,7 +580,6 @@
             }
 
             try {
-                // Ensure proper PDF data URI format
                 const pdfData = ensureDataUri(registrationData.signed_pdf_base64, 'application/pdf');
                 
                 if (!pdfData) {
@@ -495,7 +587,6 @@
                     return;
                 }
                 
-                // Convert base64 to blob for proper download
                 const base64Data = pdfData.split(',')[1];
                 const binaryString = atob(base64Data);
                 const bytes = new Uint8Array(binaryString.length);
