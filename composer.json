@@ -1,0 +1,17 @@
+{
+    "name": "wushu-sport-academy/registration-system",
+    "description": "Wushu Sport Academy Registration System with Email Notifications",
+    "type": "project",
+    "require": {
+        "php": ">=7.4",
+        "phpmailer/phpmailer": "^6.9"
+    },
+    "autoload": {
+        "psr-4": {
+            "WushuAcademy\\": "src/"
+        }
+    },
+    "config": {
+        "optimize-autoloader": true
+    }
+}
