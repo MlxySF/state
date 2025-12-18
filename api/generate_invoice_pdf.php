@@ -1,6 +1,103 @@
 <?php
-// Invoice Generator
-// Generates invoice HTML for registration payments
+// Invoice PDF Generator
+// Generates invoice PDF using TCPDF or FPDF library
+
+// Simple invoice generator without requiring external libraries
+// Uses PHP's built-in functionality to create a basic PDF
+
+function generateInvoicePDF($registrationData) {
+    // For now, create a simple HTML-based invoice that can be converted to PDF
+    // In production, you'd use TCPDF or FPDF library
+    
+    $invoiceHTML = getInvoiceHTML($registrationData);
+    
+    // Convert HTML to PDF using wkhtmltopdf if available, or return HTML
+    // For simplicity, we'll create a basic text-based format
+    return createSimpleInvoicePDF($registrationData);
+}
+
+function createSimpleInvoicePDF($data) {
+    // Create a simple PDF using FPDF-compatible approach
+    // This is a minimal implementation - for production use TCPDF
+    
+    $invoiceNumber = 'INV-' . $data['registration_number'];
+    $invoiceDate = date('Y-m-d');
+    
+    // Generate PDF content
+    require_once __DIR__ . '/simple_pdf.php';
+    
+    $pdf = new SimplePDF();
+    $pdf->addPage();
+    
+    // Header
+    $pdf->setFont('Arial', 'B', 20);
+    $pdf->cell(0, 10, 'WUSHU SPORT ACADEMY', 0, 1, 'C');
+    $pdf->setFont('Arial', '', 10);
+    $pdf->cell(0, 5, 'Official Payment Invoice', 0, 1, 'C');
+    $pdf->ln(10);
+    
+    // Invoice details
+    $pdf->setFont('Arial', 'B', 12);
+    $pdf->cell(0, 8, 'INVOICE', 0, 1);
+    $pdf->setFont('Arial', '', 10);
+    $pdf->cell(50, 6, 'Invoice Number:', 0, 0);
+    $pdf->cell(0, 6, $invoiceNumber, 0, 1);
+    $pdf->cell(50, 6, 'Invoice Date:', 0, 0);
+    $pdf->cell(0, 6, $invoiceDate, 0, 1);
+    $pdf->cell(50, 6, 'Registration Number:', 0, 0);
+    $pdf->cell(0, 6, $data['registration_number'], 0, 1);
+    $pdf->ln(5);
+    
+    // Student details
+    $pdf->setFont('Arial', 'B', 12);
+    $pdf->cell(0, 8, 'STUDENT INFORMATION', 0, 1);
+    $pdf->setFont('Arial', '', 10);
+    $pdf->cell(50, 6, 'Name:', 0, 0);
+    $pdf->cell(0, 6, $data['name_en'], 0, 1);
+    $pdf->cell(50, 6, 'IC Number:', 0, 0);
+    $pdf->cell(0, 6, $data['ic'], 0, 1);
+    $pdf->cell(50, 6, 'Email:', 0, 0);
+    $pdf->cell(0, 6, $data['email'], 0, 1);
+    $pdf->cell(50, 6, 'Phone:', 0, 0);
+    $pdf->cell(0, 6, $data['phone'], 0, 1);
+    $pdf->ln(5);
+    
+    // Course details
+    $pdf->setFont('Arial', 'B', 12);
+    $pdf->cell(0, 8, 'COURSE DETAILS', 0, 1);
+    $pdf->setFont('Arial', '', 10);
+    $pdf->cell(50, 6, 'Classes:', 0, 0);
+    $pdf->multiCell(0, 6, $data['events'], 0, 1);
+    $pdf->cell(50, 6, 'Schedule:', 0, 0);
+    $pdf->multiCell(0, 6, $data['schedule'], 0, 1);
+    $pdf->ln(5);
+    
+    // Payment details
+    $pdf->setFont('Arial', 'B', 12);
+    $pdf->cell(0, 8, 'PAYMENT DETAILS', 0, 1);
+    $pdf->line(10, $pdf->getY(), 200, $pdf->getY());
+    $pdf->ln(2);
+    
+    $pdf->setFont('Arial', 'B', 10);
+    $pdf->cell(100, 8, 'Description', 1, 0, 'C');
+    $pdf->cell(40, 8, 'Amount (RM)', 1, 1, 'C');
+    
+    $pdf->setFont('Arial', '', 10);
+    $pdf->cell(100, 8, 'Registration Fee - ' . $data['events'], 1, 0);
+    $pdf->cell(40, 8, number_format($data['payment_amount'], 2), 1, 1, 'R');
+    
+    $pdf->setFont('Arial', 'B', 10);
+    $pdf->cell(100, 8, 'Total Amount', 1, 0, 'R');
+    $pdf->cell(40, 8, 'RM ' . number_format($data['payment_amount'], 2), 1, 1, 'R');
+    
+    $pdf->ln(10);
+    
+    // Footer
+    $pdf->setFont('Arial', 'I', 9);
+    $pdf->multiCell(0, 5, 'Payment Status: APPROVED\nPayment Date: ' . $data['payment_date'] . '\n\nThank you for choosing Wushu Sport Academy!', 0, 'C');
+    
+    return $pdf->output('S'); // Return as string
+}
 
 function getInvoiceHTML($data) {
     $invoiceNumber = 'INV-' . $data['registration_number'];
