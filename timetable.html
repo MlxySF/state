@@ -29,6 +29,159 @@
             overflow: hidden;
         }
 
+        /* STUNNING JANUARY 2026 ANNOUNCEMENT BANNER */
+        .announcement-banner {
+            background: linear-gradient(135deg, #FF2C2C 0%, #FF6B6B 50%, #FF2C2C 100%);
+            padding: 50px 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(255, 44, 44, 0.5);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from {
+                box-shadow: 0 10px 40px rgba(255, 44, 44, 0.5);
+            }
+            to {
+                box-shadow: 0 10px 60px rgba(255, 44, 44, 0.8);
+            }
+        }
+
+        .announcement-banner::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 15% 30%, rgba(255, 255, 255, 0.25) 0%, transparent 60%),
+                radial-gradient(circle at 85% 70%, rgba(255, 255, 255, 0.2) 0%, transparent 60%);
+            pointer-events: none;
+            animation: shimmer 3s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        .announcement-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            display: inline-block;
+            animation: bounce 2s ease-in-out infinite;
+            filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.4));
+        }
+
+        @keyframes bounce {
+            0%, 100% { 
+                transform: translateY(0) scale(1); 
+            }
+            50% { 
+                transform: translateY(-20px) scale(1.1); 
+            }
+        }
+
+        .announcement-title-main {
+            font-size: 52px;
+            font-weight: 900;
+            color: #FFFFFF;
+            margin-bottom: 15px;
+            text-shadow: 3px 3px 8px rgba(0, 0, 0, 0.3);
+            font-family: 'Noto Serif SC', 'SimHei', serif;
+            letter-spacing: 3px;
+            position: relative;
+            z-index: 1;
+            animation: titlePulse 2s ease-in-out infinite;
+        }
+
+        @keyframes titlePulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .announcement-title-sub {
+            font-size: 38px;
+            font-weight: 700;
+            color: #FFF9C4;
+            margin-bottom: 25px;
+            text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.3);
+            font-family: 'Poppins', sans-serif;
+            letter-spacing: 2px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .announcement-date {
+            display: inline-block;
+            background: #FFFFFF;
+            color: #FF2C2C;
+            padding: 20px 50px;
+            border-radius: 50px;
+            font-size: 42px;
+            font-weight: 900;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            margin: 20px 0;
+            position: relative;
+            z-index: 1;
+            font-family: 'Poppins', sans-serif;
+            letter-spacing: 2px;
+            animation: datePulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes datePulse {
+            0%, 100% { 
+                transform: scale(1);
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            }
+            50% { 
+                transform: scale(1.08);
+                box-shadow: 0 15px 50px rgba(0, 0, 0, 0.5);
+            }
+        }
+
+        .announcement-message {
+            font-size: 28px;
+            color: #FFFFFF;
+            font-weight: 600;
+            margin-top: 25px;
+            position: relative;
+            z-index: 1;
+            line-height: 1.6;
+        }
+
+        .announcement-stars {
+            display: inline-block;
+            margin: 0 15px;
+            font-size: 35px;
+            animation: rotateStar 3s linear infinite;
+        }
+
+        @keyframes rotateStar {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .announcement-sparkle {
+            display: inline-block;
+            margin: 0 10px;
+            animation: sparkleAnimation 1.5s ease-in-out infinite;
+        }
+
+        @keyframes sparkleAnimation {
+            0%, 100% { 
+                opacity: 1; 
+                transform: scale(1) rotate(0deg); 
+            }
+            50% { 
+                opacity: 0.4; 
+                transform: scale(1.4) rotate(180deg); 
+            }
+        }
+
         .header {
             background: linear-gradient(135deg, #1a1a2e 0%, #2d3561 50%, #1a1a2e 100%);
             padding: 50px 30px;
@@ -459,6 +612,11 @@
                 border-radius: 0;
             }
 
+            .announcement-banner {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
             .header {
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
@@ -528,6 +686,31 @@
 
         /* Responsive Design */
         @media (max-width: 768px) {
+            .announcement-banner {
+                padding: 30px 20px;
+            }
+
+            .announcement-icon {
+                font-size: 60px;
+            }
+
+            .announcement-title-main {
+                font-size: 36px;
+            }
+
+            .announcement-title-sub {
+                font-size: 26px;
+            }
+
+            .announcement-date {
+                font-size: 32px;
+                padding: 15px 35px;
+            }
+
+            .announcement-message {
+                font-size: 20px;
+            }
+
             .content {
                 padding: 20px;
             }
@@ -570,6 +753,33 @@
     </div>
 
     <div class="document">
+        <!-- STUNNING JANUARY 2026 ANNOUNCEMENT BANNER -->
+        <div class="announcement-banner">
+            <div class="announcement-icon">🎉</div>
+            <h1 class="announcement-title-main">2026年一月开课通知</h1>
+            <h2 class="announcement-title-sub">Classes Start January 2026</h2>
+            <div class="announcement-date">
+                <span class="announcement-sparkle">✨</span>
+                2026年1月
+                <span class="announcement-sparkle">✨</span>
+            </div>
+            <div class="announcement-date" style="margin-top: 15px;">
+                <span class="announcement-sparkle">⭐</span>
+                JANUARY 2026
+                <span class="announcement-sparkle">⭐</span>
+            </div>
+            <p class="announcement-message">
+                <span class="announcement-stars">🌟</span>
+                新的一年，新的开始！欢迎各位学员报名参加！
+                <span class="announcement-stars">🌟</span>
+            </p>
+            <p class="announcement-message" style="margin-top: 10px;">
+                <span class="announcement-stars">⚡</span>
+                New Year, New Beginning! Welcome All Students!
+                <span class="announcement-stars">⚡</span>
+            </p>
+        </div>
+
         <div class="header">
             <h1 class="main-title">2026 年武术训练安排总表</h1>
             <p class="subtitle">Wushu Training Schedule 2026</p>
