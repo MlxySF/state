@@ -116,11 +116,13 @@
         }
 
         .banner-icon {
-            font-size: 60px;
-            margin-bottom: 15px;
-            display: inline-block;
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 20px;
+            display: block;
             animation: float 3s ease-in-out infinite;
             filter: drop-shadow(0 5px 15px rgba(0, 0, 0, 0.3));
+            object-fit: contain;
         }
 
         .banner-title {
@@ -535,6 +537,11 @@
                 font-size: 40px;
             }
 
+            .banner-icon {
+                width: 70px;
+                height: 70px;
+            }
+
             .banner-title {
                 font-size: 24px;
             }
@@ -572,7 +579,7 @@
 
         <!-- STUNNING WEBSITE BANNER -->
         <div class="website-banner">
-            <div class="banner-icon">🌐</div>
+            <img src="https://wushu-assets.s3.ap-southeast-1.amazonaws.com/Wushu+Sport+Academy+Circle+Yellow.png" alt="Wushu Sport Academy Logo" class="banner-icon">
             <h2 class="banner-title">Visit Our Official Website</h2>
             <p class="banner-subtitle">Register & Access Our Complete System Online</p>
             <a href="https://wushusportacademy.com" target="_blank" class="banner-website">
