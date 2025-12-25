@@ -269,6 +269,23 @@
             margin: 0 8px;
         }
 
+        .pointing-hand {
+            font-size: 50px;
+            display: inline-block;
+            margin-left: 20px;
+            animation: pointBounce 1s ease-in-out infinite;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+        }
+
+        @keyframes pointBounce {
+            0%, 100% {
+                transform: translateX(0);
+            }
+            50% {
+                transform: translateX(10px);
+            }
+        }
+
         .content {
             padding: 40px 30px;
         }
@@ -667,6 +684,11 @@
                 position: static;
                 margin-bottom: 20px;
             }
+
+            .pointing-hand {
+                font-size: 35px;
+                margin-left: 10px;
+            }
         }
     </style>
 </head>
@@ -688,6 +710,7 @@
             <a href="https://wushusportacademy.com" target="_blank" class="banner-website">
                 wushusportacademy.com
             </a>
+            <span class="pointing-hand">👉</span>
             <!--<p class="banner-cta">
                 <span class="sparkle">✨</span>
                 报名注册和系统管理 | Registration & System Management
@@ -1146,7 +1169,7 @@
                     武術需勤於克服困難、不斷鍛鍊，<br>才能改變自己的能力與堅定信念
                 </h3>
                 <p style="font-size: 29px; color: #555; font-style: italic; font-family: 'Poppins', sans-serif; max-width: 900px; margin: 0 auto; line-height: 1.6;">
-                    Martial arts require diligence in overcoming difficulties and constant training in order to transform one’s abilities and strengthen one’s determination.
+                    Martial arts require diligence in overcoming difficulties and constant training in order to transform one's abilities and strengthen one's determination.
                 </p>
             </div>
 
